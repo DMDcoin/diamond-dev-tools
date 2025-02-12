@@ -31,6 +31,7 @@ async function runAdd() {
   }
 }
 
+/// todo: make regex supported version.
 async function runReplace(valueOld: string, valueNew: string) {
   const nodes = await getNodesFromCliArgs();
 
@@ -75,6 +76,27 @@ async function runIncreaseNumOfConnections() {
   
 }
 
+async function runDeactivateReservedPeers() {
+
+  const valueOld = 'reserved_peers = "reserved-peers"';
+  const valueNew = '#reserved_peers = "reserved-peers"';
+  // reserved_peers = "reserved-peers"
+
+  await runReplace(valueOld, valueNew);
+
+}
+
+async function runAdjustPeers() {
+
+
+  // reserved_peers = "reserved-peers"
+
+  await runReplace("min_peers = 27", "min_peers = 2");
+  await runReplace("max_peers = 148", "max_peers = 5");
+  await runDeactivateReservedPeers();
+}
+
+
 // async function runApplyAdditionConfigs() {
 
 //   const valueOld = 'gas_floor_target = "300000000"\n';
@@ -95,3 +117,4 @@ async function runIncreaseNumOfConnections() {
   
 
 // runApplyAdditionConfigs();
+runAdjustPeers() ;
