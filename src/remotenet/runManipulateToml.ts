@@ -91,9 +91,9 @@ async function runAdjustPeers() {
 
   // reserved_peers = "reserved-peers"
 
-  await runReplace("min_peers = 27", "min_peers = 2");
-  await runReplace("max_peers = 148", "max_peers = 5");
-  await runDeactivateReservedPeers();
+  await runReplace("min_peers = 27", "min_peers = 5");
+  await runReplace("max_peers = 5", "max_peers = 30");
+  //await runDeactivateReservedPeers();
 }
 
 
