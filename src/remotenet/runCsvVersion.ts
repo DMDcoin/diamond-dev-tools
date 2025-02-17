@@ -5,6 +5,7 @@ import { ContractManager } from "../contractManager";
 import { cmdR } from "../remoteCommand";
 import { getNodesFromCliArgs } from "./remotenetArgs";
 import { getNodeVersion } from "./getNodeVersion";
+import { NodeState } from "../net/nodeManager";
 
 
 function parseVersion(version: string) {
@@ -13,19 +14,20 @@ function parseVersion(version: string) {
 
   try {
 
-    const parts = version.split("/");
+    const parts = version.split("/"); // v3.3.5-hbbft-0.9.7-unstable-d8b55f726-20250210
     const versionPart = parts[1];
     const versionParts = versionPart.split("-");
 
     const date = versionParts[versionParts.length - 1];
     
     const commit = versionParts[versionParts.length - 2];
+    const versionString = versionParts.slice(0, versionParts.length - 2).join("-");
 
-    return { date, commit };
+    return { date, commit, versionString };
 
   } catch {
     
-    return { date: "", commit: "" };
+    return { date: "", commit: "", versionString: "" };
   }
   
 }
@@ -33,18 +35,23 @@ function parseVersion(version: string) {
 async function run() {
 
   const nodes = await getNodesFromCliArgs();
-  const contracts = ContractManager.get();
-  const block = await contracts.web3.eth.getBlockNumber();
+  const contractManager = ContractManager.get();
+  const block = await contractManager.web3.eth.getBlockNumber();
 
-  const minStake = await contracts.getMinStake(block);
+  const minStake = await contractManager.getMinStake(block);
 
   
-  let allValidators = (await contracts.getValidators()).map(x => x.toLowerCase());
+  let allValidators = (await contractManager.getValidators()).map(x => x.toLowerCase());
 
   console.log(`min stake: ${minStake.toString(10)}`);
   const csvLines: Array<String> = [];
-  for (const n of nodes) {
 
+  await nodes.forEach(async (n) => { 
+    await csvLine(n);
+  });
+  
+
+   async function csvLine(n: NodeState) {
     const nodeName = `hbbft${n.nodeID}`;
     console.log(`=== ${nodeName} ===`);
 
@@ -57,16 +64,17 @@ async function run() {
     let isAvailable = false;
     let isStaked = false;
 
+    let bonusScore = await contractManager.getBonusScore(n.address ?? "", block);
 
     let totalStake = new BigNumber(0);
     let stakeString = "0";
 
     let poolAddress = "";
     if (n.address) {
-      isAvailable = await contracts.isValidatorAvailable(n.address, block);
+      isAvailable = await contractManager.isValidatorAvailable(n.address, block);
 
-      poolAddress = await contracts.getAddressStakingByMining(n.address);
-      totalStake = await contracts.getTotalStake(poolAddress);
+      poolAddress = await contractManager.getAddressStakingByMining(n.address);
+      totalStake = await contractManager.getTotalStake(poolAddress);
       stakeString = totalStake.toString(10);
       console.log(`stake: ${stakeString}`);
       isStaked = totalStake.isGreaterThanOrEqualTo(minStake);
@@ -85,10 +93,11 @@ async function run() {
 
     const sha1binaryDuo = cmdR(nodeName, `sha1sum ~/${ConfigManager.getNetworkConfig().installDir}/diamond-node`);
     const sha1binary = sha1binaryDuo.split(" ")[0];
-    csvLines.push(`"${n.sshNodeName()}";"${current}";"${isAvailable}";"${isStaked}";"${stakeString}";"${n.address}";"${poolAddress}";"${sha1binary}";"${version}";"${parsedVersion.date}";"${parsedVersion.commit}";`);
+    csvLines.push(`"${n.sshNodeName()}";"${current}";"${isAvailable}";"${isStaked}";"${stakeString}";"${n.address}";"${poolAddress}";"${sha1binary}";"${version}";"${parsedVersion.date}";"${parsedVersion.commit}"; ${parsedVersion.versionString}";" ${bonusScore}";`);
+    
   }
 
-  console.log('"node";"current";"available";"staked";"stake";"address";"poolAddress", "sha1binary"; "version";"versionDate";"versionCommit";');
+  console.log('"node";"current";"available";"staked";"stake";"address";"poolAddress", "sha1binary"; "version";"versionDate";"versionCommit";"versionNumber";"bonusScore";');
   csvLines.forEach(x => console.log(x));
 }
 
