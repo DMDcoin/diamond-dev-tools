@@ -46,12 +46,12 @@ async function run() {
   console.log(`min stake: ${minStake.toString(10)}`);
   const csvLines: Array<String> = [];
 
-  await nodes.forEach(async (n) => { 
-    await csvLine(n);
-  });
+  await Promise.all(nodes.map(async (n) => {
+      return csvLine(n);
+  }));
   
 
-   async function csvLine(n: NodeState) {
+  async function csvLine(n: NodeState) {
     const nodeName = `hbbft${n.nodeID}`;
     console.log(`=== ${nodeName} ===`);
 
@@ -96,7 +96,7 @@ async function run() {
     csvLines.push(`"${n.sshNodeName()}";"${current}";"${isAvailable}";"${isStaked}";"${stakeString}";"${n.address}";"${poolAddress}";"${sha1binary}";"${version}";"${parsedVersion.date}";"${parsedVersion.commit}"; ${parsedVersion.versionString}";" ${bonusScore}";`);
     
   }
-
+  console.log("Output:"); 
   console.log('"node";"current";"available";"staked";"stake";"address";"poolAddress", "sha1binary"; "version";"versionDate";"versionCommit";"versionNumber";"bonusScore";');
   csvLines.forEach(x => console.log(x));
 }
