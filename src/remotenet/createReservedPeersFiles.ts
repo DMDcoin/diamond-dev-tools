@@ -4,12 +4,16 @@ import * as fs from 'fs';
 import { ConfigManager } from '../configManager';
 import { loadNodeInfosFromTestnetDirectory } from '../net/nodeInfo';
 import { cmdR } from '../remoteCommand';
+import { getNodesFromCliArgs } from './remotenetArgs';
 
 export async function createReservedPeersFiles() {
 
 
   const nodeInfos = loadNodeInfosFromTestnetDirectory();
   let nodesDir = ConfigManager.getNetworkConfig().nodesDir;
+
+
+  const nodeInfosFromCli = getNodesFromCliArgs();
 
   if (nodeInfos) {
 
@@ -19,9 +23,11 @@ export async function createReservedPeersFiles() {
 
     for (let i = 0; i < nodeInfos.public_keys.length; i++) {
 
-      if (i === 3) {
+      
+      if ((await nodeInfosFromCli).filter(x=> x.nodeID === i + 1).length !== 1) {
         continue;
       }
+
       const ip_from_node = cmdR(`hbbft${i + 1}`, 'curl ifconfig.me');
       ips.push(ip_from_node);
     }
