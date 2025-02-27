@@ -10,7 +10,20 @@ import * as _ from  'underscore';
 function transactionsToString(transactions: Array<Transaction>) {
 
     const groupyByFrom : _.Dictionary<Transaction[]> = _.groupBy(transactions, function(x){ return x.from });
-    console.log(groupyByFrom);
+
+
+    for (const key in groupyByFrom) { 
+        let txs = groupyByFrom[key];
+
+        console.log("=== sender: ", key, " ===");
+
+        txs = txs.sort((a, b) => {return a.nonce - b.nonce});
+
+        for (const tx of txs) {
+            console.log("tx: ", tx.nonce, " - ", tx.hash);
+        }
+    }
+    
 }
 
 async function start() {

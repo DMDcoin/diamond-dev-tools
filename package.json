@@ -18,7 +18,7 @@
     "keepalive-wait": "node src/keepalive-wait.js",
     "keepalive-nowait": "node src/keepalive-nowait.js",
     "continuous": "npm run backup && ts-node src/runContinousTransactionsSender.ts",
-    "pendingTransactions": "ts-node src/runShowPendingTransactions.ts",
+    "net-print-pendingTransactions": "ts-node src/runShowPendingTransactions.ts",
     "heartbeat": "NODE_ENV=heartbeat ts-node src/runContinousTransactionsSender.ts",
     "t_onceASecond1": "NODE_ENV=onceASecond1 ts-node src/runContinousTransactionsSender.ts",
     "t_latency_5m_baseline10tx": "NODE_ENV=latency_5m_baseline10tx ts-node src/runContinousTransactionsSender.ts",
