@@ -1,31 +1,48 @@
 import request from "request";
 import Web3 from "web3";
 import { Transaction } from "web3-core";
+import { sleep } from "../utils/time";
 
 
 export async function getPendingTransactions(web3: Web3) : Promise<Array<Transaction>> {
 
-
-
     const fn = "parity_pendingTransactions";
-    const result = sendRPCCall(web3, fn, []);
+    const result = await sendRPCCall(web3, fn, []);
 
-    return [];
+    // console.log("pending: ", result.length);
+    
+    // console.log("END: pending: ", result.length);
+
+    
+    // for (let i = 0; i < result.length; i++) {
+    //     const element = result[i];
+    //     //console.log("pending: ", element);
+    // }
+
+    //const mapped = result.map(x => { x as Transaction });
+
+    return result as Array<Transaction>;
     // "parity_pendingTransactions"
 }
 
 export async function getPendingTransactionsStats(web3: Web3) {
-    sendRPCCall(web3, "parity_pendingTransactionsStats", []);
+    return sendRPCCall(web3, "parity_pendingTransactionsStats", []);
 }
 
-export async function sendRPCCall(web3: Web3, method: string, params: []) {
+// function appendBuffer(source: Buffer, target: Buffer) {
+//     for (let i = 0; i < source.length; i++) {
+//         target.writeInt8(source.readInt8(i), target.length + 1);
+//     }
+// }
+
+export async function sendRPCCall(web3: Web3, method: string, params: []) : Promise<any> {
 
     var headersOpt = {
         "content-type": "application/json",
     };               
 
     const address = "https://beta-rpc.bit.diamonds";
-    
+    //const address = "http://38.242.206.143:54100";
 
     let rpc_cmd =
     {
@@ -35,6 +52,7 @@ export async function sendRPCCall(web3: Web3, method: string, params: []) {
       id: Math.round(Math.random() * 100000)
     }
 
+    
 
     const post = request.post(
         address, // todo: distribute transactions here to different nodes.
@@ -57,22 +75,40 @@ export async function sendRPCCall(web3: Web3, method: string, params: []) {
 
         });
 
-    post.on("response", async (r) => {
-        const result = r.read();
-        //console.log(result);
+    let ended = false;
+
+    post.on("end", async () => {
+        console.log("end");
+        ended = true;
     });
 
-    const data = await post.on("data", async (d) => {
-        console.log("data");
 
-        const buffer = d as Buffer;
+    let responseBuffer: Buffer = Buffer.alloc(0);
 
+    post.on("data", async (d) => {
+       
+        let buffer = d as Buffer;
 
         if (buffer) {
-            
-            console.log(buffer.toString('utf8'));
+            // responseBuffer = Buffer.concat(responseBuffer, buffer);
+            //appendBuffer(buffer, responseBuffer);
+            responseBuffer = Buffer.concat([responseBuffer, buffer]);
         }
+        
         // console.log(d);
     });
 
+    while (!ended) {
+        await sleep(50);
+    }
+
+    if (responseBuffer) {
+        
+        const resultJson = responseBuffer.toString('utf8');
+        // console.log(resultJson);
+        const parsed = JSON.parse(resultJson);
+        return parsed.result;
+    }
+
+    return [];
 }
