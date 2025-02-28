@@ -30,7 +30,7 @@ async function run() {
     
     // web3.currentProvider.
 
-     let pending: Array<Transaction> = await getPendingTransactions(web3);
+     let pending: Array<Transaction> = await getPendingTransactions();
 
      console.log("got pending transaction: ", pending.length);
     // try {

@@ -2,12 +2,13 @@ import request from "request";
 import Web3 from "web3";
 import { Transaction } from "web3-core";
 import { sleep } from "../utils/time";
+import { ConfigManager } from "../configManager";
 
 
-export async function getPendingTransactions(web3: Web3) : Promise<Array<Transaction>> {
+export async function getPendingTransactions() : Promise<Array<Transaction>> {
 
     const fn = "parity_pendingTransactions";
-    const result = await sendRPCCall(web3, fn, []);
+    const result = await sendRPCCall( fn, []);
 
     // console.log("pending: ", result.length);
     
@@ -25,8 +26,8 @@ export async function getPendingTransactions(web3: Web3) : Promise<Array<Transac
     // "parity_pendingTransactions"
 }
 
-export async function getPendingTransactionsStats(web3: Web3) {
-    return sendRPCCall(web3, "parity_pendingTransactionsStats", []);
+export async function getPendingTransactionsStats() {
+    return sendRPCCall("parity_pendingTransactionsStats", []);
 }
 
 // function appendBuffer(source: Buffer, target: Buffer) {
@@ -35,14 +36,13 @@ export async function getPendingTransactionsStats(web3: Web3) {
 //     }
 // }
 
-export async function sendRPCCall(web3: Web3, method: string, params: []) : Promise<any> {
+export async function sendRPCCall(method: string, params: []) : Promise<any> {
 
     var headersOpt = {
         "content-type": "application/json",
     };               
-
-    const address = "https://beta-rpc.bit.diamonds";
-    //const address = "http://38.242.206.143:54100";
+    
+    const address = ConfigManager.getNetworkConfig().rpc;
 
     let rpc_cmd =
     {
