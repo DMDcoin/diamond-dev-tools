@@ -75,12 +75,19 @@ async function run() {
 
         console.log("address", address );
         console.log("transactionCount", transactionCount );
-        transactions.forEach(async x => {
+        for (const x of transactions) {
 
-            console.log(x.hash + " " + x.input );
-            const allowed = await permissionContract.methods.allowedTxTypes(x.from, x.to!, x.value, x.gasPrice, x.input).call();
-            console.log(x.nonce + " - " + x.hash + " - ", allowed.typesMask);
-        });
+            const gasPrice = web3.utils.toBN(x.gasPrice);
+
+            let serviceInfo = " (regular)";
+
+            if (gasPrice.isZero()) {
+                const allowed = await permissionContract.methods.allowedTxTypes(x.from, x.to!, x.value, x.gasPrice, x.input).call();
+                serviceInfo = ` (service: ${allowed})`;
+            }
+
+            console.log(x.nonce + " - " + x.hash + " - ", serviceInfo);
+        }
     }
 }
 
