@@ -91,9 +91,22 @@ async function runAdjustPeers() {
 
   // reserved_peers = "reserved-peers"
 
-  await runReplace("min_peers = 27", "min_peers = 5");
-  await runReplace("max_peers = 5", "max_peers = 30");
+  await runReplace("min_peers = 2", "min_peers = 5");
+  //await runReplace("max_peers = 5", "max_peers = 30");
   //await runDeactivateReservedPeers();
+}
+
+async function runActivateDiamondProtectionLayer() {
+
+  // #reserved_peers = "reserved-peers"
+
+  await runReplace("#reserved_peers = \"reserved-peers\"", "reserved_peers = \"reserved-peers\"");
+  await runReplace("#reserved_peers = \"reserved-peers\"", "reserved_peers = \"reserved-peers\"");
+  await runReplace("#reserved_peers = \"reserved-peers\"", "reserved_peers = \"reserved-peers\"");
+  await runReplace("#reserved_peers = \"reserved-peers\"", "reserved_peers = \"reserved-peers\"");
+
+
+  await runReplace("reserved_peers = \"reserved-peers\"", "reserved_peers = \"reserved-peers\"\nreserved_only = true\ndiscovery = false");
 }
 
 
@@ -117,4 +130,6 @@ async function runAdjustPeers() {
   
 
 // runApplyAdditionConfigs();
-runAdjustPeers() ;
+// runAdjustPeers() ;
+
+runActivateDiamondProtectionLayer();
