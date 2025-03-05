@@ -1,17 +1,27 @@
+import { FAILSAFE_SCHEMA } from 'js-yaml';
 import { ConfigManager } from '../configManager';
 import { NodeState } from '../net/nodeManager';
 import { cmdR, cmdRemoteAsync } from '../remoteCommand';
 import { getBuildFromSourceCmd } from './buildFromSource';
 import { getNodesFromCliArgs } from './remotenetArgs';
+import { gitUpdateBranchAndPull } from './gitPullDiamondNode';
 
 async function doRunBuildFromSource(n: NodeState): Promise<string> {
 
     const nodeName = `hbbft${n.nodeID}`;
     console.log(`=== ${nodeName} ===`);
 
-    let installDir = ConfigManager.getRemoteInstallDir()
+
+    // git pull here.
+
+    let deleteOldBuild = false;
+
+
+    let deleteCmd = deleteOldBuild ? ``: `&& rm -r ./diamond-node-git/target` ;
+
+    let installDir = ConfigManager.getRemoteInstallDir();
     // todo: "-fast" wont exist in future - fast will be the default.
-    return cmdRemoteAsync(n.sshNodeName(), `cd ${installDir} && rm -r ./diamond-node-git/target && ./build-from-source.sh`);
+    return cmdRemoteAsync(n.sshNodeName(), `cd ${installDir} ${deleteCmd} && ./build-from-source.sh`);
 }
 
 async function runAllNodes() {
@@ -24,8 +34,8 @@ async function runAllNodes() {
     let finished = 0;
     let error = 0;
     let results = nodes.map( (n) => {
-         let result = doRunBuildFromSource(n);
-         result.then(
+
+        let result = gitUpdateBranchAndPull(n).then( async () => await doRunBuildFromSource(n)).then(
             (result) => {
                 finished++;
                 console.log("finished: ", n.sshNodeName());
