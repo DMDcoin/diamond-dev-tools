@@ -1,5 +1,5 @@
 {
-  "network": "nodes-local-test-early-epoch-end",
+  "network": "nodes-test-small",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
   "networkGitRepoBranch": "main",
   "nodeProfile": "release",
@@ -170,6 +170,32 @@
         "nodeArgs": {
           "Footprint": {
             "cache_size": 50
+          }
+        }
+      }
+    },
+    {
+      "name": "nodes-test-small",
+      "rpc": "http://localhost:8540",
+      "blockscout": "http://localhost:4000/",
+      "db": "localhost:5432",
+      "installDir": "nodes-test-small",
+      "nodesDir": "nodes-test-small",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 5,
+        "hbbftArgs": {
+          "minimumBlockTime": 1,
+          "maximumBlockTime": 2
+        },
+        "contractArgs": { 
+          "STAKING_TRANSITION_WINDOW_LENGTH": 15,
+          "STAKING_EPOCH_DURATION": 60,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
+        },
+        "nodeArgs": {
+          "Footprint": {
+            "cache_size": 300
           }
         }
       }
