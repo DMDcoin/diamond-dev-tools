@@ -189,7 +189,7 @@
           "maximumBlockTime": 2
         },
         "contractArgs": { 
-          "STAKING_TRANSITION_WINDOW_LENGTH": 15,
+          "STAKING_TRANSITION_WINDOW_LENGTH": 30,
           "STAKING_EPOCH_DURATION": 60,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
         },
