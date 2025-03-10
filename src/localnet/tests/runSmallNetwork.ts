@@ -11,13 +11,13 @@ import { duration } from "moment";
 async function runSmallTestNetwork() {
 
 
-    const testname = "test-small";
+    const testname = "small-network";
 
 
     console.log(`Early epoch test network. designed to run on network ${testname}. create with 'npm run testnet-fresh-${testname}' .`);
 
-    //NodeManager.setNetwork();
-    let nodesManager = NodeManager.get(`nodes-${testname}`);
+    //NodeManager.setNetwork();nodes-test-small-network
+    let nodesManager = NodeManager.get(`nodes-local-test-${testname}`);
 
     if (nodesManager.nodeStates.length != 5) {
         console.log(`ABORTING: expected 5 nodes to run this test`);
