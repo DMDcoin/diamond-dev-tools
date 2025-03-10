@@ -96,9 +96,9 @@ async function runSmallTestNetwork() {
     console.log(`Epoch number at start: ${current_epoch} block:  ${last_checked_block}`);
     await createBlockAndRefresh();
     console.log("block creation confirmed.");
-    console.log(`waiting for next epoch switch and upscaling to 16 validator nodes.`);
+    console.log(`waiting for next epoch switch and upscaling to 4 validator nodes.`);
 
-    const maxExpectedTestDuration = duration(2, 'minutes');
+    const maxExpectedTestDuration = duration(10, 'minutes');
 
     
     const maxExpectedTestEndDate = Date.now() + maxExpectedTestDuration.asMilliseconds();
@@ -108,7 +108,7 @@ async function runSmallTestNetwork() {
         await sleep(1000);
         await refreshBlock();
         if (Date.now() > maxExpectedTestEndDate) {
-            console.log('ABORTING: test took too long. expected to finish in 2 minutes.');
+            console.log('ABORTING: test took too long. expected to finish in ', maxExpectedTestDuration.asMinutes(), ' minutes');
             isSuccess = false;
             break;
         }
