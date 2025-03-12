@@ -98,7 +98,7 @@ async function runSmallTestNetwork() {
     console.log("block creation confirmed.");
     console.log(`waiting for next epoch switch and upscaling to 4 validator nodes.`);
 
-    const maxExpectedTestDuration = duration(10, 'minutes');
+    const maxExpectedTestDuration = duration(3, 'minutes');
 
     
     const maxExpectedTestEndDate = Date.now() + maxExpectedTestDuration.asMilliseconds();
