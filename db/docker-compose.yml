@@ -51,3 +51,15 @@ services:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
+
+  express:
+    build: ./express
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./express:/app
+    environment:
+      - NODE_ENV=development
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
