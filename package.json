@@ -1,5 +1,5 @@
 {
-  "name": "honey-badger-testing",
+  "name": "diamond-dev-tools",
   "version": "1.0.0",
   "description": "A collection of scripts to test the Honey Badger BFT integration in Parity",
   "main": "src/index.js",
