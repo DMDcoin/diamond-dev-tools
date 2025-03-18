@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js";
+
 import Web3 from "web3";
 import { ConfigManager } from "../configManager";
 import { ContractManager } from "../contractManager";
@@ -7,38 +7,7 @@ import { getNodesFromCliArgs } from "./remotenetArgs";
 import { getNodeVersion } from "./getNodeVersion";
 import { NodeState } from "../net/nodeManager";
 import BigNumber from "bignumber.js";
-import { ConfigManager } from "../configManager";
-import { ContractManager } from "../contractManager";
-// Remove the duplicate import statement for 'cmdR'
-// import { cmdR } from "../remoteCommand";
-import { getNodesFromCliArgs } from "./remotenetArgs";
-import { getNodeVersion } from "./getNodeVersion";
-import { NodeState } from "../net/nodeManager";
 
-
-function parseVersion(version: string) {
-
-  //Example: OpenEthereum/v3.3.5-hbbft-0.9.7-unstable-d8b55f726-20250210/x86_64-linux-gnu/rustc1.75.0
-
-  try {
-
-    const parts = version.split("/"); // v3.3.5-hbbft-0.9.7-unstable-d8b55f726-20250210
-    const versionPart = parts[1];
-    const versionParts = versionPart.split("-");
-
-    const date = versionParts[versionParts.length - 1];
-    
-    const commit = versionParts[versionParts.length - 2];
-    const versionString = versionParts.slice(0, versionParts.length - 2).join("-");
-
-    return { date, commit, versionString };
-
-  } catch {
-    
-    return { date: "", commit: "", versionString: "" };
-  }
-  
-}
 
 async function run() {
 
@@ -55,7 +24,7 @@ async function run() {
   const csvLines: Array<String> = [];
 
   await Promise.all(nodes.map(async (n) => {
-      return csvLine(n);
+      return csvLine(n, contractManager, block, minStake, allValidators);
   }));
   
 
