@@ -96,6 +96,7 @@ export const DB_TABLES = [
 export class DbManager {
 
   connectionPool: ConnectionPool
+    
 
   public constructor() {
     this.connectionPool = getDBConnection();
@@ -340,6 +341,18 @@ export class DbManager {
     return result[0];
   }
 
+  public async ensureDelegateStaker(delegator: string) {
+
+    const entry = { id: addressToBuffer(delegator)}; 
+
+    const found = await delegate_staker(this.connectionPool).findOne(entry);
+
+    if (!found) {
+      await delegate_staker(this.connectionPool).insert(entry);
+    }
+  }
+
+
   public async updateStakeDelegator(poolAddress: string, delegator: string, value: string): Promise<StakeDelegators> {
     const result = await stake_delegators(this.connectionPool).update({
       pool_address: addressToBuffer(poolAddress),
@@ -425,7 +438,7 @@ export class DbManager {
         id: addressToBuffer(x)
       }
     });
-
+    
     return await delegate_staker(this.connectionPool).insertOrIgnore(...insertData);
   }
 

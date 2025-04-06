@@ -371,6 +371,8 @@ export class EventVisitor implements BaseVisitor {
         amount: BigNumber
     ): Promise<void> {
 
+        await this.dbManager.ensureDelegateStaker(delegator);
+
         const delegateRecord = await this.dbManager.getStakeDelegator(pool, delegator);
 
         if (delegateRecord != null) {
