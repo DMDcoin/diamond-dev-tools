@@ -137,6 +137,7 @@
     "localnet-delete-TESTNAME": "rm -r testnet/nodes-local-test-$TESTNAME || true",
     "testnet-delete-fork-test": "rm -r testnet/nodes-local-fork-test || true",
     "testnet-delete-grow-and-unstake": "rm -r testnet/nodes-local-grow-and-unstake || true",
+    "localnet-data-delete-TESTNAME": "cd testnet && echo $(pwd) && ./localnet-test-delete-data.sh",
     "testnet-kill-processes": "pkill diamond-node || true",
     "testnet-testrun-grow-and-unstake": "npm-run-all testnet-kill-processes build-open-ethereum testnet-delete-grow-and-unstake localnet-test-grow-and-unstake",
     "testnet-testrun-early-epoch-end": "npm-run-all testnet-kill-processes build-open-ethereum testnet-delete-early-epoch-end localnet-fresh-test-early-epoch-end localnet-test-early-epoch-end-test",
