@@ -178,7 +178,12 @@ export async function stakeOnValidators(autostakeCount = 0, stakeOnSpecificValid
               const valueToSend = minStakeBN.plus(new BigNumber(web3.utils.toWei('1')));
 
               console.log(`${keypair.address} does not have enough balance. feeding from account ${web3.eth.defaultAccount}`, valueToSend.toString());
-              await web3.eth.sendTransaction({ to: keypair.address, value: valueToSend.toString(), gas: '21000' });
+              await web3.eth.sendTransaction({ to: keypair.address, value: valueToSend.toString(), gas: '21000' }).on('transactionHash', (hash) => {
+                console.log(`feeding account ${keypair.address} transaction: `, hash);
+              })
+              .on("error", (error) => { 
+                console.error(`feeding account ${keypair.address} failed:`, error);
+              });
             }
 
             // const addAddress = {
