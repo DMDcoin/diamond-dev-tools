@@ -5,6 +5,7 @@ import { sleep } from "../../utils/time";
 import Web3 from "web3";
 import { create } from "underscore";
 import { createBlock } from "./testUtils";
+import { stakeOnValidators } from "../../net/stakeOnValidators";
 
 
 
@@ -12,9 +13,15 @@ import { createBlock } from "./testUtils";
 
 async function runPhoenixTestNetwork() {
 
+    let nodesManager = NodeManager.get("nodes-local-test-phoenix");
+
+    if (nodesManager.nodeStates.length != 5) {
+        console.log(`ABORTING: expected 5 nodes to run this test, got `, nodesManager.nodeStates.length);
+        return;
+    }   
+
 
     let heartbeatInterval = 600;
-    let nodesManager = NodeManager.get();
     
     console.log(`starting rpc`);
     nodesManager.rpcNode?.start();
@@ -30,7 +37,21 @@ async function runPhoenixTestNetwork() {
     console.log(`waiting for rpc`);
     await sleep(10000);
 
+    await stakeOnValidators(4);
+
+    console.log("waiting until 4 validators took over the ownership of the network.");
+
     let contractManager = ContractManager.get();
+
+    let currentValidators = await contractManager.getValidators();
+    while(currentValidators.length < 4) {
+        await sleep(1000);
+        currentValidators = await contractManager.getValidators();
+    }
+
+
+    console.log("we are running now on a 4 validator testnetwork. starting with phoenix test.");
+    
     let web3 = contractManager.web3;
 
     let start_block =  await web3.eth.getBlockNumber();
@@ -85,14 +106,6 @@ async function runPhoenixTestNetwork() {
     console.assert(last_checked_block > blockBeforeNewTransaction);
 
     console.log('Block created after tolerance reached was achieved again.:');
-
-    let delta_reward = await contractManager.getRewardDeltaPot(last_checked_block);
-    let reinsert_reward = await contractManager.getRewardReinsertPot(last_checked_block);
-    let rewardHbbft = await contractManager.getRewardHbbft();
-    let total_reward = await contractManager.getRewardContractTotal(last_checked_block); 
-    console.log("delta: ", delta_reward);
-    console.log("reinsert: ", reinsert_reward);
-    console.log("total_reward: ", total_reward);
 
     
     nodesManager.stopAllNodes();
