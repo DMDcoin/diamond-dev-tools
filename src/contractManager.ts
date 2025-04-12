@@ -39,7 +39,7 @@ import { BonusScoreSystem, TxPermissionHbbft } from './abi/contracts';
 
 import JsonTxPermissionHbbft from './abi/json/TxPermissionHbbft.json';
 import { parseEther } from './utils/ether';
-import { toNumber } from './utils/numberUtils';
+import { h2bn, h2n, toNumber } from './utils/numberUtils';
 
 export enum KeyGenMode {
   NotAPendingValidator = 0,
@@ -75,14 +75,6 @@ export class DelegateRewardData {
 }
 
 
-// Hex string to number
-function h2n(hexString: string): number {
-  return new BigNumber(hexString).toNumber();
-}
-
-function h2bn(hexString: string): BigNumber {
-  return new BigNumber(hexString);
-}
 
 
 /// a IP Address with Port, but without the public key.

@@ -19,6 +19,7 @@ import { BigNumber } from 'bignumber.js';
 import { generateAddressesFromSeed } from '../utils';
 
 import prompt from 'prompt';
+import { h2bn, toNumber } from '../utils/numberUtils';
 
 
 
@@ -100,6 +101,16 @@ export async function stakeOnValidators(autostakeCount = 0, stakeOnSpecificValid
 
   console.log('min Stake: ', minStakeBN.toString());
 
+  
+  const balance = h2bn(await web3.eth.getBalance(web3.eth.defaultAccount!));
+
+  console.log(`default account ${web3.eth.defaultAccount} balance: `, balance.toString());
+  if (balance.lt(minStakeBN)) { 
+    console.error(`default account ${web3.eth.defaultAccount} does not have enough balance to create a pool. aborting.`);
+    return result;
+  }
+
+  
   let autostakesLeft = autostakeCount;
 
   const validatorsToStakeOn = stakeOnSpecificValidators.length > 0 ? stakeOnSpecificValidators : nodeInfos.validators;
