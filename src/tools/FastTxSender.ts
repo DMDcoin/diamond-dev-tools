@@ -32,7 +32,6 @@ export class FastTxSender {
 
   rpcJsonHttpEndpoint: string = 'http://localhost:8540';
 
-  //rpcJsonHttpEndpoint: string = 'http://38.242.206.143:8540';
   public constructor(public web3: Web3) {
 
     // get rpcJsonHttpEndpoint from web3
