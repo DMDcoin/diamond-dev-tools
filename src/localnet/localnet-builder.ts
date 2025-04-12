@@ -64,7 +64,7 @@ export class LocalnetBuilder {
     }
 
     private getViewsContractsOutputFile() {
-        return path.join(this.getViewsContractsDir(), 'out/spec_views.json');
+        return path.join(this.getViewsContractsDir(), 'out/spec_aggregator.json');
     }
 
     private getDaoContractsOutput() {
