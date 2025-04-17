@@ -17,7 +17,7 @@ async function doRunBuildFromSource(n: NodeState): Promise<string> {
     let deleteOldBuild = false;
 
 
-    let deleteCmd = deleteOldBuild ? ``: `&& rm -r ./diamond-node-git/target` ;
+    let deleteCmd = deleteOldBuild ? `&& rm -r ./diamond-node-git/target` : `` ;
 
     let installDir = ConfigManager.getRemoteInstallDir();
     // todo: "-fast" wont exist in future - fast will be the default.
