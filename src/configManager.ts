@@ -49,6 +49,7 @@ export interface Network {
     nodeRepoAlias: string | undefined,
     nodeRepoUrl: string | undefined,
     nodeRepoBranch: string | undefined,
+    rustVersion: string | undefined,
     openEthereumDeadlockDetection: boolean,
     builder: NetworkBuilderArgs | undefined
 }
@@ -105,6 +106,10 @@ export class ConfigManager {
     static getChainName() {
         let builderArgs = ConfigManager.getNetworkConfig();
         return builderArgs.name.startsWith("nodes-") ? builderArgs.name.substring("nodes-".length) : builderArgs.name;
+    }
+
+    static getRustVersion() {
+        return ConfigManager.getNetworkConfig().rustVersion;
     }
 
     static network : string = "";
