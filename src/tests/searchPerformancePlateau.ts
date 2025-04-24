@@ -30,8 +30,26 @@ export async function search_performance_plateau(outputFile: string) {
   let confirmed = 0;
   let feedAccount = web3.eth.defaultAccount!;
   let nonceFeed = await web3.eth.getTransactionCount(feedAccount);
+
+
+  console.log("feeding account: ", feedAccount);
+
+  let feedAccountBalance = web3.utils.toBN(await web3.eth.getBalance(feedAccount));
+
+  console.log("feeding account Balance in DMD: ", web3.utils.fromWei(feedAccountBalance, "ether"));
+
+  let feedPerAccount = web3.utils.toBN(web3.utils.toWei('1', "ether"));
+  
+  let totalRequiredBalance = feedPerAccount.mul(web3.utils.toBN(wallets.length + 1 /**+ 1 for gas fees */));
+
+
+  if (feedAccountBalance.lt(totalRequiredBalance)) {
+    console.log("Not enough funds in feed account. Please fund it with at least: ", web3.utils.fromWei(totalRequiredBalance, "ether"));
+    return;
+  }
+  
   for(const wallet of wallets) {
-    web3.eth.sendTransaction({ from: feedAccount, to: wallet.address, nonce: nonceFeed, value: web3.utils.toWei('1', "ether"), gas: "21000", gasPrice: defaultGasPrice})
+    web3.eth.sendTransaction({ from: feedAccount, to: wallet.address, nonce: nonceFeed, value: feedPerAccount, gas: "21000", gasPrice: defaultGasPrice})
       .once("receipt", () => {
         confirmed++
       });
