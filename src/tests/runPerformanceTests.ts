@@ -20,7 +20,7 @@ async function runPerformanceTests() {
   const minBalance = toBN(minGasPrice).mul(toBN(21000));
   console.log("Min gase Price:", minGasPrice);
 
-
+  
   // const fundingPromises : Array<PromiEvent<TransactionReceipt>> = [];
 
   let transactionSuccesses = 0;
@@ -28,7 +28,10 @@ async function runPerformanceTests() {
   
   let fastTxSender = new FastTxSender(web3);
   console.log('Creating accounts for wallet, using funding address: ', web3.eth.defaultAccount);
-  for(let i = 1; i <= 10000; i++) {
+
+  let maxTransactionsAtOnce = 80;
+
+  for(let i = 1; i <= 100; i++) {
 
     
     const account = web3.eth.accounts.create(`test${i}` );
@@ -40,6 +43,14 @@ async function runPerformanceTests() {
       console.log(`Funding: `, account.address);
       const tx = { from: web3.eth.defaultAccount!, to: account.address, value: minBalance, gas: 21000, gasPrice: minGasPrice };
       fastTxSender.addTransaction(tx);
+    }
+
+    if (fastTxSender.rawTransactions.length >= maxTransactionsAtOnce) { 
+      console.log('sending funding transactions...');
+      await fastTxSender.sendTxs();
+      console.log('waiting for transactions to be mined...');
+      await fastTxSender.awaitTxs();
+      fastTxSender = new FastTxSender(web3);
     }
 
     // nonce ++;
@@ -54,7 +65,13 @@ async function runPerformanceTests() {
   console.log("All funding transactions confirmed.");
   
   for (const account of sendAccounts) {
-    await fastTxSender.addTransaction({ from: account.address, to: account.address, value: 0, gas: 21000, gasPrice: minGasPrice });
+
+    let startNonce = await web3.eth.getTransactionCount(account.address);
+    for (let i = 0; i < maxTransactionsAtOnce; i++) {
+      
+      
+      await fastTxSender.addTransaction({ from: account.address, to: account.address, value: 0, gas: 21000, gasPrice: minGasPrice, nonce: startNonce + i });
+    }
   }
 
   console.log('all Txs prepared - starting sending');
