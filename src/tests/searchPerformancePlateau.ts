@@ -19,10 +19,15 @@ export async function write_performance_plateau_csv_header(outputFile: string) {
 /// used function write_performance_plateau_csv_header to create the header for this CSV file.
 export async function search_performance_plateau(outputFile: string) {
 
+
+  // the RPC default config is 88.
+  // maybe we should stick to this.
+  const maxTransactionsAtOnce = 87;
+
   const contractManager = ContractManager.get();
   const web3 = contractManager.web3;
 
-  const wallets = ConfigManager.insertWallets(web3, 100);
+  const wallets = ConfigManager.insertWallets(web3, maxTransactionsAtOnce);
 
   const defaultGasPrice = '1000000000';
   console.log("Warmup: Funding Accounts.");
@@ -74,7 +79,7 @@ export async function search_performance_plateau(outputFile: string) {
   // make a transaction to ensure the start of block production on hbbft.
   //  web3.eth.sendTransaction({ from: web3.eth.defaultAccount!, to: web3.eth.defaultAccount!, nonce: nonceFeed, value: web3.utils.toWei('1', "ether"), gas: "21000", gasPrice: defaultGasPrice});
 
-  while (txPerAccount < 1000) { // this while condition is kind of a max - we early exit if we have found a plateau.
+  while (txPerAccount < maxTransactionsAtOnce) { // this while condition is kind of a max - we early exit if we have found a plateau.
 
     
     const blockStart = await web3.eth.getBlockNumber();
@@ -88,7 +93,8 @@ export async function search_performance_plateau(outputFile: string) {
 
     //let provider : HttpProvider = web3.eth.currentProvider as HttpProvider;
     
-    let sendAddress = 'http://127.0.0.1:8540';
+    
+    let sendAddress =  ConfigManager.getNetworkConfig().rpc;
 
     for(const wallet of wallets) {
 
