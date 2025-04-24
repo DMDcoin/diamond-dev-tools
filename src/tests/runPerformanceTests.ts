@@ -69,8 +69,7 @@ async function runPerformanceTests() {
     let startNonce = await web3.eth.getTransactionCount(account.address);
     for (let i = 0; i < maxTransactionsAtOnce; i++) {
       
-      
-      await fastTxSender.addTransaction({ from: account.address, to: account.address, value: 0, gas: 21000, gasPrice: minGasPrice, nonce: startNonce + i });
+      await fastTxSender.addTransaction({ from: account.address, to: account.address, value: 0, gas: 21000, gasPrice: minGasPrice });
     }
   }
 
