@@ -29,7 +29,7 @@ export async function search_performance_plateau(outputFile: string) {
 
   const wallets = ConfigManager.insertWallets(web3, maxTransactionsAtOnce);
 
-  const defaultGasPrice = '1000000000';
+  const defaultGasPrice = '1010000000';
   console.log("Warmup: Funding Accounts.");
 
   let confirmed = 0;
