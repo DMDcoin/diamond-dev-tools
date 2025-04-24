@@ -10,7 +10,7 @@ export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, t
   let txsConfirmed = 0;
 
   while (transactionHashes.length > 0) {
-    await sleep(200);
+    await sleep(30);
     // console.log("awaiting confirmation of txs: ", transactions.length);
     let currentBlock = await web3.eth.getBlockNumber();
 
@@ -19,14 +19,18 @@ export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, t
 
       const block = await web3.eth.getBlock(blockToAnalyse);
 
-      // transactions.forEach(x => console.log);
-      console.log(`transactions in Block#  ${blockToAnalyse} : ${block.transactions.length}`);
+      
+      const transactions = block.transactions.sort();
 
-      //console.log('interesting transactions:',transactions);
+      // transactions.forEach(x => console.log);
+      console.log(`transactions in Block#  ${blockToAnalyse} : ${transactions.length}`);
+
+      console.log('interested transactions:',transactionHashes);
+      console.log('transactions in Block:',transactions);
 
 
       const txCountBeforeFilter = transactionHashes.length;
-      transactionHashes = transactionHashes.filter(x => !block.transactions.includes(x));
+      transactionHashes = transactionHashes.filter(x => !transactions.includes(x));
       const txCountAfterFilter = transactionHashes.length;
       const txCountConfirmed = txCountBeforeFilter - txCountAfterFilter;
       txsConfirmed += txCountConfirmed;

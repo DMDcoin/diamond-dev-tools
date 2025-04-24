@@ -59,7 +59,10 @@ export class FastTxSender {
   public async addTransaction(txConfig: TransactionConfig): Promise<string> {
 
     let signedTransaction = await this.signTransaction(txConfig);
-    this.transactionHashes.push(signedTransaction.transactionHash!);
+    if (!signedTransaction.transactionHash) {
+      throw Error("No transaction hash.");
+    }
+    this.transactionHashes.push(signedTransaction.transactionHash!.toLocaleLowerCase());
     this.rawTransactions.push(signedTransaction.rawTransaction!);
     this.transactionSentState.push(false);
 
