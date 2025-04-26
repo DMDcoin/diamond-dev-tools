@@ -34,7 +34,16 @@ export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, t
       const txCountAfterFilter = transactionHashes.length;
       const txCountConfirmed = txCountBeforeFilter - txCountAfterFilter;
       txsConfirmed += txCountConfirmed;
-      console.log(`block ${blockToAnalyse} proccessed. confirmed txs this block: ${txCountConfirmed}. ${txsConfirmed}/${totalTxs} (${(txsConfirmed * 100 / totalTxs).toPrecision(3)} %)`);
+      console.log(`block ${blockToAnalyse} proccessed. confirmed txs this block: ${txCountConfirmed}. ${txsConfirmed}/${totalTxs} (${(txsConfirmed * 100 / totalTxs).toPrecision(3)} %)  transactions left: ${transactionHashes.length}`);
+
+      
+      if (transactionHashes.length === 0) {
+        console.log('all transactions confirmed.');
+        break;
+      } else {
+        console.log(`missing hashes: `, transactionHashes)
+      }
+
     }
 
     lastAnalysedBlock = currentBlock;
