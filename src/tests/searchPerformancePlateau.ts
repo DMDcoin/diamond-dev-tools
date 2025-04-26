@@ -22,7 +22,7 @@ export async function search_performance_plateau(outputFile: string) {
 
   // the RPC default config is 88.
   // maybe we should stick to this.
-  const maxTransactionsAtOnce = 87;
+  const maxTransactionsAtOnce = 10;
 
   const contractManager = ContractManager.get();
   const web3 = contractManager.web3;
@@ -54,6 +54,8 @@ export async function search_performance_plateau(outputFile: string) {
   }
   
   for(const wallet of wallets) {
+
+    
     web3.eth.sendTransaction({ from: feedAccount, to: wallet.address, nonce: nonceFeed, value: feedPerAccount, gas: "21000", gasPrice: defaultGasPrice})
       .once("receipt", () => {
         confirmed++
@@ -96,6 +98,7 @@ export async function search_performance_plateau(outputFile: string) {
     
     let sendAddress =  ConfigManager.getNetworkConfig().rpc;
 
+    
     for(const wallet of wallets) {
 
       let nonce = await web3.eth.getTransactionCount(wallet.address);
@@ -162,8 +165,8 @@ export async function search_performance_plateau(outputFile: string) {
                   return;
                 }
                 if (response) {
-                  // console.log('got reponse:', response.statusCode);
-                  // console.log('got reponse body:', response.body);
+                  console.log('got reponse:', response.statusCode);
+                  console.log('got reponse body:', response.body);
                 }
                 
                 
