@@ -22,7 +22,7 @@ async function runSmallTestNetwork() {
     if (nodesManager.nodeStates.length != 5) {
         console.log(`ABORTING: expected 5 nodes to run this test`);
         return;
-    }   
+    }
     
     console.log(`starting rpc`);
     nodesManager.rpcNode?.start();
@@ -35,9 +35,8 @@ async function runSmallTestNetwork() {
 
     console.log(`all normal nodes started.`);
     console.log(`waiting for rpc`);
-    // todo: check if rpc is ready.
 
-    await sleep(1000);
+    await nodesManager.awaitRpcReady();
 
     let contractManager = ContractManager.get();
     let web3 = contractManager.web3;

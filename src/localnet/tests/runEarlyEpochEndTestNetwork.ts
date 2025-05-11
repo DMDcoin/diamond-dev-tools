@@ -29,10 +29,11 @@ async function runEarlyEpochTestNetwork() {
     }
 
     console.log(`all normal nodes started.`);
-    console.log(`waiting for rpc`);
+
     // todo: check if rpc is ready.
 
-    await sleep(10000);
+    await nodesManager.awaitRpcReady();
+   // await sleep(10000);
 
     let contractManager = ContractManager.get();
     let web3 = contractManager.web3;
