@@ -167,7 +167,6 @@ async function runEarlyEpochTestNetwork() {
     }
 
     console.log(`FAILURE: Epoch switch did not happen within the expected time of seconds: `, maxTriesForEpochSwitch);
-    console.log('triggering block creation that should not create block, because of tolerance reached.');
     
     await watchdog.stopWatching();
     nodesManager.stopAllNodes();

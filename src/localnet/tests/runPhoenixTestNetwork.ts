@@ -6,6 +6,7 @@ import Web3 from "web3";
 import { create } from "underscore";
 import { createBlock } from "./testUtils";
 import { stakeOnValidators } from "../../net/stakeOnValidators";
+import { Watchdog } from "../../watchdog";
 
 
 
@@ -34,14 +35,18 @@ async function runPhoenixTestNetwork() {
 
     console.log(`all normal nodes started.`);
 
-    console.log(`waiting for rpc`);
-    await sleep(10000);
+    await nodesManager.awaitRpcReady();
+
+    let contractManager = ContractManager.get();
+
+    const watchdog = new Watchdog(contractManager, nodesManager);
+    watchdog.startWatching(true);
 
     await stakeOnValidators(4);
 
     console.log("waiting until 4 validators took over the ownership of the network.");
 
-    let contractManager = ContractManager.get();
+ 
 
     let currentValidators = await contractManager.getValidators();
     while(currentValidators.length < 4) {
@@ -78,16 +83,20 @@ async function runPhoenixTestNetwork() {
         console.log(`node ${n} started`);
     };
 
-    await stopNode(1);
-    await createBlock(web3, last_checked_block);
-
-    console.log('node 1 stopped, creating block should work, because of fault tolerance');
-
     await stopNode(2);
+    
+    console.log('node 2 stopped, creating block should work, because of fault tolerance');
+
+    await createBlock(web3, last_checked_block);
+    
+
+    console.log('block produced, now stopping node 3');
+
+    await stopNode(3);
 
     await refreshBlock();
 
-    console.log('triggering block creation that should not create block, because of tolerance reached.');
+    console.log('triggering block creation that should not create block, because of tolerance overshoot.');
     let createBlockFailing = createBlock(web3);
 
     console.log('waiting for nodes...');
@@ -105,7 +114,7 @@ async function runPhoenixTestNetwork() {
 
     console.assert(last_checked_block > blockBeforeNewTransaction);
 
-    console.log('Block created after tolerance reached was achieved again.:');
+    console.log('Success: Block created after tolerance reached was achieved again.:');
 
     
     nodesManager.stopAllNodes();
