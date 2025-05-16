@@ -108,7 +108,7 @@ async function runPhoenixTestNetwork() {
 
     // console.log('Block was not created as expected:', last_checked_block > blockBeforeNewTransaction);
 
-    await startNode(1);
+    await startNode(2);
     await sleep(15000);
     await refreshBlock();
 
