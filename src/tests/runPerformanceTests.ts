@@ -19,6 +19,8 @@ async function runPerformanceTests() {
   const minGasPrice = '1000000000';
   const actualMinGasPrice = await web3.eth.getGasPrice();
 
+  const dataSize = 16 * 1024;
+
   if (minGasPrice != actualMinGasPrice) {
     console.warn(`WARNING: minGasPrice (${minGasPrice}) is not equal to actualMinGasPrice (${actualMinGasPrice})`);
   }
@@ -27,10 +29,16 @@ async function runPerformanceTests() {
   //let maxTransactionsAtOnce = 80;
   //let maxAccounts = 100;
 
-  let maxTransactionsPerAccount = 80;
-  let maxAccounts = 100;
+  let maxTransactionsPerAccount = 87;
+  let maxAccounts = 4000;
 
-  const minBalance = toBN(minGasPrice).mul(toBN(21000)).muln(maxTransactionsPerAccount);
+  // gas usage calculation.
+  const costPerByte = 16;
+  const baseGasCost = 21000;
+  const dataGasCost = costPerByte * dataSize;
+  const totalGasCostPerTransaction = baseGasCost + dataGasCost;
+
+  const minBalance = toBN(minGasPrice).mul(toBN(totalGasCostPerTransaction)).muln(maxTransactionsPerAccount);
   console.log("Min gase Price:", minGasPrice);
   console.log("required min balance per account:", minBalance.toString(10));
   // const fundingPromises : Array<PromiEvent<TransactionReceipt>> = [];
@@ -80,16 +88,19 @@ async function runPerformanceTests() {
   
   console.log("All funding transactions confirmed.");
   console.log("starting preparation of Test transactions.");
-
   const timerIDPreparing = "preparingTransactions";
   console.time(timerIDPreparing);
+  
+
+  // dummy payload data shipped with the transaction.
+  const payloadData = '0x' + 'D4'.repeat(dataSize);
   
   for (const account of sendAccounts) {
     console.log(`preparing transactions for account ${account.address}.`);
     // let startNonce = await web3.eth.getTransactionCount(account.address);
     for (let i = 0; i < maxTransactionsPerAccount; i++) {
 
-      await fastTxSender.addTransaction({ from: account.address, to: account.address, value: 0, gas: 21000, gasPrice: minGasPrice });
+      await fastTxSender.addTransaction({ from: account.address, to: account.address, value: 0, data: payloadData,gas: totalGasCostPerTransaction, gasPrice: minGasPrice });
     }
   }
 
@@ -106,10 +117,12 @@ async function runPerformanceTests() {
   }
 
   console.log('all Txs Sent - awaiting confirmations');
-  await fastTxSender.awaitTxs();
 
+  const timerIDConfirmingTransactions = "confirmingTransactions";
+  console.time(timerIDConfirmingTransactions); 
+  await fastTxSender.awaitTxs();
   console.log(`all ${sent} txs confirmed.`);
-  
+  console.timeEnd(timerIDConfirmingTransactions);
 }
 
 runPerformanceTests();
