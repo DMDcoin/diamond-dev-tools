@@ -28,9 +28,14 @@ async function runPerformanceTests() {
   let fastTxSender = new FastTxSender(web3);
   console.log('Creating accounts for wallet, using funding address: ', web3.eth.defaultAccount);
 
-  let maxTransactionsAtOnce = 80;
+  //let maxTransactionsAtOnce = 80;
 
-  let maxAccounts = 100;
+  //let maxAccounts = 100;
+
+
+  let maxTransactionsAtOnce = 8;
+
+  let maxAccounts = 10;
 
   for(let i = 1; i <= maxAccounts; i++) {
 
@@ -38,6 +43,7 @@ async function runPerformanceTests() {
     const account = web3.eth.accounts.create(`test${i}` );
     web3.eth.accounts.wallet.add(account);
     sendAccounts.push(account);
+    
     const balance = web3.utils.toBN(await web3.eth.getBalance(account.address));
 
     if (balance.lt(minBalance)) {
@@ -58,11 +64,16 @@ async function runPerformanceTests() {
     // nonce ++;
   }
 
-  console.log('sending Fund accounts transactions...');
-  await fastTxSender.sendTxs();
+  if (fastTxSender.rawTransactions.length > 0) {
+    console.log('sending Fund accounts transactions...');
+    await fastTxSender.sendTxs();
 
-  console.log('waiting for transactions to be mined...');
-  await fastTxSender.awaitTxs();
+    console.log('waiting for transactions to be mined...');
+    await fastTxSender.awaitTxs();
+  }
+
+  fastTxSender = new FastTxSender(web3);
+
   
   console.log("All funding transactions confirmed.");
   console.log("starting preparation of Test transactions.");
@@ -76,12 +87,19 @@ async function runPerformanceTests() {
     }
   }
 
-  console.log(`all Txs prepared - starting sending ${maxTransactionsAtOnce} transactions with ${sendAccounts.length} unique accounts. (${maxTransactionsAtOnce * sendAccounts.length} transactions in total)`);
-  await fastTxSender.sendTxs();
+  const expectedTransactions = maxTransactionsAtOnce * sendAccounts.length;
+
+  console.log(`all Txs prepared - starting sending ${maxTransactionsAtOnce} transactions with ${sendAccounts.length} unique accounts. (${expectedTransactions} transactions in total)`);
+  const sent = await fastTxSender.sendTxs();
+
+  if (sent !== expectedTransactions) { 
+    console.error(`sent ${sent} transactions, expected ${expectedTransactions}`);
+  }
+
   console.log('all Txs Sent - awaiting confirmations');
   await fastTxSender.awaitTxs();
 
-  console.log('all tx confirmed.');
+  console.log(`all ${sent} txs confirmed.`);
   
 }
 

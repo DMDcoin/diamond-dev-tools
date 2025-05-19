@@ -7,6 +7,7 @@ import { Account, SignedTransaction } from "web3-core";
 import { TransactionConfig } from "web3-eth";
 import { ConfigManager } from "../configManager";
 import { awaitTransactions } from "./awaitTransactions";
+import axios from "axios";
 
 
 
@@ -47,22 +48,26 @@ export class FastTxSender {
     // 
     if (!this.accounts_is_initialized) {
 
+      this.accounts = {};
       for (let i = 0; i < this.web3.eth.accounts.wallet.length; i++) {
         let wallet = this.web3.eth.accounts.wallet[i];
         this.accounts[wallet.address] = wallet;
       }
+
+      this.accounts_is_initialized = true;
     }
   }
 
   // adds transaction to the pool of transactions being sent.
   // first call will initialize the account pool and might be slow for large wallets.
+  /// @returns transaction hash - there is a known issue with the transaction hash being different from the one reported by the network in some cases.
   public async addTransaction(txConfig: TransactionConfig): Promise<string> {
 
     let signedTransaction = await this.signTransaction(txConfig);
     if (!signedTransaction.transactionHash) {
       throw Error("No transaction hash.");
     }
-    this.transactionHashes.push(signedTransaction.transactionHash!.toLocaleLowerCase());
+    // this.transactionHashes.push(signedTransaction.transactionHash!.toLocaleLowerCase());
     this.rawTransactions.push(signedTransaction.rawTransaction!);
     this.transactionSentState.push(false);
 
@@ -80,7 +85,14 @@ export class FastTxSender {
     this.ensureAccountsIsInitialized();
 
     if (!this.accounts[txConfig.from]) {
-      throw Error('txConfig.from is not in the wallet');
+
+      this.accounts_is_initialized = false;
+      // reinitialize accounts
+      this.ensureAccountsIsInitialized();
+
+      if (!this.accounts[txConfig.from]) {
+        throw Error(`txConfig.from is not in the wallet: ${txConfig.from}`);
+      }
     }
 
     if (typeof txConfig.from === 'number') {
@@ -151,7 +163,8 @@ export class FastTxSender {
     // todo: extend functionaly that it supports others than localhost.
     let sendAddress = this.rpcJsonHttpEndpoint;
 
-    request.post(
+    let self = this;
+    let resquest = request.post(
       sendAddress, // todo: distribute transactions here to different nodes.
       {
         json: rpc_cmd,
@@ -165,10 +178,16 @@ export class FastTxSender {
           return;
         }
         if (response) {
+
+          
           // console.log('got reponse:', response.statusCode);
-          // console.log('got reponse body:', response.body);
+          //console.log('got reponse body:', response.body);
+
+          let txHash = response.body.result;
+          self.transactionHashes.push(txHash);
         }
       });
+
   }
 
   // sends all stored transactions.
@@ -189,6 +208,8 @@ export class FastTxSender {
       }
       i++;
     }
+
+    return i;
   }
 
   // waits for completion for all added transaction. 
@@ -197,6 +218,8 @@ export class FastTxSender {
     if (Number.isNaN(this.blockBeforeSent)) {
       throw new Error("sendTxs() must be called before awaitTxs() can be called.");
     }
+
+    console.log("awaiting transactions to be mined: ", this.transactionHashes.length);
 
     await awaitTransactions(this.web3, this.blockBeforeSent, this.transactionHashes);
 
