@@ -3,7 +3,7 @@ import { sleep } from "../utils/time";
 
 
 
-export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, transactionHashes: Array<string>): Promise<number> {
+export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, transactionHashes: Array<string>, logging: boolean = false): Promise<number> {
 
   let lastAnalysedBlock = blockBeforeTxSend;
   const totalTxs = transactionHashes.length;
@@ -15,19 +15,20 @@ export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, t
     let currentBlock = await web3.eth.getBlockNumber();
 
     for (let blockToAnalyse = lastAnalysedBlock + 1; blockToAnalyse <= currentBlock; blockToAnalyse++) {
-      console.log('analysing block', blockToAnalyse);
-
+      
       const block = await web3.eth.getBlock(blockToAnalyse);
 
       
       const transactions = block.transactions.sort();
-
-      // transactions.forEach(x => console.log);
+      
       console.log(`transactions in Block#  ${blockToAnalyse} : ${transactions.length}`);
 
-      console.log('interested transactions:',transactionHashes);
-      console.log('transactions in Block:',transactions);
+      if (logging) {
 
+        console.log('interested transactions:',transactionHashes);
+        console.log('transactions in Block:',transactions);
+      }
+      // transactions.forEach(x => console.log);
 
       const txCountBeforeFilter = transactionHashes.length;
       transactionHashes = transactionHashes.filter(x => !transactions.includes(x));
@@ -41,7 +42,7 @@ export async function awaitTransactions(web3: Web3, blockBeforeTxSend: number, t
         console.log('all transactions confirmed.');
         break;
       } else {
-        console.log(`missing hashes: `, transactionHashes)
+        console.log(`missing hashes: `, transactionHashes.length);
       }
 
     }

@@ -8,6 +8,7 @@ import { TransactionConfig } from "web3-eth";
 import { ConfigManager } from "../configManager";
 import { awaitTransactions } from "./awaitTransactions";
 import axios from "axios";
+import { sleep } from "../utils/time";
 
 
 
@@ -87,7 +88,7 @@ export class FastTxSender {
     if (!this.accounts[txConfig.from]) {
 
       this.accounts_is_initialized = false;
-      // reinitialize accounts
+      // reinitialize accounts - this takes place if a wallet was added after the last Accounts initialization.
       this.ensureAccountsIsInitialized();
 
       if (!this.accounts[txConfig.from]) {
@@ -139,10 +140,10 @@ export class FastTxSender {
       this.blockBeforeSent = await this.web3.eth.getBlockNumber();
     }
 
-    this.sendSingleTxRaw(this.rawTransactions[last_index]);
+    await this.sendSingleTxRaw(this.rawTransactions[last_index]);
   }
 
-  private async sendSingleTxRaw(raw_tx: string) {
+  private sendSingleTxRaw(raw_tx: string) {
 
     // let tx_hash = await this.addTransaction(txConfig);
     // await this.sendTx();
@@ -163,30 +164,75 @@ export class FastTxSender {
     // todo: extend functionaly that it supports others than localhost.
     let sendAddress = this.rpcJsonHttpEndpoint;
 
+    let data = {
+      json: rpc_cmd,
+      headers: headersOpt
+    };
+
     let self = this;
-    let resquest = request.post(
-      sendAddress, // todo: distribute transactions here to different nodes.
-      {
-        json: rpc_cmd,
-        headers: headersOpt
-      },
-      function (error, response, body) {
-        if (error) {
-          //Trying to close the socket (to prevent socket hang up errors)
-          //**Doesn't help**
-          console.log('got error:', error);
-          return;
+
+    let response = axios.post(sendAddress, rpc_cmd, { headers: headersOpt } );
+
+    response.then((r) => {
+      // console.log("axios response status: ", r.status);
+
+      if (r.status !== 200) {
+        console.log("axios response error: ", r.statusText);
+        return;
+      }
+
+      if (r.data.error) {
+        
+
+        if (r.data.error.code == -32010) {
+          // to many transactions in queue.
+          // wait, and try again soon. (recursive enter)
+          console.log("to many transaction in queue - waiting and retrying.");
+          sleep(30).then(() => {
+            self.sendSingleTxRaw(raw_tx);
+          });
+          return
         }
-        if (response) {
+
+        console.log("could not send transaction :", r.data.error);
+        return;
+      }
+
+      //console.log("axios data:", r.data);
+      let txHash = r.data.result;
+
+      if (!txHash) {
+        console.log("axios response - got no hash: ", r.data);
+      }
+      // console.log("axios response hash: ", txHash);
+
+      self.transactionHashes.push(txHash);
+    }, (reason) => {
+      console.log('got error:', reason);
+    })
+
+    return response;
+
+    // let resquest = request.post(
+    //   sendAddress, // todo: distribute transactions here to different nodes.
+    //   data,
+    //   function (error, response, body) {
+    //     if (error) {
+    //       //Trying to close the socket (to prevent socket hang up errors)
+    //       //**Doesn't help**
+    //       console.log('got error:', error);
+    //       return;
+    //     }
+    //     if (response) {
 
           
-          // console.log('got reponse:', response.statusCode);
-          //console.log('got reponse body:', response.body);
+    //       // console.log('got reponse:', response.statusCode);
+    //       //console.log('got reponse body:', response.body);
 
-          let txHash = response.body.result;
-          self.transactionHashes.push(txHash);
-        }
-      });
+    //       let txHash = response.body.result;
+    //       self.transactionHashes.push(txHash);
+    //     }
+    //   });
 
   }
 
@@ -201,13 +247,26 @@ export class FastTxSender {
       this.blockBeforeSent = await this.web3.eth.getBlockNumber();
     }
 
+    let promisses = [];
     let i = 0;
+    console.time('sendTxsRaw');
     for (let raw of this.rawTransactions) {
       if (!this.transactionSentState[i]) {
-        this.sendSingleTxRaw(raw);
+        promisses.push(this.sendSingleTxRaw(raw));
       }
       i++;
     }
+
+    console.timeEnd('sendTxsRaw');
+    
+    console.log("sheduled all transactions to be sent, awaiting responses now.", this.rawTransactions.length);
+    const awaitTimer = "awaitHashes";
+    console.time(awaitTimer);
+    await Promise.all(promisses);
+    console.log(`all transaction hashes gathered. ${this.transactionHashes.length}/${this.rawTransactions.length}`);
+    
+    console.timeEnd(awaitTimer);
+
 
     return i;
   }
