@@ -34,6 +34,10 @@ export class FastTxSender {
 
   rpcJsonHttpEndpoint: string = 'http://localhost:8540';
 
+  maxPRCTransactionDispatchAtOnce = 80;
+
+  currentDispatchedTransactions = 0;
+
   public constructor(public web3: Web3) {
 
     // get rpcJsonHttpEndpoint from web3
@@ -147,7 +151,17 @@ export class FastTxSender {
     await this.sendSingleTxRaw(last_index);
   }
 
+  private sleep(millis: number) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, millis);
+  }
+
+
   private sendSingleTxRaw(transactionIndex: number) {
+
+
+    // axios or javascript gets in trouble if we are sending to much.
+    // we will do here a dirty loop sleep to wait for the transaction to be sent.
+
 
     if (this.transactionSentState[transactionIndex]) {
       console.log("transaction already sent, skipping.", transactionIndex);
@@ -172,19 +186,19 @@ export class FastTxSender {
 
     // todo: extend functionaly that it supports others than localhost.
     let sendAddress = this.rpcJsonHttpEndpoint;
-
-    let data = {
-      json: rpc_cmd,
-      headers: headersOpt
-    };
-
     let self = this;
 
+    while (this.currentDispatchedTransactions >= this.maxPRCTransactionDispatchAtOnce) { 
+      this.sleep(20);
+    }
+    
+    this.currentDispatchedTransactions = this.currentDispatchedTransactions + 1;
     let response = axios.post(sendAddress, rpc_cmd, { headers: headersOpt } );
 
     response.then((r) => {
       // console.log("axios response status: ", r.status);
 
+      this.currentDispatchedTransactions--;
       if (r.status !== 200) {
         console.log("axios response error: ", r.statusText);
         return;
