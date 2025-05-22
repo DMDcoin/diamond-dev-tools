@@ -72,6 +72,8 @@ export class FastTxSender {
     this.rawTransactions.push(signedTransaction.rawTransaction!);
     this.transactionSentState.push(false);
 
+    this.transactionHashes.push(signedTransaction.transactionHash);
+
     return signedTransaction.transactionHash!;
   }
 
@@ -132,22 +134,29 @@ export class FastTxSender {
   public async sendSingleTx(txConfig: TransactionConfig) {
 
     await this.addTransaction(txConfig);
-    let last_index = this.transactionHashes.length - 1;
 
+
+    let last_index = this.transactionHashes.length - 1;
+    
     //await this.sendTx();
 
     if (Number.isNaN(this.blockBeforeSent)) {
       this.blockBeforeSent = await this.web3.eth.getBlockNumber();
     }
 
-    await this.sendSingleTxRaw(this.rawTransactions[last_index]);
+    await this.sendSingleTxRaw(last_index);
   }
 
-  private sendSingleTxRaw(raw_tx: string) {
+  private sendSingleTxRaw(transactionIndex: number) {
 
+    if (this.transactionSentState[transactionIndex]) {
+      console.log("transaction already sent, skipping.", transactionIndex);
+      return;
+    }
     // let tx_hash = await this.addTransaction(txConfig);
     // await this.sendTx();
 
+    let raw_tx: string = this.rawTransactions[transactionIndex];
     let rpc_cmd =
     {
       method: 'eth_sendRawTransaction',
@@ -182,17 +191,17 @@ export class FastTxSender {
       }
 
       if (r.data.error) {
-        
-
         if (r.data.error.code == -32010) {
           // to many transactions in queue.
           // wait, and try again soon. (recursive enter)
           console.log("to many transaction in queue - waiting and retrying.");
-          sleep(30).then(() => {
-            self.sendSingleTxRaw(raw_tx);
+          sleep(1).then(() => {
+            self.sendSingleTxRaw(transactionIndex);
           });
           return
         }
+
+
 
         console.log("could not send transaction :", r.data.error);
         return;
@@ -206,7 +215,8 @@ export class FastTxSender {
       }
       // console.log("axios response hash: ", txHash);
 
-      self.transactionHashes.push(txHash);
+      self.transactionHashes[transactionIndex] = txHash;
+      self.transactionSentState[transactionIndex] = true;
     }, (reason) => {
       console.log('got error:', reason);
     })
@@ -248,13 +258,12 @@ export class FastTxSender {
     }
 
     let promisses = [];
-    let i = 0;
     console.time('sendTxsRaw');
-    for (let raw of this.rawTransactions) {
+    
+    for (let i = 0; i < this.rawTransactions.length; i++) {
       if (!this.transactionSentState[i]) {
-        promisses.push(this.sendSingleTxRaw(raw));
+        promisses.push(this.sendSingleTxRaw(i));
       }
-      i++;
     }
 
     console.timeEnd('sendTxsRaw');
@@ -268,7 +277,7 @@ export class FastTxSender {
     console.timeEnd(awaitTimer);
 
 
-    return i;
+    return promisses.length;
   }
 
   // waits for completion for all added transaction. 
