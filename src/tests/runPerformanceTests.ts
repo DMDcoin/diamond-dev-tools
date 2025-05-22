@@ -19,7 +19,7 @@ async function runPerformanceTests() {
   const minGasPrice = '1000000000';
   const actualMinGasPrice = await web3.eth.getGasPrice();
 
-  const dataSize = 16 * 1024;
+  const dataSize = 0; // 16 * 1024;
 
   if (minGasPrice != actualMinGasPrice) {
     console.warn(`WARNING: minGasPrice (${minGasPrice}) is not equal to actualMinGasPrice (${actualMinGasPrice})`);
