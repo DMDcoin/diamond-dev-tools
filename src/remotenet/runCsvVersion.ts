@@ -7,6 +7,7 @@ import { getNodesFromCliArgs } from "./remotenetArgs";
 import { getNodeVersion } from "./getNodeVersion";
 import { NodeState } from "../net/nodeManager";
 import BigNumber from "bignumber.js";
+import { LogFileManager } from "../logFileManager";
 
 
 
@@ -72,12 +73,17 @@ async function run() {
     csvLines.push(await csvLine(n, contractManager, block, minStake, allValidators));
   }));
   
-  console.log('"node";"current";"available";"staked";"stake";"address";"poolAddress", "sha1binary"; "version";"versionDate";"versionCommit";"versionNumber";"bonusScore";');
+  const header = '"node";"current";"available";"staked";"stake";"address";"poolAddress", "sha1binary"; "version";"versionDate";"versionCommit";"versionNumber";"bonusScore";';
+  console.log(header);
     //const csvLines: string[] = await Promise.all(nodes.map(n => csvLine(n, contractManager, block, minStake, allValidators)));
   
   csvLines.forEach(x => console.log(x));
   
+  let csvContent = header + "\n" + csvLines.join("\n");
 
+  let outputFile = LogFileManager.writeRaw(`remotenet-csv-${new Date().toISOString()}.csv`, csvContent);
+
+  
 
 }
 
