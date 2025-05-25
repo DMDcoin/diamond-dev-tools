@@ -2,7 +2,7 @@
 import Web3 from "web3";
 import { ConfigManager } from "../configManager";
 import { ContractManager } from "../contractManager";
-import { cmdR } from "../remoteCommand";
+import { cmd, cmdR } from "../remoteCommand";
 import { getNodesFromCliArgs } from "./remotenetArgs";
 import { getNodeVersion } from "./getNodeVersion";
 import { NodeState } from "../net/nodeManager";
@@ -83,7 +83,8 @@ async function run() {
 
   let outputFile = LogFileManager.writeRaw(`remotenet-csv-${new Date().toISOString()}.csv`, csvContent);
 
-  
+  cmd("libreoffice --calc " + outputFile);
+
 
 }
 
