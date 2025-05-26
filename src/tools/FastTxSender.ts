@@ -188,9 +188,9 @@ export class FastTxSender {
     let sendAddress = this.rpcJsonHttpEndpoint;
     let self = this;
 
-    while (this.currentDispatchedTransactions >= this.maxPRCTransactionDispatchAtOnce) { 
-      this.sleep(20);
-    }
+    // while (this.currentDispatchedTransactions >= this.maxPRCTransactionDispatchAtOnce) { 
+    //   this.sleep(20);
+    // }
     
     this.currentDispatchedTransactions = this.currentDispatchedTransactions + 1;
     let response = axios.post(sendAddress, rpc_cmd, { headers: headersOpt } );
@@ -276,7 +276,15 @@ export class FastTxSender {
     
     for (let i = 0; i < this.rawTransactions.length; i++) {
       if (!this.transactionSentState[i]) {
+
         promisses.push(this.sendSingleTxRaw(i));
+
+        const awaitAllX = 10;
+        if (i % 10 === awaitAllX) {
+          console.log(`sent ${i} transactions so far, awaiting responses for this batch.`);
+          let lastPromisses = promisses.slice(-awaitAllX);
+          await Promise.all(lastPromisses);
+        }
       }
     }
 
