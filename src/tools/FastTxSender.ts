@@ -279,11 +279,16 @@ export class FastTxSender {
 
         promisses.push(this.sendSingleTxRaw(i));
 
-        const awaitAllX = 10;
-        if (i % 10 === awaitAllX) {
+        const awaitAllX = 100;
+        if (i % awaitAllX === 0) {
           console.log(`sent ${i} transactions so far, awaiting responses for this batch.`);
-          let lastPromisses = promisses.slice(-awaitAllX);
-          await Promise.all(lastPromisses);
+          //let lastPromisses = promisses.slice(-awaitAllX);
+          
+          // we just await the last promise, as the worst picked example,
+          // other promises are most likely resolved already.
+          // and if not, we are await all promisses anyway later.
+          
+          await promisses[i];
         }
       }
     }
