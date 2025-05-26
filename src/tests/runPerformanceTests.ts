@@ -30,7 +30,7 @@ async function runPerformanceTests() {
   //let maxAccounts = 100;
 
   let maxTransactionsPerAccount = 80;
-  let maxAccounts = 200;
+  let maxAccounts = 500;
 
   // gas usage calculation.
   const costPerByte = 16;
