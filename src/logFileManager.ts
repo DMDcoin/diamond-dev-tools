@@ -103,5 +103,6 @@ export class LogFileManager {
         let directory = LogFileManager.ensureOutputPath();
         let fullPath = `${directory}/${filename}`;
         fs.writeFileSync(fullPath, text);
+        return fullPath;
     }
 }
