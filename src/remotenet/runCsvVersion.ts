@@ -67,11 +67,14 @@ async function run() {
   let allValidators = (await contractManager.getValidators()).map(x => x.toLowerCase());
 
   console.log(`min stake: ${minStake.toString(10)}`);
-  const csvLines: Array<String> = [];
+  let csvLines: Array<String> = [];
 
   await Promise.all(nodes.map(async (n) => {
     csvLines.push(await csvLine(n, contractManager, block, minStake, allValidators));
   }));
+
+  csvLines = csvLines.sort((a: String, b: String) => { return a.localeCompare(b.toString()) })
+
   
   const header = '"node";"current";"available";"staked";"stake";"address";"poolAddress", "sha1binary"; "version";"versionDate";"versionCommit";"versionNumber";"bonusScore";';
   console.log(header);
@@ -83,7 +86,7 @@ async function run() {
 
   let outputFile = LogFileManager.writeRaw(`remotenet-csv-${new Date().toISOString()}.csv`, csvContent);
 
-  cmd("libreoffice --calc " + outputFile);
+  cmd("libreoffice --calc " + outputFile + " &");
 
 
 }
