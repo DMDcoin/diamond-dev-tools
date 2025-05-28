@@ -6,7 +6,7 @@ async function run() {
   const nodes = await getNodesFromCliArgs();
   const installDir = ConfigManager.getRemoteInstallDir();
   const networkBranch = ConfigManager.getNetworkBranch();
-  const networkRemote = ConfigManager.getNodeRepoAlias();
+  const networkRemote = "origin"; // todo: handle multi repo support.
 
   nodes.forEach((n) => {
     const nodeName = `hbbft${n.nodeID}`;
