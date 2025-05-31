@@ -1,7 +1,7 @@
 {
   "network": "beta1",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
-  "networkGitRepoBranch": "main",
+  "networkGitRepoBranch": "release-0.11",
   "nodeProfile": "release",
   "nodeRepoUrl": "https://github.com/SurfingNerd/diamond-node.git",
   "nodeBranch": "i163-network-usage-monitoring-sync",
@@ -23,9 +23,11 @@
       "rpc": "https://beta-rpc.bit.diamonds",
       "blockscout": "https://beta-explorer.bit.diamonds",
       "db": "127.0.0.1:5432",
-      "nodeRepoAlias": "surfingnerd",
-      "nodeRepoUrl": "https://github.com/surfingnerd/diamond-node.git",
-      "nodeRepoBranch": "i171-transaction-propagation-fix",
+      "nodeRepoAlias": "dmd",
+      "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
+      "nodeRepoBranch": "0.11",
+      "nodeBuildScript": "build-from-source-dev-tracing.sh",
+      "rustVersion": "1.85",
       "claimingPotAddress": "0xe0E6787A55049A90aAa4335D0Ff14fAD26B8e88e",
       "builder": {
         "initialValidatorsCount": 1,

@@ -39,7 +39,7 @@ function getFilesToMove(directory: string) {
         const file =  ls[i];
 
         if (!file.startsWith('.') //ignore all . files, we also create with this tool. we don't create . files..
-            && (file.endsWith( LogFileManager.getFileExtensionCSV())
+            && (file.endsWith( LogFileManager.getTransactionsFileExtensionCSV())
                 || file.endsWith(LogFileManager.getFileExtensionJSON())
                 || file.endsWith(LogFileManager.getFileExtensionLog())
                 || file.endsWith(LogFileManager.getFileExtensionBlockInfos())

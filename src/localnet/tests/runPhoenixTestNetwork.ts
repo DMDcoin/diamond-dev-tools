@@ -6,6 +6,7 @@ import Web3 from "web3";
 import { create } from "underscore";
 import { createBlock } from "./testUtils";
 import { stakeOnValidators } from "../../net/stakeOnValidators";
+import { Watchdog } from "../../watchdog";
 
 
 
@@ -15,13 +16,13 @@ async function runPhoenixTestNetwork() {
 
     let nodesManager = NodeManager.get("nodes-local-test-phoenix");
 
-    if (nodesManager.nodeStates.length != 5) {
-        console.log(`ABORTING: expected 5 nodes to run this test, got `, nodesManager.nodeStates.length);
+    let expectedValidators = 4;
+    let expectedNodes = expectedValidators  + 1 ; // + MoC
+    if (nodesManager.nodeStates.length != expectedNodes ) {
+        console.log(`ABORTING: expected ${expectedNodes} nodes to run this test, got `, nodesManager.nodeStates.length);
         return;
     }   
 
-
-    let heartbeatInterval = 600;
     
     console.log(`starting rpc`);
     nodesManager.rpcNode?.start();
@@ -34,23 +35,27 @@ async function runPhoenixTestNetwork() {
 
     console.log(`all normal nodes started.`);
 
-    console.log(`waiting for rpc`);
-    await sleep(10000);
-
-    await stakeOnValidators(4);
-
-    console.log("waiting until 4 validators took over the ownership of the network.");
+    await nodesManager.awaitRpcReady();
 
     let contractManager = ContractManager.get();
 
+    const watchdog = new Watchdog(contractManager, nodesManager);
+    watchdog.startWatching(true);
+
+    await stakeOnValidators(expectedValidators);
+
+    console.log(`waiting until ${expectedValidators} validators took over the ownership of the network.`);
+
+ 
+
     let currentValidators = await contractManager.getValidators();
-    while(currentValidators.length < 4) {
+    while(currentValidators.length < expectedValidators) {
         await sleep(1000);
         currentValidators = await contractManager.getValidators();
     }
 
 
-    console.log("we are running now on a 4 validator testnetwork. starting with phoenix test.");
+    console.log(`we are running now on a ${expectedValidators} validator testnetwork. starting with phoenix test.`);
     
     let web3 = contractManager.web3;
 
@@ -78,34 +83,68 @@ async function runPhoenixTestNetwork() {
         console.log(`node ${n} started`);
     };
 
-    await stopNode(1);
-    await createBlock(web3, last_checked_block);
-
-    console.log('node 1 stopped, creating block should work, because of fault tolerance');
-
     await stopNode(2);
+    //await stopNode(3);
+    
+    //console.log('node 2,3 stopped, creating block should work, because of fault tolerance');
 
+    await createBlock(web3, last_checked_block);
+    
+
+    console.log('block produced, now stopping node 3');
+
+    await stopNode(3);
     await refreshBlock();
 
-    console.log('triggering block creation that should not create block, because of tolerance reached.');
+    console.log('triggering block creation that should not create block, because of tolerance overshoot.');
+
+    
+    let blockBeforeNewTransaction = last_checked_block;
+
     let createBlockFailing = createBlock(web3);
+
+
+
+    await startNode(2);
+    await sleep(5000);
+    await stopNode(2);
+
+    // console.log("alternating between stopping and starting nodes 2, 3 and 4 - in a way always only 2 Nodes are available in any given moment.");
+    //await stopNode(4);
+    //console.log("starting node 3");
+
+    await stopNode(4);
+    
+    await startNode(3);
+    await sleep(5000);
+    await stopNode(3);
+
+    await startNode(4);
+
+
+    console.log("starting all stopped nodes to test the recovery from missed hbbft messages.");
+
+    await refreshBlock();
+    await startNode(2);
+    await startNode(3);
+
 
     console.log('waiting for nodes...');
     
     await sleep(3000);
 
-    let blockBeforeNewTransaction = last_checked_block;
     await refreshBlock();
 
-    // console.log('Block was not created as expected:', last_checked_block > blockBeforeNewTransaction);
+    console.log('waiting for block inclusion...:');
 
-    await startNode(1);
     await sleep(15000);
     await refreshBlock();
 
     console.assert(last_checked_block > blockBeforeNewTransaction);
 
-    console.log('Block created after tolerance reached was achieved again.:');
+    await watchdog.stopWatching();
+
+    console.log('Success: Block created after tolerance reached was achieved again.:');
 
     
     nodesManager.stopAllNodes();

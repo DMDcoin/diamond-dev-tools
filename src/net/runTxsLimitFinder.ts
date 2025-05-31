@@ -51,8 +51,6 @@ async function run() {
   // get current time.
   let start_time = new Date().getTime();
 
-  let expected_end_time = start_time + (target_txs / n) * 1000;
-
   let fastTxSender = new FastTxSender(web3);
 
   let etherBN = web3.utils.toBN("1");

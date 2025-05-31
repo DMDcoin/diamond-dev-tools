@@ -10,13 +10,14 @@ as well corrisponding files in the testnet nodes directory
 
 # Project setup
 
-parallel to ./honey-badger-testing
+parallel to ./diamond-dev-tools
 this project requires othe projects as well.
 
 depending on the features you need, this is the bare minimum:
 - Rust (cargo)
 - NPM
-- `npm install -g @openzeppelin/contracts`
+
+
 
 
 ```
@@ -26,8 +27,8 @@ cd diamond-contracts-core && npm ci && cd ..
 git clone https://github.com/DMDcoin/diamond-node.git
 
 
-git clone https://github.com/DMDcoin/honey-badger-testing.git
-cd honey-badger-testing
+git clone https://github.com/DMDcoin/diamond-dev-tools.git
+cd diamond-dev-tools
 npm ci
 npm run localnet-create-mnemonic
 ```

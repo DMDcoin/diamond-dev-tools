@@ -29,10 +29,11 @@ async function runEarlyEpochTestNetwork() {
     }
 
     console.log(`all normal nodes started.`);
-    console.log(`waiting for rpc`);
+
     // todo: check if rpc is ready.
 
-    await sleep(10000);
+    await nodesManager.awaitRpcReady();
+   // await sleep(10000);
 
     let contractManager = ContractManager.get();
     let web3 = contractManager.web3;
@@ -166,7 +167,6 @@ async function runEarlyEpochTestNetwork() {
     }
 
     console.log(`FAILURE: Epoch switch did not happen within the expected time of seconds: `, maxTriesForEpochSwitch);
-    console.log('triggering block creation that should not create block, because of tolerance reached.');
     
     await watchdog.stopWatching();
     nodesManager.stopAllNodes();

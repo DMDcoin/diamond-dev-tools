@@ -17,11 +17,13 @@ async function doRunBuildFromSource(n: NodeState): Promise<string> {
     let deleteOldBuild = false;
 
 
-    let deleteCmd = deleteOldBuild ? ``: `&& rm -r ./diamond-node-git/target` ;
+    let deleteCmd = deleteOldBuild ? `&& rm -r ./diamond-node-git/target` : `` ;
 
     let installDir = ConfigManager.getRemoteInstallDir();
+
+    let buildScript  =  ConfigManager.getBuildFromSourceScript();
     // todo: "-fast" wont exist in future - fast will be the default.
-    return cmdRemoteAsync(n.sshNodeName(), `cd ${installDir} ${deleteCmd} && ./build-from-source.sh`);
+    return cmdRemoteAsync(n.sshNodeName(), `cd ${installDir} ${deleteCmd} && ./${buildScript}`);
 }
 
 async function runAllNodes() {

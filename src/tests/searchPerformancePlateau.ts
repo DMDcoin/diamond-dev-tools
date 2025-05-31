@@ -19,19 +19,44 @@ export async function write_performance_plateau_csv_header(outputFile: string) {
 /// used function write_performance_plateau_csv_header to create the header for this CSV file.
 export async function search_performance_plateau(outputFile: string) {
 
+
+  // the RPC default config is 88.
+  // maybe we should stick to this.
+  const maxTransactionsAtOnce = 10;
+
   const contractManager = ContractManager.get();
   const web3 = contractManager.web3;
 
-  const wallets = ConfigManager.insertWallets(web3, 100);
+  const wallets = ConfigManager.insertWallets(web3, maxTransactionsAtOnce);
 
-  const defaultGasPrice = '1000000000';
+  const defaultGasPrice = '1100000000';
   console.log("Warmup: Funding Accounts.");
 
   let confirmed = 0;
   let feedAccount = web3.eth.defaultAccount!;
   let nonceFeed = await web3.eth.getTransactionCount(feedAccount);
+
+
+  console.log("feeding account: ", feedAccount);
+
+  let feedAccountBalance = web3.utils.toBN(await web3.eth.getBalance(feedAccount));
+
+  console.log("feeding account Balance in DMD: ", web3.utils.fromWei(feedAccountBalance, "ether"));
+
+  let feedPerAccount = web3.utils.toBN(web3.utils.toWei('1', "ether"));
+  
+  let totalRequiredBalance = feedPerAccount.mul(web3.utils.toBN(wallets.length + 1 /**+ 1 for gas fees */));
+
+
+  if (feedAccountBalance.lt(totalRequiredBalance)) {
+    console.log("Not enough funds in feed account. Please fund it with at least: ", web3.utils.fromWei(totalRequiredBalance, "ether"));
+    return;
+  }
+  
   for(const wallet of wallets) {
-    web3.eth.sendTransaction({ from: feedAccount, to: wallet.address, nonce: nonceFeed, value: web3.utils.toWei('1', "ether"), gas: "21000", gasPrice: defaultGasPrice})
+
+    
+    web3.eth.sendTransaction({ from: feedAccount, to: wallet.address, nonce: nonceFeed, value: feedPerAccount, gas: "21000", gasPrice: defaultGasPrice})
       .once("receipt", () => {
         confirmed++
       });
@@ -56,7 +81,7 @@ export async function search_performance_plateau(outputFile: string) {
   // make a transaction to ensure the start of block production on hbbft.
   //  web3.eth.sendTransaction({ from: web3.eth.defaultAccount!, to: web3.eth.defaultAccount!, nonce: nonceFeed, value: web3.utils.toWei('1', "ether"), gas: "21000", gasPrice: defaultGasPrice});
 
-  while (txPerAccount < 1000) { // this while condition is kind of a max - we early exit if we have found a plateau.
+  while (txPerAccount < maxTransactionsAtOnce) { // this while condition is kind of a max - we early exit if we have found a plateau.
 
     
     const blockStart = await web3.eth.getBlockNumber();
@@ -70,8 +95,10 @@ export async function search_performance_plateau(outputFile: string) {
 
     //let provider : HttpProvider = web3.eth.currentProvider as HttpProvider;
     
-    let sendAddress = 'http://127.0.0.1:8540';
+    
+    let sendAddress =  ConfigManager.getNetworkConfig().rpc;
 
+    
     for(const wallet of wallets) {
 
       let nonce = await web3.eth.getTransactionCount(wallet.address);
@@ -138,8 +165,8 @@ export async function search_performance_plateau(outputFile: string) {
                   return;
                 }
                 if (response) {
-                  // console.log('got reponse:', response.statusCode);
-                  // console.log('got reponse body:', response.body);
+                  console.log('got reponse:', response.statusCode);
+                  console.log('got reponse body:', response.body);
                 }
                 
                 

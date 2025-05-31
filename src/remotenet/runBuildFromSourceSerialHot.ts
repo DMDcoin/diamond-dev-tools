@@ -10,8 +10,9 @@ async function doRunBuildFromSource(n: NodeState): Promise<string> {
     console.log(`=== ${nodeName} ===`);
 
     let installDir = ConfigManager.getRemoteInstallDir()
+    let buildScript = ConfigManager.getBuildFromSourceScript();
     // todo: "-fast" wont exist in future - fast will be the default.
-    return cmdR(n.sshNodeName(), `cd ${installDir} && ./build-from-source.sh`);
+    return cmdR(n.sshNodeName(), `cd ${installDir} && ./${buildScript}`);
 }
 
 async function runAllNodes() {

@@ -7,6 +7,8 @@ import { cmd, cmdR } from '../remoteCommand';
 import { startRemoteNode } from '../remotenet/startRemoteNode';
 import { stopRemoteNode } from '../remotenet/stopRemoteNode';
 import { ContractManager } from '../contractManager';
+import axios from 'axios';
+import { sleep } from '../utils/time';
 
 export class NodeState {
 
@@ -313,6 +315,38 @@ export class NodeManager {
 
     this.rpcNode.start(force);
   }
+
+  public async awaitRpcReady() {
+
+    let network = ConfigManager.getNetworkConfig();
+    console.log("awaiting rpc to be ready at address:", network.rpc);
+
+    while (true) {
+
+      try {
+        let response = await axios.post(network.rpc, {}, { headers: { 'Content-Type': 'application/json' } });
+        if (response.status == 200) {
+          console.log("RPC is ready!");
+          return;
+        } else{
+          console.log("RPC response state was:", response.status);
+          await sleep(100);
+        }
+      }
+      catch (e: any) {
+
+        if (e.code === 'ECONNREFUSED') {
+          //console.log("RPC not ready yet. Waiting...");
+          await sleep(100);
+        } else {
+          console.log("Unexpected RPC error:", e);
+          console.log("Unexpected RPC error - there might be follow up errors.");
+          return;
+        }
+      }
+    }
+  }
+
 
   public startAllNodes(force = false): NodeState[] {
     this.nodeStates.forEach((n) => {

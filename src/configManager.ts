@@ -49,6 +49,8 @@ export interface Network {
     nodeRepoAlias: string | undefined,
     nodeRepoUrl: string | undefined,
     nodeRepoBranch: string | undefined,
+    nodeBuildScript: string | undefined,
+    rustVersion: string | undefined,
     openEthereumDeadlockDetection: boolean,
     builder: NetworkBuilderArgs | undefined
 }
@@ -61,6 +63,7 @@ export interface TestConfig {
     nodeRepoUrl: string,
     nodeProfile: string,
     nodeBranch: string,
+    nodeBuildScript: string | undefined,
     blockscoutInstance: string,
     continuousSenderIntervalMin: number,
     continuousSenderIntervalMax: number,
@@ -72,7 +75,7 @@ export interface TestConfig {
     logToTerminal: boolean | undefined,
     logToFile: boolean | undefined,
     maximumPoolSize: number | undefined
-    networks: Array<Network>
+    networks: Array<Network>,
 }
 
 
@@ -100,11 +103,21 @@ if (args.network) {
 
 
 export class ConfigManager {
+    static getBuildFromSourceScript() {
+
+      
+        return ConfigManager.getNetworkConfig().nodeBuildScript ?? ConfigManager.getConfig().nodeBuildScript ?? "build-from-source.sh";
+        
+    }
 
 
     static getChainName() {
         let builderArgs = ConfigManager.getNetworkConfig();
         return builderArgs.name.startsWith("nodes-") ? builderArgs.name.substring("nodes-".length) : builderArgs.name;
+    }
+
+    static getRustVersion() {
+        return ConfigManager.getNetworkConfig().rustVersion;
     }
 
     static network : string = "";

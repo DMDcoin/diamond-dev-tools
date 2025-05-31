@@ -11,7 +11,7 @@ export class LogFileManager {
         //console.log('current Dir: ',  process.cwd());
     }
 
-    public static getFileExtensionCSV() : string {
+    public static getTransactionsFileExtensionCSV() : string {
         return '.transactions.csv';
     }
 
@@ -45,10 +45,11 @@ export class LogFileManager {
         {
             fs.mkdirSync(this.getOutputDirectory());
         }
+        return this.getOutputDirectory();
     }
 
     public static getOutputPathCSV() {
-        return `${LogFileManager.getOutputDirectory()}/${LogFileManager.getLogConfigName()}${LogFileManager.getFileExtensionCSV()}`;
+        return `${LogFileManager.getOutputDirectory()}/${LogFileManager.getLogConfigName()}${LogFileManager.getTransactionsFileExtensionCSV()}`;
     }
     
     public static getOutputPathJSON() {
@@ -83,9 +84,13 @@ export class LogFileManager {
         fs.writeFileSync(this.getOutputPathTextLog(), new Buffer(resultForFile));
     }
 
-    public static writeBlockchainOutput(test: string) {
+    public static writeBlockchainOutput(text: string) {
         LogFileManager.ensureOutputPath();
-        fs.writeFileSync(this.getOutputPathBlock(), test);
+        
+        let outFile = this.getOutputPathBlock();
+        fs.writeFileSync(outFile, text);
+        console.log("writeBlockchainOutput: ", outFile);
+        return outFile;
     }
 
 
@@ -94,4 +99,10 @@ export class LogFileManager {
         fs.writeFileSync(this.getOutputPathBlockNumber(), blockNumber.toString());
     }
     
+    public static writeRaw(filename: string , text: string ) {
+        let directory = LogFileManager.ensureOutputPath();
+        let fullPath = `${directory}/${filename}`;
+        fs.writeFileSync(fullPath, text);
+        return fullPath;
+    }
 }
