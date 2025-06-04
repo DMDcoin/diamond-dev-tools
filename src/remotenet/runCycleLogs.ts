@@ -10,7 +10,7 @@ async function run() {
   const config = ConfigManager.getNetworkConfig();
 
   const baseDir = `~/${config.installDir}/`;
-  executeOnRemotesFromCliArgs(`mv ${baseDir}parity.log ${baseDir}${filename}`);
+  executeOnRemotesFromCliArgs(`mv ${baseDir}diamond-node.log ${baseDir}${filename}`);
 }
 
 run();
