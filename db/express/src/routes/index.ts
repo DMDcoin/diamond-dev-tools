@@ -1,8 +1,8 @@
 import express from 'express'
-import bonusScore from "./bonus-score";
+import node from "./node";
 
 const router = express.Router()
 
-router.use(bonusScore);
+router.use(node);
 
 export default router
