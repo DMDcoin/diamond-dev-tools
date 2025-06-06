@@ -1,7 +1,7 @@
 {
   "network": "beta1",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
-  "networkGitRepoBranch": "release-0.11",
+  "networkGitRepoBranch": "main",
   "nodeProfile": "release",
   "nodeRepoUrl": "https://github.com/SurfingNerd/diamond-node.git",
   "nodeBranch": "i163-network-usage-monitoring-sync",
@@ -25,7 +25,7 @@
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
       "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
-      "nodeRepoBranch": "0.11",
+      "nodeRepoBranch": "main",
       "nodeBuildScript": "build-from-source-dev-tracing.sh",
       "rustVersion": "1.85",
       "claimingPotAddress": "0xe0E6787A55049A90aAa4335D0Ff14fAD26B8e88e",
@@ -101,48 +101,6 @@
       "db": "127.0.0.1:5432"
     },
     {
-      "name": "remote_ci",
-      "installDir": "",
-      "nodesDir": "nodes",
-      "rpc": "http://185.187.170.209:8540",
-      "blockscout": "http://185.187.170.209:3000",
-      "db": "127.0.0.1:5432"
-    },
-    {
-      "name": "nodes-alpha2",
-      "rpc": "http://rpc.uniq.diamonds:8540",
-      "rpcSSH": "dmdrpc",
-      "rpcLocalInstallDir": "rpc/alpha2-rpc",
-      "blockscout": "",
-      "db": "",
-      "nodesDir": "nodes-alpha2",
-      "installDir": "alpha2",
-      "screenName": "alpha2",
-      "nodeBranch": "dforsten/hbbft_no_failure",
-      "openEthereumDeadlockDetection": false
-    },
-    {
-      "name": "alpha_local_db",
-      "rpc": "http://rpc.uniq.diamonds:8540",
-      "blockscout": "http://explorer.uniq.diamonds",
-      "db": "127.0.0.1:5432",
-      "installDir": "alpha-local-db"
-    },
-    {
-      "name": "test",
-      "rpc": "http://38.242.206.143:8545",
-      "blockscout": "http://38.242.206.145:4000/",
-      "db": "38.242.206.145:5432",
-      "installDir": "old-testnet"
-    },
-    {
-      "name": "test_local_db",
-      "rpc": "http://38.242.206.143:8545",
-      "blockscout": "http://38.242.206.145:4000/",
-      "db": "127.0.0.1:5432",
-      "installDir": "old-testnet"
-    },
-    {
       "name": "nodes-local-fork-test",
       "rpc": "http://localhost:8540",
       "blockscout": "http://localhost:4000/",
@@ -172,6 +130,32 @@
         "nodeArgs": {
           "Footprint": {
             "cache_size": 50
+          }
+        }
+      }
+    },
+    {
+      "name": "nodes-local-test-performance",
+      "rpc": "http://localhost:8540",
+      "blockscout": "http://localhost:4000/",
+      "db": "localhost:5432",
+      "installDir": "nodes-local-test-performance",
+      "nodesDir": "nodes-local-test-performance",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 26,
+        "hbbftArgs": {
+          "minimumBlockTime": 1,
+          "maximumBlockTime": 10
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 15,
+          "STAKING_EPOCH_DURATION": 60000,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
+        },
+        "nodeArgs": {
+          "Footprint": {
+            "cache_size": 250
           }
         }
       }

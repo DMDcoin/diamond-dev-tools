@@ -16,13 +16,15 @@ async function doSearch() {
   let limitOutput = false;
 
   let grepLimit = limitOutput ? " -m 10" : "";
-  let tailLimit = limitOutput ? " -n 100000" : "";
+  //let tailLimit = limitOutput ? " -n 100000" : "";
+
+  let gatherCommand = limitOutput ? `tail -n 100000` : `cat`;
 
   nodes.forEach(async(x) => {
     const filename = `~/${installDir}/diamond-node.log`;
     //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-    const searchterm = 'deadlock';
-    const promise = cmdRemoteAsync(x.sshNodeName(), `tail ${filename} ${tailLimit} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
+    const searchterm = 'deadlock(s) detected';
+    const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
       results[x.nodeID] = result;
     });
 
