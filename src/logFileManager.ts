@@ -5,6 +5,7 @@ import * as fs from 'fs';
 
 export class LogFileManager {
 
+    
     public static getOutputDirectory() : string {
 
         return process.cwd() + '/output';
@@ -67,6 +68,18 @@ export class LogFileManager {
     public static getOutputPathBlockNumber() {
         return `${LogFileManager.getOutputDirectory()}/startblockNumber${LogFileManager.getFileExtensionBlockNumber()}`;
     }
+
+    static getOutputPathNetworkOperation(networkName: string, networkOperation: string) {
+        return `${LogFileManager.getOutputDirectory()}/network_ops/${networkName} ${networkOperation}}`
+    }
+
+    static writeNetworkOperationOutput(networkName: string, networkOperation: string) {
+        //const fileSuccess = this.getOutputPathNetworkOperation + "_success.txt";
+
+        // todo: logoutput.
+
+    }
+
 
     public static writeCSVOutput(csv: string) {
         LogFileManager.ensureOutputPath();
