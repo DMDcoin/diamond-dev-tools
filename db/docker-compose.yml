@@ -12,7 +12,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
     ports:
-      - '127.0.0.1:5432:5432'
+      - '${DMD_DB_POSTGRES_PORT}:5432'
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     networks:
       - monitor-net
@@ -51,3 +51,15 @@ services:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
+
+  express:
+    build: ./express
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./express:/app
+    environment:
+      - NODE_ENV=development
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
