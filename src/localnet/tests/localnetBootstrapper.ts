@@ -24,16 +24,21 @@ export interface LocalnetScriptRunnerResult {
 export abstract class LocalnetScriptRunnerBase {
 
     currentNodeManager: NodeManager;
-    lastCheckedBlock: number = 0;
-    web3: Web3 | undefined;
+    lastCheckedBlock: number;
+    web3: Web3;
+    expectedValidators: number;
 
     constructor(public networkName: string, public networkOperation: string, public expectedValidators_: number | undefined = undefined) {
 
+        ConfigManager.setNetwork(networkName);
+        this.web3 = ConfigManager.getWeb3();
         this.currentNodeManager = NodeManager.get(networkName);
-        
-        //this.web3 = this.currentNodeManager.
-
-
+        if (expectedValidators_ === undefined) { 
+            this.expectedValidators = this.currentNodeManager.nodeStates.length - 1; 
+        } else {
+            this.expectedValidators = expectedValidators_;
+        }
+        this.lastCheckedBlock = await this.web3.eth.getBlockNumber();
     }
 
 
@@ -60,6 +65,23 @@ export abstract class LocalnetScriptRunnerBase {
     };
 
     public async start(networkName: string, networkOperation: string, expectedValidators_: number | undefined = undefined) {
+
+        // split the console output.
+
+        // const origConsoleLog = console.log;
+        // const origConsoleError = console.error;
+        // //console.log
+
+        
+
+        // console.log = (...args: any[]) => {
+            
+
+
+
+        //     origConsoleLog(...args);
+        // };
+
 
         let nodesManager = NodeManager.get(networkName);
 
@@ -117,14 +139,17 @@ export abstract class LocalnetScriptRunnerBase {
         this.lastCheckedBlock = start_block;
 
 
+        console.log('Success: Block created after tolerance reached was achieved again.:');
 
-        this.runImplementation():
+        const result = this.runImplementation();
+
+
 
         /// console.assert(last_checked_block > blockBeforeNewTransaction);
 
         await watchdog.stopWatching();
 
-        console.log('Success: Block created after tolerance reached was achieved again.:');
+        
 
         // write operation result.
 
@@ -138,17 +163,11 @@ export abstract class LocalnetScriptRunnerBase {
         // while(true) {
         //     // verify that network is running.
         //     // by sending a transaction and waiting for a new block.
-
-
-
-
-
         // }
 
     }
 
-
-    abstract runImplementation(web3: Web3) : Promise<LocalnetScriptRunnerResult>;
+    abstract runImplementation() : Promise<LocalnetScriptRunnerResult>;
 
 }
 
