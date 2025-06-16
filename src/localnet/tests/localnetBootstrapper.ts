@@ -14,6 +14,8 @@ import { ConfigManager } from "../../configManager";
 
 export interface LocalnetScriptRunnerResult {
 
+    stdOut: string,
+    stdError: string,
     success: boolean, 
 
 }
@@ -33,12 +35,21 @@ export abstract class LocalnetScriptRunnerBase {
         ConfigManager.setNetwork(networkName);
         this.web3 = ConfigManager.getWeb3();
         this.currentNodeManager = NodeManager.get(networkName);
+        this.networkOperation = networkOperation;
+
+        // let expectedValidators = expectedValidators_ || nodesManager.nodeStates.length; // default to 4 validators if not specified
+        // let expectedNodes = expectedValidators + 1; // + MoC
+        // if (nodesManager.nodeStates.length != expectedNodes) {
+        //     console.log(`ABORTING: expected ${expectedNodes} nodes to run this test, got `, nodesManager.nodeStates.length);
+        //     return;
+        // }
+
         if (expectedValidators_ === undefined) { 
             this.expectedValidators = this.currentNodeManager.nodeStates.length - 1; 
         } else {
             this.expectedValidators = expectedValidators_;
         }
-        this.lastCheckedBlock = await this.web3.eth.getBlockNumber();
+        this.lastCheckedBlock = 0;
     }
 
 
@@ -64,24 +75,30 @@ export abstract class LocalnetScriptRunnerBase {
         this.lastCheckedBlock = await this.web3.eth.getBlockNumber();
     };
 
-    public async start(networkName: string, networkOperation: string, expectedValidators_: number | undefined = undefined) {
+    public async start() {
 
         // split the console output.
 
-        // const origConsoleLog = console.log;
-        // const origConsoleError = console.error;
-        // //console.log
 
+        let outLog : string[] = [];
+        let outError : string[] = [];
+
+
+        const origConsoleLog = console.log;
+        const origConsoleError = console.error;
         
 
-        // console.log = (...args: any[]) => {
-            
+        console.log = (...args: any[]) => {
+            outLog.push(...args);
+            origConsoleLog(...args);
+        };
 
+        console.error = (...args: any[]) => {
+            outError.push(...args);
+            origConsoleError(...args);
+        };
 
-
-        //     origConsoleLog(...args);
-        // };
-
+        const networkName = this.networkName;
 
         let nodesManager = NodeManager.get(networkName);
 
@@ -90,12 +107,7 @@ export abstract class LocalnetScriptRunnerBase {
         }
 
         //let expectedValidators = 4;
-        let expectedValidators = expectedValidators_ || nodesManager.nodeStates.length; // default to 4 validators if not specified
-        let expectedNodes = expectedValidators + 1; // + MoC
-        if (nodesManager.nodeStates.length != expectedNodes) {
-            console.log(`ABORTING: expected ${expectedNodes} nodes to run this test, got `, nodesManager.nodeStates.length);
-            return;
-        }
+
 
 
         console.log(`starting rpc`);
@@ -116,20 +128,20 @@ export abstract class LocalnetScriptRunnerBase {
         const watchdog = new Watchdog(contractManager, nodesManager);
         watchdog.startWatching(true);
 
-        await stakeOnValidators(expectedValidators);
+        await stakeOnValidators(this.expectedValidators);
 
-        console.log(`waiting until ${expectedValidators} validators took over the ownership of the network.`);
+        console.log(`waiting until ${this.expectedValidators} validators took over the ownership of the network.`);
 
 
 
         let currentValidators = await contractManager.getValidators();
-        while (currentValidators.length < expectedValidators) {
+        while (currentValidators.length < this.expectedValidators) {
             await sleep(1000);
             currentValidators = await contractManager.getValidators();
         }
 
 
-        console.log(`we are running now on a ${expectedValidators} validator testnetwork. starting with phoenix test.`);
+        console.log(`we are running now on a ${this.expectedValidators} validator testnetwork ${this.networkName}. starting test:`, this.networkOperation);
 
         let web3 = contractManager.web3;
 
@@ -141,7 +153,7 @@ export abstract class LocalnetScriptRunnerBase {
 
         console.log('Success: Block created after tolerance reached was achieved again.:');
 
-        const result = this.runImplementation();
+        const result = await this.runImplementation();
 
 
 
@@ -167,7 +179,7 @@ export abstract class LocalnetScriptRunnerBase {
 
     }
 
-    abstract runImplementation() : Promise<LocalnetScriptRunnerResult>;
+    abstract runImplementation() : Promise<boolean>;
 
 }
 

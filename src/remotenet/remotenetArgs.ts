@@ -4,7 +4,12 @@ import * as child from 'child_process';
 import { ContractManager } from "../contractManager";
 import { getNodeVersion } from "./getNodeVersion";
 
-export interface IRemotnetArgs {
+export interface INetworkArgs {
+  network?: string;
+  help?: boolean;
+}
+
+export interface IRemotnetArgs extends INetworkArgs{
   onlyunavailable: boolean;
   onlyavailable: boolean;
   skipcurrent: boolean;
@@ -12,11 +17,19 @@ export interface IRemotnetArgs {
   all: boolean;
 //  numberOfNodes?: number;
   sshnode?: string;
-  network?: string;
   nsshnode?: string;
   miningAddress?: string;
   help?: boolean;
   version?: string;
+}
+
+export function parseNetworkArgs(): INetworkArgs { 
+  const args = parse<INetworkArgs>({
+    network: { type: String, optional: true, description: `network as configured in config/default.json` },
+    help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' }
+  }, { partial: true });
+
+  return args;
 }
 
 export function parseRemotenetArgs(): IRemotnetArgs {

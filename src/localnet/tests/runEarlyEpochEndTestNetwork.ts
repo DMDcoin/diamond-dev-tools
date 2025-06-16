@@ -5,9 +5,10 @@ import Web3 from "web3";
 import { createBlock } from "./testUtils";
 import { Watchdog } from "../../watchdog";
 import { stakeOnValidators } from "../../net/stakeOnValidators";
+import { EarlyEpochEndRunner } from "./runEarlyEpochTest";
 
 
-async function runEarlyEpochTestNetwork() {
+async function runEarlyEpochTestNetworkOld() {
 
     console.log(`Early epoch test network. designed to run on network nodes-local-test-early-epoch-end. create with 'npm run testnet-fresh-test-early-epoch-end'.`);
 
@@ -174,4 +175,10 @@ async function runEarlyEpochTestNetwork() {
 
 }
 
+async function runEarlyEpochTestNetwork() {
+
+    let runner = new EarlyEpochEndRunner("nodes-local-test-early-epoch-end", "early-epoch-end-test", 16);
+
+    runner.start();
+}
 runEarlyEpochTestNetwork();

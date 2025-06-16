@@ -31,6 +31,9 @@ export async function gitUpdateBranchAndPull(n: NodeState) {
     cmdR(nodeName, `cd ~/${installDir}/diamond-node-git && git remote add ${remoteAlias} ${url}`);
   }
 
-  cmdR(nodeName, `cd ~/${installDir}/diamond-node-git && git fetch ${remoteAlias} && git checkout ${nodeBranch} && git pull ${remoteAlias} ${nodeBranch}`);
+   
+  // todo: depending on the state of the repo, we need different strategies here.
+  // maybe just handle the error meessage from git, and do further decisions based on that ?
+  cmdR(nodeName, `cd ~/${installDir}/diamond-node-git && git fetch ${remoteAlias} && git checkout ${remoteAlias}/${nodeBranch} && git pull ${remoteAlias} ${nodeBranch}`);
 
 }

@@ -2,7 +2,7 @@
   "network": "beta1",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
   "networkGitRepoBranch": "main",
-  "nodeProfile": "release",
+  "nodeProfile": "perf",
   "nodeRepoUrl": "https://github.com/SurfingNerd/diamond-node.git",
   "nodeBranch": "i163-network-usage-monitoring-sync",
   "blockscoutInstance": "http://explorer.uniq.diamonds",
@@ -25,8 +25,8 @@
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
       "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
-      "nodeRepoBranch": "main",
-      "nodeBuildScript": "build-from-source-dev-tracing.sh",
+      "nodeRepoBranch": "0.11",
+      "nodeBuildScript": "build-from-source.sh",
       "rustVersion": "1.85",
       "claimingPotAddress": "0xe0E6787A55049A90aAa4335D0Ff14fAD26B8e88e",
       "builder": {
@@ -115,6 +115,7 @@
       "db": "localhost:5432",
       "installDir": "nodes-local-test-early-epoch-end",
       "nodesDir": "nodes-local-test-early-epoch-end",
+      "diamondNodedDeadlockDetection": true,
       "builder": {
         "initialValidatorsCount": 1,
         "nodesCount": 17,
@@ -123,7 +124,7 @@
           "maximumBlockTime": 5
         },
         "contractArgs": {
-          "STAKING_TRANSITION_WINDOW_LENGTH": 15,
+          "STAKING_TRANSITION_WINDOW_LENGTH": 60,
           "STAKING_EPOCH_DURATION": 60000,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
         },
@@ -132,7 +133,7 @@
             "cache_size": 50
           }
         }
-      }
+      } 
     },
     {
       "name": "nodes-local-test-performance",

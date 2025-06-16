@@ -23,7 +23,9 @@ async function doSearch() {
   nodes.forEach(async(x) => {
     const filename = `~/${installDir}/diamond-node.log`;
     //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-    const searchterm = 'deadlock(s) detected';
+    //const searchterm = 'deadlock(s) detected';
+    
+    const searchterm = "shutdown-on-missing-block-import"
     const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
       results[x.nodeID] = result;
     });

@@ -6,8 +6,9 @@ import { sleep } from "../../utils/time";
 export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
 
 
-    async runImplementation(web3: Web3): Promise<LocalnetScriptRunnerResult> {
+    async runImplementation(): Promise<boolean> {
                 
+        
         await this.startNode(2);
         await sleep(5000);
         await this.stopNode(2);
@@ -44,7 +45,7 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
         await this.refreshBlock();
 
 
-        return { success: true };  
+        return true;
     }
 
 
