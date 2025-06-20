@@ -291,7 +291,7 @@ export class Watchdog {
       const currentValidators = await this.contractManager.getValidatorSetHbbft().methods.getValidators().call();
       if (!Watchdog.deepEquals(currentValidators, this.currentValidators)) {
         if (logValidatorChanges) {
-          console.log(`epoch ${this.latestKnownEpochNumber}: switched currentValidators  from - to`, this.currentValidators, currentValidators);
+          console.log(`epoch ${this.latestKnownEpochNumber}: switched currentValidators  from ${this.currentValidators.length} - to ${currentValidators.length}`, this.currentValidators, currentValidators);
         }
         
         //console.log(`Difference: `, Watchdog.createDiffgram(this.currentValidators, currentValidators));
