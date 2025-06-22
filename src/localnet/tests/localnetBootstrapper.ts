@@ -14,8 +14,8 @@ import { ConfigManager } from "../../configManager";
 
 export interface LocalnetScriptRunnerResult {
 
-    stdOut: string,
-    stdError: string,
+   // stdOut: string,
+   // stdError: string,
     success: boolean, 
 
 }
@@ -151,12 +151,15 @@ export abstract class LocalnetScriptRunnerBase {
         this.lastCheckedBlock = start_block;
 
 
-        console.log('Success: Block created after tolerance reached was achieved again.:');
-
+        
         const result = await this.runImplementation();
 
-
-
+        if (result) {
+            console.log('SUCCESS: Block created after tolerance reached was achieved again.:');
+        } else {
+            console.log('FAILURE: this test failed');
+        }
+        
         /// console.assert(last_checked_block > blockBeforeNewTransaction);
 
         await watchdog.stopWatching();
@@ -167,8 +170,8 @@ export abstract class LocalnetScriptRunnerBase {
 
         // LogFileManager.writeNetworkOperationOutput(networkName, networkOperation)
 
-        nodesManager.stopAllNodes();
-        nodesManager.stopRpcNode();
+        nodesManager.stopAllNodes(true);
+        nodesManager.stopRpcNode(true);
 
         // todo: add a condition to stop this test.
         // maybe phoenix managed a recovery 3 times ?
@@ -177,6 +180,7 @@ export abstract class LocalnetScriptRunnerBase {
         //     // by sending a transaction and waiting for a new block.
         // }
 
+        process.exit(result ? 0 : 1);
     }
 
     abstract runImplementation() : Promise<boolean>;
