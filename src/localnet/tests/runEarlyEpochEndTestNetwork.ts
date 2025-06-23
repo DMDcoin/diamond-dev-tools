@@ -177,7 +177,7 @@ async function runEarlyEpochTestNetworkOld() {
 
 async function runEarlyEpochTestNetwork() {
 
-    let runner = new EarlyEpochEndRunner("nodes-local-test-early-epoch-end", "early-epoch-end-test", 16);
+    let runner = new EarlyEpochEndRunner();
 
     runner.start();
 }
