@@ -23,10 +23,10 @@ async function runSmallTestNetwork() {
         console.log(`ABORTING: expected 5 nodes to run this test`);
         return;
     }
-    
+
     console.log(`starting rpc`);
     nodesManager.rpcNode?.start();
-    
+
     console.log(`Starting up the network. Total nodes: ${nodesManager.nodeStates.length}`);
 
     for (let node of nodesManager.nodeStates) {
@@ -64,7 +64,7 @@ async function runSmallTestNetwork() {
         }
     });
 
-    let start_block =  await web3.eth.getBlockNumber();
+    let start_block = await web3.eth.getBlockNumber();
     console.log('current block:', start_block);
 
     if (start_block > 10) {
@@ -85,7 +85,7 @@ async function runSmallTestNetwork() {
         current_epoch = e;
     };
 
-    let createBlockAndRefresh = async() => {
+    let createBlockAndRefresh = async () => {
         await createBlock(web3, last_checked_block);
         await refreshBlock();
     }
@@ -99,11 +99,11 @@ async function runSmallTestNetwork() {
 
     const maxExpectedTestDuration = duration(3, 'minutes');
 
-    
+
     const maxExpectedTestEndDate = Date.now() + maxExpectedTestDuration.asMilliseconds();
     let isSuccess = true;
     // let lastEpoch = current_epoch;
-    while(currentValidators.length < 4) {
+    while (currentValidators.length < 4) {
         await sleep(1000);
         await refreshBlock();
         if (Date.now() > maxExpectedTestEndDate) {

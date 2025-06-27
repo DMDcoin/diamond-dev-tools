@@ -7,18 +7,17 @@ import { LocalnetScriptRunnerBase, LocalnetScriptRunnerResult } from "./localnet
 class LargeNetworkTestRunner extends LocalnetScriptRunnerBase {
 
 
-    constructor()  
-    {
+    constructor() {
         super("nodes-local-test-large-network", "staking test", 25);
 
     }
 
     async runImplementation(): Promise<boolean> {
-        
+
         // we just wanted to know if we can manage to scale up to this network size.
         return true;
     }
-} 
+}
 
 
 async function run() {

@@ -14,9 +14,9 @@ import { ConfigManager } from "../../configManager";
 
 export interface LocalnetScriptRunnerResult {
 
-   // stdOut: string,
-   // stdError: string,
-    success: boolean, 
+    // stdOut: string,
+    // stdError: string,
+    success: boolean,
 
 }
 
@@ -44,8 +44,8 @@ export abstract class LocalnetScriptRunnerBase {
         //     return;
         // }
 
-        if (expectedValidators_ === undefined) { 
-            this.expectedValidators = this.currentNodeManager.nodeStates.length - 1; 
+        if (expectedValidators_ === undefined) {
+            this.expectedValidators = this.currentNodeManager.nodeStates.length - 1;
         } else {
             this.expectedValidators = expectedValidators_;
         }
@@ -80,13 +80,13 @@ export abstract class LocalnetScriptRunnerBase {
         // split the console output.
 
 
-        let outLog : string[] = [];
-        let outError : string[] = [];
+        let outLog: string[] = [];
+        let outError: string[] = [];
 
 
         const origConsoleLog = console.log;
         const origConsoleError = console.error;
-        
+
 
         console.log = (...args: any[]) => {
             outLog.push(...args);
@@ -151,7 +151,7 @@ export abstract class LocalnetScriptRunnerBase {
         this.lastCheckedBlock = start_block;
 
 
-        
+
         const result = await this.runImplementation();
 
         if (result) {
@@ -159,12 +159,12 @@ export abstract class LocalnetScriptRunnerBase {
         } else {
             console.log('FAILURE: this test failed');
         }
-        
+
         /// console.assert(last_checked_block > blockBeforeNewTransaction);
 
         await watchdog.stopWatching();
 
-        
+
 
         // write operation result.
 
@@ -183,7 +183,7 @@ export abstract class LocalnetScriptRunnerBase {
         process.exit(result ? 0 : 1);
     }
 
-    abstract runImplementation() : Promise<boolean>;
+    abstract runImplementation(): Promise<boolean>;
 
 }
 

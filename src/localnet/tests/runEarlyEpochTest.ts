@@ -11,7 +11,7 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
     }
 
     async runImplementation(): Promise<boolean> {
-                
+
         // we are on a 16 node validator network now.
         // we expect a early epoch end tolerance of 2. -> todo: maybe we should read that from contract
         // required: 2f + 1

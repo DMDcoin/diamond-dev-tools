@@ -96,11 +96,11 @@ class AutoRestakeTest {
         // we stake on all nodes except the 1 MOC.
         let stakes = await stakeOnValidators(targetNumOfValidators);
 
-        if (stakes.length != targetNumOfValidators) { 
+        if (stakes.length != targetNumOfValidators) {
             console.log("stakes failed: ", stakes.length);
             throw new Error("stakes failed: " + stakes.length);
         }
-        
+
         validators = await contractManager.getValidators();
         console.log("validators after staking: ", validators);
 
@@ -108,9 +108,9 @@ class AutoRestakeTest {
 
 
         let rewardContract = await contractManager.getRewardHbbft();
-        let deltaFeedTX = await rewardContract.methods.addToDeltaPot().send({ from: web3.eth.defaultAccount!, gas: '100000', value: web3.utils.toWei('1000000', 'ether')});
+        let deltaFeedTX = await rewardContract.methods.addToDeltaPot().send({ from: web3.eth.defaultAccount!, gas: '100000', value: web3.utils.toWei('1000000', 'ether') });
         console.log("delta pot funded", deltaFeedTX.transactionHash);
-        
+
 
         // let reinsertFeedTX = await rewardContract.methods.addToReinsertPot().send({ from: web3.eth.defaultAccount!, gas: '100000', value: web3.utils.toWei('1000000', 'ether')});
         // console.log("reinsert pot funded", reinsertFeedTX.transactionHash);
@@ -122,7 +122,7 @@ class AutoRestakeTest {
         let minStake = await contractManager.getMinStake();
 
         let totalDelegatorsCount = 0;
-        
+
 
         let stakingContract = await contractManager.getStakingHbbft();
 

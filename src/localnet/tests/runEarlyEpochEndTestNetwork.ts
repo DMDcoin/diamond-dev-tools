@@ -18,11 +18,11 @@ async function runEarlyEpochTestNetworkOld() {
     if (nodesManager.nodeStates.length != 17) {
         console.log(`ABORTING: expected 17 nodes to run this test`);
         return;
-    }   
-    
+    }
+
     console.log(`starting rpc`);
     nodesManager.rpcNode?.start();
-    
+
     console.log(`Starting up the network. Total nodes: ${nodesManager.nodeStates.length}`);
 
     for (let node of nodesManager.nodeStates) {
@@ -34,7 +34,7 @@ async function runEarlyEpochTestNetworkOld() {
     // todo: check if rpc is ready.
 
     await nodesManager.awaitRpcReady();
-   // await sleep(10000);
+    // await sleep(10000);
 
     let contractManager = ContractManager.get();
     let web3 = contractManager.web3;
@@ -62,7 +62,7 @@ async function runEarlyEpochTestNetworkOld() {
         }
     });
 
-    let start_block =  await web3.eth.getBlockNumber();
+    let start_block = await web3.eth.getBlockNumber();
     console.log('current block:', start_block);
 
     if (start_block > 10) {
@@ -83,7 +83,7 @@ async function runEarlyEpochTestNetworkOld() {
         current_epoch = e;
     };
 
-    let createBlockAndRefresh = async() => {
+    let createBlockAndRefresh = async () => {
         await createBlock(web3, last_checked_block);
         await refreshBlock();
     }
@@ -96,7 +96,7 @@ async function runEarlyEpochTestNetworkOld() {
     console.log(`waiting for next epoch switch and upscaling to 16 validator nodes.`);
 
     // let lastEpoch = current_epoch;
-    while(currentValidators.length < 16) {
+    while (currentValidators.length < 16) {
         await sleep(1000);
         await refreshBlock();
     }
@@ -106,14 +106,14 @@ async function runEarlyEpochTestNetworkOld() {
     console.log(`current Validators count: ${currentValidators.length}`);
     console.log(currentValidators);
 
-    let stopNode = async (n: number) => { 
+    let stopNode = async (n: number) => {
         console.log(`stopping node ${n}`);
         await nodesManager.getNode(n).stop();
         console.log(`node ${n} stopped`);
     };
 
 
-    let startNode = async (n: number) => { 
+    let startNode = async (n: number) => {
         console.log(`starting node ${n}`);
         await nodesManager.getNode(n).start();
         console.log(`node ${n} started`);
@@ -124,7 +124,7 @@ async function runEarlyEpochTestNetworkOld() {
     let epochAtStart = current_epoch;
 
     await stopNode(1);
-    
+
     console.log('node 1 stopped, creating block should work, because of fault tolerance.');
 
     await stopNode(2);
@@ -168,7 +168,7 @@ async function runEarlyEpochTestNetworkOld() {
     }
 
     console.log(`FAILURE: Epoch switch did not happen within the expected time of seconds: `, maxTriesForEpochSwitch);
-    
+
     await watchdog.stopWatching();
     nodesManager.stopAllNodes();
     nodesManager.stopRpcNode();
