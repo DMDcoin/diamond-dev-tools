@@ -3,6 +3,8 @@ import {
   LocalnetScriptRunnerBase,
   LocalnetScriptRunnerResult,
 } from "./localnetBootstrapper";
+import { FastTxSender } from "../../tools/FastTxSender";
+import { runPerformanceTests } from "../../tests/performanceTest";
 
 class LargeNetworkTestRunner extends LocalnetScriptRunnerBase {
   constructor() {
@@ -10,6 +12,16 @@ class LargeNetworkTestRunner extends LocalnetScriptRunnerBase {
   }
 
   async runImplementation(): Promise<boolean> {
+
+    console.log("Running Performance test.");
+    let startTime = Date.now();
+    await runPerformanceTests(this.web3);
+
+    let duration = Date.now() - startTime;
+
+    console.log("Performance test took ", duration, " ms");
+
+    
     // we just wanted to know if we can manage to scale up to this network size.
     return true;
   }
@@ -19,6 +31,5 @@ async function run() {
   let runner = new LargeNetworkTestRunner();
   await runner.start();
 }
-let runner = new LargeNetworkTestRunner();
 
 run();
