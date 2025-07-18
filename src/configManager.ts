@@ -6,6 +6,7 @@ import { generateAddressesFromSeed } from './utils';
 import { ContinuousTransactionsSender } from './continuousTransactionsSender';
 import { Account, AddedAccount } from 'web3-core';
 import { parse } from 'ts-command-line-args';
+import { parseNetworkArgs } from './remotenet/remotenetArgs';
 
 
 export interface NodeArgs {
@@ -51,7 +52,7 @@ export interface Network {
     nodeRepoBranch: string | undefined,
     nodeBuildScript: string | undefined,
     rustVersion: string | undefined,
-    openEthereumDeadlockDetection: boolean,
+    diamondNodedDeadlockDetection: boolean,
     builder: NetworkBuilderArgs | undefined
 }
 
@@ -128,9 +129,9 @@ export class ConfigManager {
         // throw new Error('Method not implemented.');
     }
 
-    static getOpenEthereumDeadlockDetection() : boolean {
+    static getDiamondNodeDeadlockDetection() : boolean {
       
-        return this.getNetworkConfig().openEthereumDeadlockDetection;
+        return this.getNetworkConfig().diamondNodedDeadlockDetection;
     }
 
     static getNetworkRepo() : string {
@@ -243,6 +244,16 @@ export class ConfigManager {
 
 
     public static getConfig(): TestConfig {
+
+
+        const args = parseNetworkArgs();
+
+        if (args.network ) {
+
+            console.log('overwriting network from CLI args: ', args.network);
+            ConfigManager.setNetwork(args.network);
+            config.network = args.network;
+        }
         
         const result = config;
 

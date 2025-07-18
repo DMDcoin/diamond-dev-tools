@@ -119,6 +119,8 @@
     "localnet-start-phonix-test": "ts-node src/localnet/tests/runPhoenixTestNetwork.ts",
     "localnet-test-early-epoch-end-test": "ts-node src/localnet/tests/runEarlyEpochEndTestNetwork.ts",
     "localnet-test-small-network": "ts-node src/localnet/tests/runSmallNetwork.ts",
+    "localnet-test-single": "ts-node src/localnet/tests/runSingleNodeTest.ts",
+    "localnet-test-large-network": "ts-node src/localnet/tests/runLargeNetworkTest.ts",
     "localnet-test-phoenix": "ts-node src/localnet/tests/runPhoenixTestNetwork.ts",
     "localnet-test-performance": "ts-node src/localnet/tests/runPerformanceTestNetwork.ts",
     "localnet-test-auto-restake": "ts-node src/localnet/tests/runAutoRestakeTest.ts --network nodes-local-test-auto-restake",

@@ -133,6 +133,12 @@ export class ContractManager {
     return contractManager;
   }
 
+  public static getForNetwork(networkName: string): ContractManager {
+    const web3 = ConfigManager.getWeb3()
+    const contractManager = new ContractManager(web3);
+    return contractManager;
+  }
+
   public static getContractAddresses(): ContractAddresses {
     //todo: query other addresses ?!
     // more intelligent contract manager that queries lazy ?
