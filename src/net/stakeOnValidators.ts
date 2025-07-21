@@ -71,6 +71,9 @@ export async function stakeOnValidators(autostakeCount = 0, stakeOnSpecificValid
   let currentTimestamp = (await web3.eth.getBlock('latest')).timestamp;
   console.log('current Time:', currentTimestamp);
 
+  console.log('leading account: ', web3.eth.defaultAccount, " : ", await web3.eth.getBalance(web3.eth.defaultAccount!));
+
+
   let currentValidators = await validatorSet.methods.getValidators().call();
 
   currentValidators = currentValidators.map(x => x.toLowerCase());
