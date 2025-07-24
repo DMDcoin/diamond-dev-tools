@@ -252,17 +252,17 @@
         "initialValidatorsCount": 1,
         "nodesCount": 30,
         "hbbftArgs": {
-          "minimumBlockTime": 1,
-          "maximumBlockTime": 10
+          "minimumBlockTime": 5,
+          "maximumBlockTime": 120
         },
         "contractArgs": {
-          "STAKING_TRANSITION_WINDOW_LENGTH": 160,
-          "STAKING_EPOCH_DURATION": 180,
+          "STAKING_TRANSITION_WINDOW_LENGTH": 1600,
+          "STAKING_EPOCH_DURATION": 1800,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
         },
         "nodeArgs": {
           "Footprint": {
-            "cache_size": 10
+            "cache_size": 100
           }
         }
       }
