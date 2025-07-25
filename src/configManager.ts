@@ -9,12 +9,6 @@ import { parse } from 'ts-command-line-args';
 import { parseNetworkArgs } from './remotenet/remotenetArgs';
 
 
-export interface NodeArgs {
-    Footprint: {
-        cache_size: number;
-    }
-}
-
 export interface NetworkBuilderArgs {
     initialValidatorsCount: number,
     nodesCount: number,
@@ -26,7 +20,7 @@ export interface NetworkBuilderArgs {
     txQueuePerSender?: number,
     hbbftArgs?: {},
     contractArgs?: {},
-    nodeArgs?: NodeArgs,
+    nodeArgs?: Array<string>,
 }
 
 // "name": "local",
@@ -76,6 +70,7 @@ export interface TestConfig {
     logToTerminal: boolean | undefined,
     logToFile: boolean | undefined,
     maximumPoolSize: number | undefined
+    defaultNodeArgs?: Array<string>,
     networks: Array<Network>,
 }
 
@@ -230,6 +225,12 @@ export class ConfigManager {
 
                 if (process.env["POSTGRES_INSTANCE"]) {
                     network.db = process.env["POSTGRES_INSTANCE"];
+                }
+
+                if (network.builder) {
+                    if (!network.builder.nodeArgs) {
+                        network.builder.nodeArgs = config.defaultNodeArgs;
+                    }
                 }
                 
                 return network;
