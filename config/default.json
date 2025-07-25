@@ -227,7 +227,7 @@
         "initialValidatorsCount": 1,
         "nodesCount": 30,
         "hbbftArgs": {
-          "minimumBlockTime": 1,
+          "minimumBlockTime": 10,
           "maximumBlockTime": 120
         },
         "contractArgs": {
