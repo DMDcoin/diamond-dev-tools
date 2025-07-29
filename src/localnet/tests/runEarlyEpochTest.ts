@@ -3,7 +3,8 @@ import {
   LocalnetScriptRunnerBase,
   LocalnetScriptRunnerResult,
 } from "./localnetBootstrapper";
-import { sleep } from "../../utils/time";
+import { sleep, spoolWait } from "../../utils/time";
+import { ContractManager } from "../../contractManager";
 
 export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
   public constructor() {
@@ -15,35 +16,67 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
     // we expect a early epoch end tolerance of 2. -> todo: maybe we should read that from contract
     // required: 2f + 1
     // f = 5
+    // required for consensus: 11.
+    // therefor 5 Nodes can be stopped.
+    // early epoch end tolerance: 2
+    // failable nodes without early epoch end.
 
-    await this.stopNode(2);
+    const contractManager = new ContractManager(this.web3);
 
-    // console.log("alternating between stopping and starting nodes 2, 3 and 4 - in a way always only 2 Nodes are available in any given moment.");
-    //await this.stopNode(4);
-    //console.log("starting node 3");
+    const epochOnStartup = await contractManager.getEpoch("latest");
 
-    await this.stopNode(3);
+    console.log("epoch on startup:", epochOnStartup.toString());
 
-    await sleep(5000);
 
     console.log(
-      "starting all stopped nodes to test the recovery from missed hbbft messages."
+      "stopping Node 2,3,4, creating block should still  work, because of fault tolerance."
     );
 
-    await this.refreshBlock();
-    await this.startNode(2);
-    await this.startNode(3);
+    await this.stopNode(2);
+    await this.stopNode(3);
+    await this.stopNode(4);
 
-    console.log("waiting for nodes...");
 
-    await sleep(3000);
 
-    await this.refreshBlock();
+    console.log(
+      "creating block to verify that block creation still works."
+    );
 
-    console.log("waiting for block inclusion...:");
 
-    await sleep(15000);
-    await this.refreshBlock();
+
+    await this.createBlock();
+
+
+    console.assert(epochOnStartup == await contractManager.getEpoch("latest"), "Epoch should not have changed yet.");
+
+    console.log(
+      "verifying that early epoch end triggers, if we stop an additional node."
+    );
+
+    await this.stopNode(5);
+
+
+
+    console.log(
+      "waiting for early epoch end...."
+    );
+
+
+    await spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
+
+    
+
+    // console.log(
+    //   "starting all stopped nodes to test the recovery from missed hbbft messages."
+    // );
+
+    // await this.refreshBlock();
+    // console.log("waiting for block inclusion...:");
+    // await this.refreshBlock();
+
+    // const epochAfterShutdown3Nodes = await contractManager.getEpoch("latest");
+
+    // console.log(`epoch after shutdown of 3 nodes: ${epochAfterShutdown3Nodes.toString()}`);
 
     return true;
   }
