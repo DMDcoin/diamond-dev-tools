@@ -46,10 +46,15 @@ export async function runPerformanceTests(web3: Web3) {
     let fastTxSender = new FastTxSender(web3);
     console.log('Creating accounts for wallet, using funding address: ', web3.eth.defaultAccount);
   
+    let defaultAccountBalance = toBN(await web3.eth.getBalance(web3.eth.defaultAccount!));
+
+    if (defaultAccountBalance.lt(minBalance.mul(toBN(maxAccounts).mul(toBN(1.1 /* some extra for TX fees */))))) {
+      console.log(`Not enought funds for running this test. aborting. default account: `, web3.eth.defaultAccount);
+      process.exit(1);
+    }
   
     for(let i = 1; i <= maxAccounts; i++) {
-  
-      
+   
       const account = web3.eth.accounts.create(`test${i}` );
       web3.eth.accounts.wallet.add(account);
       sendAccounts.push(account);
