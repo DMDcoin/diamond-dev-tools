@@ -56,7 +56,7 @@ async function doSearch() {
   nodes.forEach(async(x) => {
     const filename = `~/${installDir}/diamond-node.log`;
     //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-    //const searchterm = 'deadlock(s) detected';
+    const searchterm = 'deadlock(s) detected';
     //const searchterm = 'bc90';
     //const searchterm = "BadProtocol";
     //
