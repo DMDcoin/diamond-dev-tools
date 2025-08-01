@@ -57,7 +57,6 @@ async function doSearch() {
     const filename = `~/${installDir}/diamond-node.log`;
     //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
     const searchterm = 'deadlock(s) detected';
-    //const searchterm = 'bc90';
     //const searchterm = "BadProtocol";
     //
     const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
