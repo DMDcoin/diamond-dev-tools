@@ -66,6 +66,16 @@ async function runDowngradeLogging() {
 
 }
 
+
+async function runUpgradeLogging() {
+  const valueOld = 'logging = "txqueue=info,consensus=debug,engine=debug,own_tx=trace"';
+  const valueNew = 'logging = "txqueue=info,consensus=debug,engine=debug,own_tx=trace,network=trace"';
+  
+
+  await runReplace(valueOld, valueNew);
+
+}
+
 async function runIncreaseNumOfConnections() {
   const valueOld = 'max_peers = 50';
   const valueNew = 'max_peers = 148';
@@ -132,4 +142,4 @@ async function runActivateDiamondProtectionLayer() {
 // runApplyAdditionConfigs();
 // runAdjustPeers() ;
 
-runActivateDiamondProtectionLayer();
+runUpgradeLogging();

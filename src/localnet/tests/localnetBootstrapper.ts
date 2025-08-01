@@ -49,8 +49,10 @@ export abstract class LocalnetScriptRunnerBase {
     this.lastCheckedBlock = 0;
   }
 
-  /// runs a programm on a localnet definition, spins up this localnet,
-  /// and executes the asynchronous function `runTestImplementation` with the web3 instance of the localnet.
+  protected async createBlock() {
+    await createBlock(this.web3, this.lastCheckedBlock);
+    await this.refreshBlock();
+  }
 
   protected async stopNode(n: number) {
     console.log(`stopping node ${n}`);
