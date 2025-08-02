@@ -1,13 +1,11 @@
-import { whilst } from "async";
+
 import { ContractManager } from "../../contractManager";
 import { NodeManager } from "../../net/nodeManager";
 import { sleep } from "../../utils/time";
 import Web3 from "web3";
-import { create } from "underscore";
 import { createBlock } from "./testUtils";
 import { stakeOnValidators } from "../../net/stakeOnValidators";
 import { Watchdog } from "../../watchdog";
-import { LogFileManager } from "../../logFileManager";
 import { ConfigManager } from "../../configManager";
 
 export interface LocalnetScriptRunnerResult {
@@ -56,14 +54,27 @@ export abstract class LocalnetScriptRunnerBase {
 
   protected async stopNode(n: number) {
     console.log(`stopping node ${n}`);
-    await this.currentNodeManager?.getNode(n).stop();
+    await this.currentNodeManager!.getNode(n).stop();
     console.log(`node ${n} stopped`);
+  }
+
+  protected async stopNodes(nodes: number[]) {
+
+    console.log(`stopping nodes ${nodes.join(", ")}`);
+    await this.currentNodeManager!.stopNodes(nodes);
   }
 
   protected async startNode(n: number) {
     console.log(`starting node ${n}`);
-    await this.currentNodeManager?.getNode(n).start();
+    await this.currentNodeManager!.startNode(n);
     console.log(`node ${n} started`);
+  }
+
+
+  protected async startNodes(nodes: number[]) {
+    console.log(`starting nodes ${nodes}`);
+    await this.currentNodeManager!.startNodes(nodes);
+    console.log(`nodes ${nodes} started`);
   }
 
   protected async refreshBlock() {

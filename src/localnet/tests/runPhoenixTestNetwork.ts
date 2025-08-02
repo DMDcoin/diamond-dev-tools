@@ -1,160 +1,94 @@
-import { whilst } from "async";
-import { ContractManager } from "../../contractManager";
-import { NodeManager } from "../../net/nodeManager";
-import { sleep } from "../../utils/time";
 import Web3 from "web3";
-import { create } from "underscore";
-import { createBlock } from "./testUtils";
-import { stakeOnValidators } from "../../net/stakeOnValidators";
-import { Watchdog } from "../../watchdog";
+import {
+  LocalnetScriptRunnerBase,
+  LocalnetScriptRunnerResult,
+} from "./localnetBootstrapper";
+import { sleep, spoolWait } from "../../utils/time";
+import { ContractManager } from "../../contractManager";
 
-async function runPhoenixTestNetwork() {
-  let nodesManager = NodeManager.get("nodes-local-test-phoenix");
+export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
+  public constructor() {
+    super("nodes-local-test-phoenix", "phoenix test", 7);
+  }
 
-  let expectedValidators = 4;
-  let expectedNodes = expectedValidators + 1; // + MoC
-  if (nodesManager.nodeStates.length != expectedNodes) {
+  async runImplementation(): Promise<boolean> {
+    // we are on a 16 node validator network now.
+    // we expect a early epoch end tolerance of 2. -> todo: maybe we should read that from contract
+    // required: 2f + 1
+    // f = 5
+    // required for consensus: 11.
+    // therefor 5 Nodes can be stopped.
+    // early epoch end tolerance: 2
+    // failable nodes without early epoch end.
+
+    const contractManager = new ContractManager(this.web3);
+
+    const epochOnStartup = await contractManager.getEpoch("latest");
+
+    console.log("epoch on startup:", epochOnStartup.toString());
+
+
+    let nodesToStop = [2, 3, 4];
     console.log(
-      `ABORTING: expected ${expectedNodes} nodes to run this test, got `,
-      nodesManager.nodeStates.length
+      `stopping Node ${nodesToStop} block creation should fail.`
     );
-    return;
+
+    await this.stopNodes(nodesToStop);
+
+    console.log(
+      "creating block, that cannot be mined (yet)."
+    );
+
+    let block = this.createBlock();
+
+    console.log(
+      "booting up Node 2,3,4, to verify block creation is able to work again."
+    );
+
+    this.startNodes(nodesToStop);
+
+    
+    console.log(
+      "Hbbft message caching should work, and be able to create this block."
+    );
+
+
+    
+    let timeout = setTimeout(() => {
+      this.handleTimoutError();
+    }, 30000);
+
+    await block;//  spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
+
+    clearTimeout(timeout);
+    
+
+    // console.log(
+    //   "starting all stopped nodes to test the recovery from missed hbbft messages."
+    // );
+
+    // await this.refreshBlock();
+    // console.log("waiting for block inclusion...:");
+    // await this.refreshBlock();
+
+    // const epochAfterShutdown3Nodes = await contractManager.getEpoch("latest");
+
+    // console.log(`epoch after shutdown of 3 nodes: ${epochAfterShutdown3Nodes.toString()}`);
+
+    return true;
   }
 
-  console.log(`starting rpc`);
-  nodesManager.rpcNode?.start();
 
-  console.log(
-    `Starting up the network. Total nodes: ${nodesManager.nodeStates.length}`
-  );
-
-  for (let node of nodesManager.nodeStates) {
-    node.start();
+  handleTimoutError() {
+    throw new Error("Operation was not finished in specified time!");
   }
-
-  console.log(`all normal nodes started.`);
-
-  await nodesManager.awaitRpcReady();
-
-  let contractManager = ContractManager.get();
-
-  const watchdog = new Watchdog(contractManager, nodesManager);
-  watchdog.startWatching(true);
-
-  await stakeOnValidators(expectedValidators);
-
-  console.log(
-    `waiting until ${expectedValidators} validators took over the ownership of the network.`
-  );
-
-  let currentValidators = await contractManager.getValidators();
-  while (currentValidators.length < expectedValidators) {
-    await sleep(1000);
-    currentValidators = await contractManager.getValidators();
-  }
-
-  console.log(
-    `we are running now on a ${expectedValidators} validator testnetwork. starting with phoenix test.`
-  );
-
-  let web3 = contractManager.web3;
-
-  let start_block = await web3.eth.getBlockNumber();
-  console.log("current block:", start_block);
-
-  let last_checked_block = start_block;
-
-  let refreshBlock = async () => {
-    last_checked_block = await web3.eth.getBlockNumber();
-  };
-
-  await createBlock(web3, last_checked_block);
-
-  let stopNode = async (n: number) => {
-    console.log(`stopping node ${n}`);
-    await nodesManager.getNode(n).stop();
-    console.log(`node ${n} stopped`);
-  };
-
-  let startNode = async (n: number) => {
-    console.log(`starting node ${n}`);
-    await nodesManager.getNode(n).start();
-    console.log(`node ${n} started`);
-  };
-
-  await stopNode(2);
-  //await stopNode(3);
-
-  //console.log('node 2,3 stopped, creating block should work, because of fault tolerance');
-
-  await createBlock(web3, last_checked_block);
-
-  console.log("block produced, now stopping node 3");
-
-  await stopNode(3);
-  await refreshBlock();
-
-  console.log(
-    "triggering block creation that should not create block, because of tolerance overshoot."
-  );
-
-  let blockBeforeNewTransaction = last_checked_block;
-
-  let createBlockFailing = createBlock(web3);
-
-  await startNode(2);
-  await sleep(5000);
-  await stopNode(2);
-
-  // console.log("alternating between stopping and starting nodes 2, 3 and 4 - in a way always only 2 Nodes are available in any given moment.");
-  //await stopNode(4);
-  //console.log("starting node 3");
-
-  await stopNode(4);
-
-  await startNode(3);
-  await sleep(5000);
-  await stopNode(3);
-
-  await startNode(4);
-
-  console.log(
-    "starting all stopped nodes to test the recovery from missed hbbft messages."
-  );
-
-  await refreshBlock();
-  await startNode(2);
-  await startNode(3);
-
-  console.log("waiting for nodes...");
-
-  await sleep(3000);
-
-  await refreshBlock();
-
-  console.log("waiting for block inclusion...:");
-
-  await sleep(15000);
-  await refreshBlock();
-
-  console.assert(last_checked_block > blockBeforeNewTransaction);
-
-  await watchdog.stopWatching();
-
-  console.log(
-    "Success: Block created after tolerance reached was achieved again.:"
-  );
-
-  nodesManager.stopAllNodes();
-  nodesManager.stopRpcNode();
-
-  // todo: add a condition to stop this test.
-  // maybe phoenix managed a recovery 3 times ?
-  // while(true) {
-  //     // verify that network is running.
-  //     // by sending a transaction and waiting for a new block.
-
-  // }
 }
 
-runPhoenixTestNetwork();
+
+
+async function run() {
+  let runner = new EarlyEpochEndRunner();
+  await runner.start();
+}
+
+run();

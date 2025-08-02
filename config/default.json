@@ -161,7 +161,7 @@
       "nodesDir": "nodes-local-test-phoenix",
       "builder": {
         "initialValidatorsCount": 1,
-        "nodesCount": 5,
+        "nodesCount": 8,
         "hbbftArgs": {
           "minimumBlockTime": 1,
           "maximumBlockTime": 5

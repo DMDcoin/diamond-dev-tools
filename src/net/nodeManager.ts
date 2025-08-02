@@ -274,6 +274,7 @@ export class NodeState {
 
 export class NodeManager {
 
+
   static s_instance = new NodeManager();
 
 
@@ -307,6 +308,27 @@ export class NodeManager {
     const result = this.getNode(nodeID);
     result.start(force);
     return result;
+  }
+
+  async stopNode(node: number, force: boolean = false): Promise<void> {
+    return this.getNode(node).stop(force);
+  }
+
+  async stopNodes(nodes: number[]) {
+
+    let promises = new Array<Promise<void>>();
+    for (const n of nodes) {
+      promises.push(this.stopNode(n));
+    }
+
+    await Promise.all(promises);
+  }
+
+
+  startNodes(nodes: number[]) {
+    for (const n of nodes) {
+      this.startNode(n);
+    }
   }
 
   public startRpcNode(force = false) {
