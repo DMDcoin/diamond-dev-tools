@@ -6,20 +6,36 @@ import {
 import { sleep, spoolWait } from "../../utils/time";
 import { ContractManager } from "../../contractManager";
 
-export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
+export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
+
   public constructor() {
     super("nodes-local-test-phoenix", "phoenix test", 7);
   }
 
+  async restartSet(nodes: number[]) {
+      
+    // Note: Phonix is designed to handle unknown situations where the network might get stuck.
+    // Once the next evolution of the Reliable Message Broadcasting protocol is implemented, 
+    // we need a special flag to deactivate the implementation as cargo feature, 
+    // so we can mimic a situation where HBBFT cannot progress anymore.
+    console.log(
+      `restarting Nodes ${nodes}, to mess up unreliable Reliable Message Broadcasting protocol.`
+    );
+    
+  
+    await this.stopNodes(nodes);
+    this.startNodes(nodes);
+
+
+    const waitTimeNodeBoot = 2000;
+    
+    await sleep(waitTimeNodeBoot);
+
+    
+
+  }
+
   async runImplementation(): Promise<boolean> {
-    // we are on a 16 node validator network now.
-    // we expect a early epoch end tolerance of 2. -> todo: maybe we should read that from contract
-    // required: 2f + 1
-    // f = 5
-    // required for consensus: 11.
-    // therefor 5 Nodes can be stopped.
-    // early epoch end tolerance: 2
-    // failable nodes without early epoch end.
 
     const contractManager = new ContractManager(this.web3);
 
@@ -27,7 +43,7 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
 
     console.log("epoch on startup:", epochOnStartup.toString());
 
-
+    
     let nodesToStop = [2, 3, 4];
     console.log(
       `stopping Node ${nodesToStop} block creation should fail.`
@@ -38,21 +54,23 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
     console.log(
       "creating block, that cannot be mined (yet)."
     );
-
+    
     let block = this.createBlock();
 
-    console.log(
-      "booting up Node 2,3,4, to verify block creation is able to work again."
-    );
+    const waitTimeForBlockCreation = 1000;
+    
+    await sleep(waitTimeForBlockCreation);
+
 
     this.startNodes(nodesToStop);
+      
+    await this.restartSet([5,6,7]);
+    await this.restartSet([2,3,4]);
+    // await this.restartSet([5,6,7]);
 
-    
     console.log(
-      "Hbbft message caching should work, and be able to create this block."
+      "phoenix protocol should now detect a stalled network and therefore should trigger the ."
     );
-
-
     
     let timeout = setTimeout(() => {
       this.handleTimoutError();
@@ -62,19 +80,6 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
 
     clearTimeout(timeout);
     
-
-    // console.log(
-    //   "starting all stopped nodes to test the recovery from missed hbbft messages."
-    // );
-
-    // await this.refreshBlock();
-    // console.log("waiting for block inclusion...:");
-    // await this.refreshBlock();
-
-    // const epochAfterShutdown3Nodes = await contractManager.getEpoch("latest");
-
-    // console.log(`epoch after shutdown of 3 nodes: ${epochAfterShutdown3Nodes.toString()}`);
-
     return true;
   }
 
@@ -87,7 +92,7 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
 
 
 async function run() {
-  let runner = new EarlyEpochEndRunner();
+  let runner = new PhoenixTestRunner();
   await runner.start();
 }
 

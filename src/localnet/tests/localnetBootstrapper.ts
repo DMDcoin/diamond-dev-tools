@@ -17,6 +17,8 @@ export interface LocalnetScriptRunnerResult {
 /// runs a programm on a localnet definition, spins up this localnet,
 /// and executes the asynchronous function `runTestImplementation` with the web3 instance of the localnet.
 export abstract class LocalnetScriptRunnerBase {
+
+  
   currentNodeManager: NodeManager;
   lastCheckedBlock: number;
   web3: Web3;
@@ -64,16 +66,16 @@ export abstract class LocalnetScriptRunnerBase {
     await this.currentNodeManager!.stopNodes(nodes);
   }
 
-  protected async startNode(n: number) {
+  protected startNode(n: number) {
     console.log(`starting node ${n}`);
-    await this.currentNodeManager!.startNode(n);
+    this.currentNodeManager!.startNode(n);
     console.log(`node ${n} started`);
   }
 
 
-  protected async startNodes(nodes: number[]) {
+  protected startNodes(nodes: number[]) {
     console.log(`starting nodes ${nodes}`);
-    await this.currentNodeManager!.startNodes(nodes);
+    this.currentNodeManager!.startNodes(nodes);
     console.log(`nodes ${nodes} started`);
   }
 
