@@ -62,19 +62,6 @@ export class EarlyEpochEndRunner extends LocalnetScriptRunnerBase {
 
     clearTimeout(timeout);
     
-
-    // console.log(
-    //   "starting all stopped nodes to test the recovery from missed hbbft messages."
-    // );
-
-    // await this.refreshBlock();
-    // console.log("waiting for block inclusion...:");
-    // await this.refreshBlock();
-
-    // const epochAfterShutdown3Nodes = await contractManager.getEpoch("latest");
-
-    // console.log(`epoch after shutdown of 3 nodes: ${epochAfterShutdown3Nodes.toString()}`);
-
     return true;
   }
 

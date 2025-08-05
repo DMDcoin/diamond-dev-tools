@@ -9,6 +9,8 @@ import { stopRemoteNode } from '../remotenet/stopRemoteNode';
 import { ContractManager } from '../contractManager';
 import axios from 'axios';
 import { sleep } from '../utils/time';
+import { negate } from 'underscore';
+import { LocalnetBuilder } from '../localnet/localnet-builder';
 
 export class NodeState {
 
@@ -35,12 +37,9 @@ export class NodeState {
 
   public static getNodeDirAbsolute(nodeId: number,): string {
 
-    const nodesDir = ConfigManager.getNodesDir();
-
-    const cwd = process.cwd();
-
+    const nodesDir = ConfigManager.getNodesDirAbsolut();
     let relative = NodeState.getNodeDirRelative(nodeId);
-    return `${cwd}/testnet/${nodesDir}/${relative}}`;
+    return `${nodesDir}/${relative}}`;
   }
 
   public static startNode(nodeId: number, extraFlags: string[] = []): child_process.ChildProcess {
@@ -274,15 +273,17 @@ export class NodeState {
 
 export class NodeManager {
 
-
   static s_instance = new NodeManager();
 
+  public network?: string;
 
   private constructor() {
 
   }
 
   public static setNetwork(network: string) {
+
+    this.s_instance.network = network;
     ConfigManager.setNetwork(network);
   }
 
@@ -322,6 +323,44 @@ export class NodeManager {
     }
 
     await Promise.all(promises);
+  }
+
+  public localNetworkExists(): boolean {
+    return fs.existsSync(ConfigManager.getLocalTargetNetworkFSDir(this.network));
+  }
+
+  public async createLocalNetwork() {
+
+    const network = this.network;
+    let targetNetworkLocation = ConfigManager.getLocalTargetNetworkFSDir(network);
+
+    if (this.localNetworkExists()) {
+        let files = fs.readdirSync(targetNetworkLocation);
+        console.log(files);
+        console.log('ERROR: target network already exists.', targetNetworkLocation);
+        console.log('aborting.');
+        process.exit(1);
+    }
+
+    let builderArgs = ConfigManager.getNetworkConfig(network);
+    //console.log('builderArgs:', builderArgs);
+    
+    let initialValidatorsCount = builderArgs.builder?.initialValidatorsCount || 1; 
+    let nodesCount = builderArgs.builder?.nodesCount || 4;
+
+    if (initialValidatorsCount > nodesCount) {
+        console.log('ERROR: initialValidatorsCount must be smaller than or equal to nodesCount');
+        process.exit(1);
+    }
+
+    let testnetName = ConfigManager.getChainName(network);
+    let localnetBuilder = builderArgs.builder ? LocalnetBuilder.fromBuilderArgs(testnetName , builderArgs.builder) : new LocalnetBuilder(testnetName, initialValidatorsCount, nodesCount);
+    await localnetBuilder.build(`${targetNetworkLocation}`);
+  }
+
+  public deleteLocalNetwork() {
+
+    const localDir = ConfigManager.getLocalTargetNetworkFSDir(this.network);
   }
 
 
@@ -378,18 +417,21 @@ export class NodeManager {
   }
 
   // stop's all validator nodes, but not the RPC Node
-  public stopAllNodes(force = false) {
-    this.nodeStates.forEach((n) => {
-      if (n.isStarted) {
-        n.stop(force);
-      }
-    });
+  public async stopAllNodes(force = false) {
+
+
+    await Promise.all(this.nodeStates.map(n => { return n.stop(force)})); 
+
+    //   if (n.isStarted) {
+    //     n.stop(force);
+    //   }
+    // });
   }
 
-  public stopRpcNode(force = false) {
+  public async stopRpcNode(force = false) {
     if (this.rpcNode) {
       if (this.rpcNode.isStarted) {
-        this.rpcNode.stop(force);
+        await this.rpcNode.stop(force);
       }
     }
   }

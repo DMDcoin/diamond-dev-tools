@@ -7,6 +7,7 @@ import { createBlock } from "./testUtils";
 import { stakeOnValidators } from "../../net/stakeOnValidators";
 import { Watchdog } from "../../watchdog";
 import { ConfigManager } from "../../configManager";
+import { LocalNetworkCheckpointIo } from "../localNetworkCache";
 
 export interface LocalnetScriptRunnerResult {
   // stdOut: string,
@@ -23,6 +24,8 @@ export abstract class LocalnetScriptRunnerBase {
   lastCheckedBlock: number;
   web3: Web3;
   expectedValidators: number;
+
+  cacheCreatedNetwork: boolean = false;
 
   constructor(
     public networkName: string,
@@ -84,8 +87,12 @@ export abstract class LocalnetScriptRunnerBase {
   }
 
   public async start() {
-    // split the console output.
 
+    console.log("starting localnet script runner for network:", this.networkName, " test operation: ", this.networkOperation);
+    
+    let isFreshBoot = true;
+
+    // split the console output.
     let outLog: string[] = [];
     let outError: string[] = [];
 
@@ -104,15 +111,39 @@ export abstract class LocalnetScriptRunnerBase {
 
     const networkName = this.networkName;
 
-    let nodesManager = NodeManager.get(networkName);
+    let createNewNetwork = true;
+    if (this.cacheCreatedNetwork) {
 
-    if (!nodesManager) {
-      throw new Error(
-        `Network ${networkName} not found. Please create it with 'npm run testnet-fresh-${networkName}'`
-      );
+      const localNetworkCache = new LocalNetworkCheckpointIo(this.networkName, this.networkOperation);
+      if (localNetworkCache.restoreNetworkFromState()) {
+        console.log(
+          `Restored network ${networkName} from cache. Continuing with existing network.`
+        );
+        createNewNetwork = false;
+        isFreshBoot = false;
+      } else {
+        console.log(
+          `No cache found for network ${networkName}. Creating new network.`
+        );
+      }
     }
 
-    //let expectedValidators = 4;
+    let nodesManager = NodeManager.get(networkName);
+
+    if (createNewNetwork) {
+      console.log("creating new network");
+      await nodesManager.createLocalNetwork();
+      console.log("new network created");
+    }
+
+    // if (!nodesManager) {
+    //   throw new Error(
+    //     `Network ${networkName} not found. Please create it with 'npm run testnet-fresh-${networkName}'`
+    //   );
+    // }
+
+    // we need to reinitialize the nodesManager after creating the network.
+    nodesManager = NodeManager.get(networkName);
 
     console.log(`starting rpc`);
     nodesManager.rpcNode?.start();
@@ -128,13 +159,15 @@ export abstract class LocalnetScriptRunnerBase {
     console.log(`all normal nodes started.`);
 
     await nodesManager.awaitRpcReady();
-
+    console.log("rpc is ready!");
     let contractManager = ContractManager.getForNetwork(this.networkName);
 
-    const watchdog = new Watchdog(contractManager, nodesManager);
+    let watchdog = new Watchdog(contractManager, nodesManager);
     watchdog.startWatching(true);
 
-    await stakeOnValidators(this.expectedValidators);
+    if (isFreshBoot) {
+      await stakeOnValidators(this.expectedValidators);  
+    }    
 
     console.log(
       `waiting until ${this.expectedValidators} validators took over the ownership of the network.`
@@ -157,6 +190,36 @@ export abstract class LocalnetScriptRunnerBase {
     console.log("current block:", start_block);
 
     this.lastCheckedBlock = start_block;
+    
+    let cacheThisNetwork = true;      
+    // if we want a rerun cache, we need to store the current state here.
+
+    if (cacheThisNetwork) {
+      console.log(
+        `creating a cache of the current network state for future performance increase. shutting down.`
+      );
+
+      await watchdog.stopWatching();
+      
+      await nodesManager.stopAllNodes();
+      await nodesManager.stopRpcNode();
+
+      const localNetworkCache = new LocalNetworkCheckpointIo(this.networkName, this.networkOperation); 
+      await localNetworkCache.saveCurrentNetwork();
+
+      console.log(
+        `cache of current network state created. starting all nodes.`
+      );
+
+      nodesManager.startRpcNode();
+      nodesManager.startAllNodes();
+
+      await nodesManager.awaitRpcReady();
+      watchdog = new Watchdog(contractManager, nodesManager);  
+      watchdog.startWatching(true);
+    }
+
+    
 
     const result = await this.runImplementation();
 
@@ -176,8 +239,8 @@ export abstract class LocalnetScriptRunnerBase {
 
     // LogFileManager.writeNetworkOperationOutput(networkName, networkOperation)
 
-    nodesManager.stopAllNodes(true);
-    nodesManager.stopRpcNode(true);
+    await nodesManager.stopAllNodes(true);
+    await nodesManager.stopRpcNode(true);
 
     // todo: add a condition to stop this test.
     // maybe phoenix managed a recovery 3 times ?

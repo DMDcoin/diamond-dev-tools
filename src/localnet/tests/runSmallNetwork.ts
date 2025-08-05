@@ -133,8 +133,8 @@ async function runSmallTestNetwork() {
   }
 
   await watchdog.stopWatching();
-  nodesManager.stopAllNodes();
-  nodesManager.stopRpcNode();
+  await nodesManager.stopAllNodes();
+  await nodesManager.stopRpcNode();
 
   process.exit(isSuccess ? 0 : 1);
 }

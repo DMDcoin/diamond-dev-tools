@@ -182,8 +182,8 @@ async function runEarlyEpochTestNetworkOld() {
           await contractManager.getValidators()
         ).length
       );
-      nodesManager.stopAllNodes();
-      nodesManager.stopRpcNode();
+      await nodesManager.stopAllNodes();
+      await nodesManager.stopRpcNode();
       return;
     }
   }
@@ -194,8 +194,8 @@ async function runEarlyEpochTestNetworkOld() {
   );
 
   await watchdog.stopWatching();
-  nodesManager.stopAllNodes();
-  nodesManager.stopRpcNode();
+  await nodesManager.stopAllNodes();
+  await nodesManager.stopRpcNode();
 }
 
 async function runEarlyEpochTestNetwork() {
