@@ -47,7 +47,7 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
     await this.createBlock();
     await this.createBlock();
     
-    let nodesToStop = [2, 3, 4];
+    let nodesToStop = [2, 3];
     console.log(
       `stopping Node ${nodesToStop} block creation should fail.`
     );
@@ -60,7 +60,11 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
     const waitTimeForBlockCreation = 2000;
     await sleep(waitTimeForBlockCreation);
-    this.startNodes(nodesToStop);
+    //this.startNodes(nodesToStop);
+    
+    //await this.stopNodes([2,3,4]);
+      
+    //this.startNode(4);
 
     for( let i = 0; i < 100; i++) { 
       //let nodeId = nodesToStop[i];  
@@ -71,8 +75,7 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
      
         
-      await this.restartSet([5,6,7]);
-      await this.restartSet([2,3,4]);
+      await this.restartSet([4,5,6,7]);
       // await this.restartSet([5,6,7]);
 
       console.log(
@@ -81,7 +84,7 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       
       let timeout = setTimeout(() => {
         this.handleTimoutError();
-      }, 3000000);
+      }, 600000);
 
       await block;//  spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
 
