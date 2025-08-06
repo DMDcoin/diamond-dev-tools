@@ -186,10 +186,18 @@ export class ConfigManager {
     static getRemoteScreenName() {
         return this.getChainName();
     }
-    static getNodesDir(): string {
+    static getNodesDir(networkName?: string ): string {
       
-        const network = this.getNetworkConfig();
+        const network = this.getNetworkConfig(networkName);
         return network.nodesDir;
+    }
+
+
+    /// absolute base path to the general nodes directory.
+    /// points to the directory where the individual NETWORKS are stored.
+    /// each individual network has its own nodes.
+    static getNodesDirBase() {
+        return `${process.cwd()}/testnet/`;
     }
 
     /// absolute base path to the nodes directory.

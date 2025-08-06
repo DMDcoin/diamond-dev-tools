@@ -25,7 +25,7 @@ export abstract class LocalnetScriptRunnerBase {
   web3: Web3;
   expectedValidators: number;
 
-  cacheCreatedNetwork: boolean = false;
+  cacheCreatedNetwork: boolean = true;
 
   constructor(
     public networkName: string,
@@ -191,10 +191,9 @@ export abstract class LocalnetScriptRunnerBase {
 
     this.lastCheckedBlock = start_block;
     
-    let cacheThisNetwork = true;      
     // if we want a rerun cache, we need to store the current state here.
 
-    if (cacheThisNetwork) {
+    if (createNewNetwork && this.cacheCreatedNetwork) {
       console.log(
         `creating a cache of the current network state for future performance increase. shutting down.`
       );

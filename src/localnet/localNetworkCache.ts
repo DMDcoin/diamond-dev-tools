@@ -30,7 +30,7 @@ export class LocalNetworkCheckpointIo {
 
 
     public getCacheDirectory(): string { 
-        return process.cwd() + "testnet/cached/" + this.networkName + "/" + this.additionalIdentifier.replace(" ", "_");
+        return process.cwd() + "/testnet/cached/" + this.networkName + "/" + this.additionalIdentifier.replace(" ", "_");
     }
 
     public async saveCurrentNetwork() {
@@ -57,7 +57,7 @@ export class LocalNetworkCheckpointIo {
             throw new Error(this.networkName + " already exists. Cannot restore network state from cache.");
         }
 
-        let sourceDirectory = this.getCacheDirectory();
+        let sourceDirectory = this.getCacheDirectory() + "/" + ConfigManager.getNodesDir(this.networkName) + "/*";
         let targetDirectory = ConfigManager.getNodesDirAbsolut(this.networkName);
         this.copyDirectoryRecursive(sourceDirectory, targetDirectory);
 
@@ -68,25 +68,7 @@ export class LocalNetworkCheckpointIo {
 
     public copyDirectoryRecursive(sourceDirectory: string, targetDirectory: string) {
 
-        cmd(`cp -r ${sourceDirectory}/* ${targetDirectory}`);
-        // if (!fs.existsSync(sourceDirectory)) {
-        //     throw new Error(`Source directory does not exist: ${sourceDirectory}`);
-        // }
-
-        // fs.mkdirSync(targetDirectory, { recursive: true });
-
-        // const items = fs.readdirSync(sourceDirectory);
-        // for (const item of items) {
-        //     const sourcePath = `${sourceDirectory}/${item}`;
-        //     const targetPath = `${targetDirectory}/${item}`;
-
-        //     if (fs.statSync(sourcePath).isDirectory()) {
-        //         console.log("dir: ", sourcePath);
-        //         this.copyDirectoryRecursive(sourcePath, targetPath);
-        //     } else {
-        //         console.log("copy: ", sourcePath);
-        //         fs.copyFileSync(sourcePath, targetPath);
-        //     }
-        // }
+        cmd(`mkdir -p ${targetDirectory}`);
+        cmd(`cp -r ${sourceDirectory} ${targetDirectory}`);
     }
 }
