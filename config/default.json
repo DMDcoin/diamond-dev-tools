@@ -1,5 +1,5 @@
 {
-  "network": "beta1",
+  "network": "nodes-local-test-phoenix",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
   "networkGitRepoBranch": "main",
   "nodeProfile": "debug",
@@ -170,7 +170,11 @@
           "STAKING_TRANSITION_WINDOW_LENGTH": 240,
           "STAKING_EPOCH_DURATION": 60000,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
-        }
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=debug,consensus=trace,engine=trace,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\""
+        ]
       }
     },
     {
