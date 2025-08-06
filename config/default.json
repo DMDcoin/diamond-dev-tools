@@ -170,7 +170,11 @@
           "STAKING_TRANSITION_WINDOW_LENGTH": 240,
           "STAKING_EPOCH_DURATION": 60000,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
-        }
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=trace,engine=info,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\""
+        ]
       }
     },
     {

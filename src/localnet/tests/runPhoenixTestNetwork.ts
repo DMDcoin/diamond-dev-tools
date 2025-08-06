@@ -43,6 +43,9 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
     console.log("epoch on startup:", epochOnStartup.toString());
 
+    await this.createBlock();
+    await this.createBlock();
+    await this.createBlock();
     
     let nodesToStop = [2, 3, 4];
     console.log(
@@ -54,32 +57,36 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
     console.log(
       "creating block, that cannot be mined (yet)."
     );
-    
-    let block = this.createBlock();
 
-    const waitTimeForBlockCreation = 1000;
-    
+    const waitTimeForBlockCreation = 2000;
     await sleep(waitTimeForBlockCreation);
-
-
     this.startNodes(nodesToStop);
+
+    for( let i = 0; i < 100; i++) { 
+      //let nodeId = nodesToStop[i];  
+      let block = this.createBlock();
       
-    await this.restartSet([5,6,7]);
-    await this.restartSet([2,3,4]);
-    // await this.restartSet([5,6,7]);
+      await sleep(waitTimeForBlockCreation);
 
-    console.log(
-      "phoenix protocol should now detect a stalled network and therefore should trigger the ."
-    );
-    
-    let timeout = setTimeout(() => {
-      this.handleTimoutError();
-    }, 30000);
 
-    await block;//  spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
+     
+        
+      await this.restartSet([5,6,7]);
+      await this.restartSet([2,3,4]);
+      // await this.restartSet([5,6,7]);
 
-    clearTimeout(timeout);
-    
+      console.log(
+        "phoenix protocol should now detect a stalled network and therefore should trigger the. try: ", i
+      );
+      
+      let timeout = setTimeout(() => {
+        this.handleTimoutError();
+      }, 3000000);
+
+      await block;//  spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
+
+      clearTimeout(timeout);
+    }
     return true;
   }
 
