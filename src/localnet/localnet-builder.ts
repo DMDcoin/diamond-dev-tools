@@ -89,6 +89,7 @@ export class LocalnetBuilder {
         await this.copyNodeFilesToTargetDirectory(targetDirectory);
 
         this.applyTomlManipulations();
+        console.log("finished building in:", targetDirectory);
     }
 
     private writeEnv(envName: string, envDefaultValue: string): void {

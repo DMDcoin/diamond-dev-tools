@@ -99,6 +99,8 @@ if (args.network) {
 
 
 export class ConfigManager {
+
+    
     static getBuildFromSourceScript() {
 
       
@@ -107,8 +109,8 @@ export class ConfigManager {
     }
 
 
-    static getChainName() {
-        let builderArgs = ConfigManager.getNetworkConfig();
+    static getChainName(network?: string) {
+        let builderArgs = ConfigManager.getNetworkConfig(network);
         return builderArgs.name.startsWith("nodes-") ? builderArgs.name.substring("nodes-".length) : builderArgs.name;
     }
 
@@ -162,8 +164,8 @@ export class ConfigManager {
         return globalConfig.nodeRepoUrl;
     }
 
-    static getLocalTargetNetworkFSDir() : string { 
-        return `testnet/${this.getNetworkConfig().nodesDir}`;
+    static getLocalTargetNetworkFSDir(networkName?: string) : string { 
+        return `testnet/${this.getNetworkConfig(networkName).nodesDir}`;
     }
 
     static getTargetNetwork() : string {
@@ -184,10 +186,24 @@ export class ConfigManager {
     static getRemoteScreenName() {
         return this.getChainName();
     }
-    static getNodesDir(): string {
+    static getNodesDir(networkName?: string ): string {
       
-        const network = this.getNetworkConfig();
+        const network = this.getNetworkConfig(networkName);
         return network.nodesDir;
+    }
+
+
+    /// absolute base path to the general nodes directory.
+    /// points to the directory where the individual NETWORKS are stored.
+    /// each individual network has its own nodes.
+    static getNodesDirBase() {
+        return `${process.cwd()}/testnet/`;
+    }
+
+    /// absolute base path to the nodes directory.
+    /// points to the directory where the individual nodes instances are stored.
+    static getNodesDirAbsolut(network?: string) {
+        return `${process.cwd()}/testnet/${this.getNetworkConfig(network).nodesDir}`;
     }
 
     static getRemoteInstallDir(): string {
@@ -207,7 +223,7 @@ export class ConfigManager {
     }
 
 
-    public static getNetworkConfig(): Network 
+    public static getNetworkConfig(networkName?: string): Network 
     {   
         let config = ConfigManager.getConfig();
 
@@ -215,7 +231,10 @@ export class ConfigManager {
 
         for (let network of config.networks) { 
             // console.log('network: ', network);
-            if (network.name == config.network) {
+
+            let networkToSearchFor = networkName ?? config.network;
+
+            if (network.name == networkToSearchFor) {
                 //console.log('network found!!: ', network);
                 
                 if (process.env["RPC_URL"]) {

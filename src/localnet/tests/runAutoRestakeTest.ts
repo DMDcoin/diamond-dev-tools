@@ -134,10 +134,10 @@ class AutoRestakeTest {
 
     let lastTotalGasConsumption: bigint = BigInt(0);
 
-    const shutdown = () => {
+    const shutdown = async () => {
       try {
         console.log("shutting down nodes...");
-        nodeManager.stopAllNodes(true);
+        await nodeManager.stopAllNodes(true);
         console.log("shutt down complete!");
       } catch (e: any) {
         console.log("Error occured on shutdown: ", e);
@@ -149,7 +149,7 @@ class AutoRestakeTest {
         console.log(
           "ERROR: already working on delegate staking, Network overload ? error ?"
         );
-        shutdown();
+        await shutdown();
         process.exit(1);
       }
 

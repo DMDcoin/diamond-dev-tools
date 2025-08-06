@@ -173,8 +173,8 @@ async function run() {
 
   await watchdog.stopWatching();
 
-  manager.stopRpcNode();
-  manager.stopAllNodes();
+  await manager.stopRpcNode();
+  await manager.stopAllNodes();
 
   console.log('stop signal send!');
 }
