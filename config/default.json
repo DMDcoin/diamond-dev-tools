@@ -26,7 +26,7 @@
       "installDir": "beta1",
       "nodesDir": "nodes-beta1",
       "screenName": "beta1",
-      "rpc": "https://beta-rpc.bit.diamonds",
+      "rpc": "http://62.171.133.46:64100/",
       "blockscout": "https://beta-explorer.bit.diamonds",
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
