@@ -25,7 +25,7 @@ export abstract class LocalnetScriptRunnerBase {
   web3: Web3;
   expectedValidators: number;
 
-  cacheCreatedNetwork: boolean = true;
+  cacheCreatedNetwork: boolean;
 
   constructor(
     public networkName: string,
@@ -37,12 +37,7 @@ export abstract class LocalnetScriptRunnerBase {
     this.currentNodeManager = NodeManager.get(networkName);
     this.networkOperation = networkOperation;
 
-    // let expectedValidators = expectedValidators_ || nodesManager.nodeStates.length; // default to 4 validators if not specified
-    // let expectedNodes = expectedValidators + 1; // + MoC
-    // if (nodesManager.nodeStates.length != expectedNodes) {
-    //     console.log(`ABORTING: expected ${expectedNodes} nodes to run this test, got `, nodesManager.nodeStates.length);
-    //     return;
-    // }
+    this.cacheCreatedNetwork = process.env.TEST_CACHED_NETWORKS ? JSON.parse(process.env.TEST_CACHED_NETWORKS) : false; // Parse TEST_CACHED_NETWORKS
 
     if (expectedValidators_ === undefined) {
       this.expectedValidators = this.currentNodeManager.nodeStates.length - 1;
