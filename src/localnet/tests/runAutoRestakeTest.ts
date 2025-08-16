@@ -16,7 +16,7 @@ class RestakeObservation {
     public timeNeededForBlockCreation: number,
     public lastTotalGasConsumption: bigint,
     public totalStakedIncludingRewards: bigint
-  ) {}
+  ) { }
 
   public static getCsvHeader() {
     return "epochNumber,rewardBlockNumber,countOfDelegators,timeNeededForBlockCreation,lastTotalGasConsumption,totalStakedIncludingRewards";

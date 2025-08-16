@@ -19,7 +19,7 @@ export interface LocalnetScriptRunnerResult {
 /// and executes the asynchronous function `runTestImplementation` with the web3 instance of the localnet.
 export abstract class LocalnetScriptRunnerBase {
 
-  
+
   currentNodeManager: NodeManager;
   lastCheckedBlock: number;
   web3: Web3;
@@ -84,7 +84,7 @@ export abstract class LocalnetScriptRunnerBase {
   public async start() {
 
     console.log("starting localnet script runner for network:", this.networkName, " test operation: ", this.networkOperation);
-    
+
     let isFreshBoot = true;
 
     // split the console output.
@@ -161,8 +161,8 @@ export abstract class LocalnetScriptRunnerBase {
     watchdog.startWatching(true);
 
     if (isFreshBoot) {
-      await stakeOnValidators(this.expectedValidators);  
-    }    
+      await stakeOnValidators(this.expectedValidators);
+    }
 
     console.log(
       `waiting until ${this.expectedValidators} validators took over the ownership of the network.`
@@ -185,7 +185,7 @@ export abstract class LocalnetScriptRunnerBase {
     console.log("current block:", start_block);
 
     this.lastCheckedBlock = start_block;
-    
+
     // if we want a rerun cache, we need to store the current state here.
 
     if (createNewNetwork && this.cacheCreatedNetwork) {
@@ -194,11 +194,11 @@ export abstract class LocalnetScriptRunnerBase {
       );
 
       await watchdog.stopWatching();
-      
+
       await nodesManager.stopAllNodes();
       await nodesManager.stopRpcNode();
 
-      const localNetworkCache = new LocalNetworkCheckpointIo(this.networkName, this.networkOperation); 
+      const localNetworkCache = new LocalNetworkCheckpointIo(this.networkName, this.networkOperation);
       await localNetworkCache.saveCurrentNetwork();
 
       console.log(
@@ -209,11 +209,11 @@ export abstract class LocalnetScriptRunnerBase {
       nodesManager.startAllNodes();
 
       await nodesManager.awaitRpcReady();
-      watchdog = new Watchdog(contractManager, nodesManager);  
+      watchdog = new Watchdog(contractManager, nodesManager);
       watchdog.startWatching(true);
     }
 
-    
+
 
     const result = await this.runImplementation();
 

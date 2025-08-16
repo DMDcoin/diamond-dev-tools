@@ -9,9 +9,9 @@ export interface NodeRunStateTestSpecificationEntry {
     sleep?: number
 }
 
-export interface NodeRunStateTestSpecification { 
+export interface NodeRunStateTestSpecification {
 
     entries: NodeRunStateTestSpecificationEntry[];
 
-    
+
 }
