@@ -21,9 +21,8 @@ export class SingleNodeRunner extends LocalnetScriptRunnerBase {
 
 
 async function run() {
-    let runner = new SingleNodeRunner();
-    await runner.start();
+  let runner = new SingleNodeRunner();
+  await runner.start();
 }
-  
+
 run();
-  

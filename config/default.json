@@ -127,7 +127,13 @@
           "STAKING_TRANSITION_WINDOW_LENGTH": 60,
           "STAKING_EPOCH_DURATION": 60000,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
-        }
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=trace,engine=trace,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 500"
+        ]
       } 
     },
 
@@ -217,7 +223,13 @@
           "STAKING_TRANSITION_WINDOW_LENGTH": 30,
           "STAKING_EPOCH_DURATION": 60,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
-        }
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=info,engine=info,own_tx=debug,tx_filter=info,sync=info,network=trace,io=info\"",
+          "[footprint]",
+          "cache_size = 500"
+        ]
       }
     },
     {
