@@ -5,6 +5,7 @@ import {
 } from "./localnetBootstrapper";
 import { sleep, spoolWait } from "../../utils/time";
 import { ContractManager } from "../../contractManager";
+import { NodeRunStateExecuter, NodeRunStateRandomWalkGenerator, NodeRunStateTestSpecification } from "./nodeRunStateTestSpecification";
 
 export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
@@ -37,6 +38,15 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
   async runImplementation(): Promise<boolean> {
 
+
+    let randomStates = new  NodeRunStateRandomWalkGenerator().generate(1000, 7);
+
+    console.log(
+      `Random walk generated with ${randomStates.length} entries, starting to execute it.`
+    );
+    NodeRunStateExecuter.exportEntriesToCsvFile(randomStates, "phoenix-test-random-walk.csv");
+
+
     const contractManager = new ContractManager(this.web3);
 
     const epochOnStartup = await contractManager.getEpoch("latest");
@@ -52,7 +62,7 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       `stopping Node ${nodesToStop} block creation should fail.`
     );
 
-    await this.stopNodes(nodesToStop);
+   // await this.stopNodes(nodesToStop);
 
     console.log(
       "creating block, that cannot be mined (yet)."

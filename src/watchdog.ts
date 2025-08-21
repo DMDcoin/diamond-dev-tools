@@ -273,7 +273,7 @@ export class Watchdog {
       const pendingValidators = await this.contractManager.getValidatorSetHbbft().methods.getPendingValidators().call();
 
       if (newEpochNumber > oldEpochNumber) {
-        if (newEpochNumber != oldEpochNumber + 1) {
+        if (oldEpochNumber != 0 && newEpochNumber != oldEpochNumber + 1) {
           console.log(`Strange increase of Epoch Number: Epoch number jumped from ${oldEpochNumber} to ${newEpochNumber}`);
         }
 
