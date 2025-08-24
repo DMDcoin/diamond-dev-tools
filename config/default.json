@@ -1,5 +1,5 @@
 {
-  "network": "nodes-local-test-phoenix",
+  "network": "beta1",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
   "networkGitRepoBranch": "main",
   "nodeProfile": "debug",
