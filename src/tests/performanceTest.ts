@@ -48,7 +48,7 @@ export async function runPerformanceTests(web3: Web3) {
   
     let defaultAccountBalance = toBN(await web3.eth.getBalance(web3.eth.defaultAccount!));
 
-    if (defaultAccountBalance.lt(minBalance.mul(toBN(maxAccounts).mul(toBN(1.1 /* some extra for TX fees */))))) {
+    if (defaultAccountBalance.lt(minBalance.mul(toBN(maxAccounts).muln(1.1 /* some extra for TX fees */)))) {
       console.log(`Not enought funds for running this test. aborting. default account: `, web3.eth.defaultAccount);
       process.exit(1);
     }
