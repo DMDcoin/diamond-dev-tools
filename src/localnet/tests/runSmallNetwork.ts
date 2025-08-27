@@ -14,3 +14,11 @@ export class SmallNetworkRunner extends LocalnetScriptRunnerBase {
   }
 }
 
+
+
+async function run() {
+  let runner = new SmallNetworkRunner();
+  await runner.start();
+}
+
+run();
