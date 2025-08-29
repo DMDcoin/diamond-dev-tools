@@ -1,4 +1,3 @@
-import { del } from "request";
 import { ContractManager } from "../contractManager"
 import { NodeManager } from "../net/nodeManager";
 import { toDate, toNumber } from "../utils/numberUtils";
