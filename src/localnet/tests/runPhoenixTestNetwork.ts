@@ -10,7 +10,9 @@ import { NodeRunStateExecuter, NodeRunStateRandomWalkGenerator, NodeRunStateTest
 export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
   public constructor() {
+    
     super("nodes-local-test-phoenix", "phoenix test", 7);
+    this.cacheCreatedNetwork = true;
   }
 
   async restartSet(nodes: number[]) {
@@ -39,12 +41,12 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
   async runImplementation(): Promise<boolean> {
 
 
-    let randomStates = new  NodeRunStateRandomWalkGenerator().generate(1000, 7);
+    // let randomStates = new  NodeRunStateRandomWalkGenerator().generate(1000, 7);
 
-    console.log(
-      `Random walk generated with ${randomStates.length} entries, starting to execute it.`
-    );
-    NodeRunStateExecuter.exportEntriesToCsvFile(randomStates, "phoenix-test-random-walk.csv");
+    // console.log(
+    //   `Random walk generated with ${randomStates.length} entries, starting to execute it.`
+    // );
+    // NodeRunStateExecuter.exportEntriesToCsvFile(randomStates, "phoenix-test-random-walk.csv");
 
 
     const contractManager = new ContractManager(this.web3);
