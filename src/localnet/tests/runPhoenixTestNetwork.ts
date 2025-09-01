@@ -5,14 +5,11 @@ import {
 } from "./localnetBootstrapper";
 import { sleep, spoolWait } from "../../utils/time";
 import { ContractManager } from "../../contractManager";
-import { NodeRunStateExecuter, NodeRunStateRandomWalkGenerator, NodeRunStateTestSpecification } from "./nodeRunStateTestSpecification";
 
 export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
   public constructor() {
-    
     super("nodes-local-test-phoenix", "phoenix test", 7);
-    this.cacheCreatedNetwork = true;
   }
 
   async restartSet(nodes: number[]) {
@@ -40,15 +37,6 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
   async runImplementation(): Promise<boolean> {
 
-
-    // let randomStates = new  NodeRunStateRandomWalkGenerator().generate(1000, 7);
-
-    // console.log(
-    //   `Random walk generated with ${randomStates.length} entries, starting to execute it.`
-    // );
-    // NodeRunStateExecuter.exportEntriesToCsvFile(randomStates, "phoenix-test-random-walk.csv");
-
-
     const contractManager = new ContractManager(this.web3);
 
     const epochOnStartup = await contractManager.getEpoch("latest");
@@ -64,15 +52,16 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       `stopping Node ${nodesToStop} block creation should fail.`
     );
 
-   // await this.stopNodes(nodesToStop);
+    await this.stopNodes(nodesToStop);
 
     console.log(
       "creating block, that cannot be mined (yet)."
     );
 
-    const waitTimeForBlockCreation = 2000;
+    let waitTimeForBlockCreation = 100;
     await sleep(waitTimeForBlockCreation);
     //this.startNodes(nodesToStop);
+    
     
     //await this.stopNodes([2,3,4]);
       
@@ -84,9 +73,6 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       
       await sleep(waitTimeForBlockCreation);
 
-
-     
-        
       await this.restartSet([4,5,6,7]);
       // await this.restartSet([5,6,7]);
 
@@ -101,6 +87,8 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       await block;//  spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
 
       clearTimeout(timeout);
+
+      waitTimeForBlockCreation = waitTimeForBlockCreation * 2;
     }
     return true;
   }
