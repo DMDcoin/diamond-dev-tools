@@ -226,7 +226,7 @@
         },
         "nodeArgs": [
           "[misc]",
-          "logging = \"txqueue=info,consensus=info,engine=info,own_tx=debug,tx_filter=info,sync=info,network=trace,io=info\"",
+          "logging = \"txqueue=info,consensus=trace,engine=debut,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
           "[footprint]",
           "cache_size = 500"
         ]
