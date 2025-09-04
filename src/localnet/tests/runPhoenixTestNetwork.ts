@@ -58,9 +58,10 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       "creating block, that cannot be mined (yet)."
     );
 
-    const waitTimeForBlockCreation = 2000;
+    let waitTimeForBlockCreation = 100;
     await sleep(waitTimeForBlockCreation);
     //this.startNodes(nodesToStop);
+    
     
     //await this.stopNodes([2,3,4]);
       
@@ -72,9 +73,6 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       
       await sleep(waitTimeForBlockCreation);
 
-
-     
-        
       await this.restartSet([4,5,6,7]);
       // await this.restartSet([5,6,7]);
 
@@ -89,6 +87,8 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
       await block;//  spoolWait(1000, async () => await contractManager.getEpoch("latest") == epochOnStartup + 1);
 
       clearTimeout(timeout);
+
+      waitTimeForBlockCreation = waitTimeForBlockCreation * 2;
     }
     return true;
   }

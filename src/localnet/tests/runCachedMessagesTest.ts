@@ -24,25 +24,23 @@ export class CachedMessageTest extends LocalnetScriptRunnerBase {
 
     await this.stopNode(3);
 
-  await this.stopNode(2);
-  await this.createBlockAndRefresh();
-  console.log(
-    "node 2 stopped, creating block should work, because of fault tolerance."
-  );
+    await this.stopNode(2);
+    await this.createBlock();
+    console.log(
+      "node 2 stopped, creating block should work, because of fault tolerance."
+    );
 
-  await stopNode(3);
-  await createBlockAndRefresh();
-  console.log(
-    "node 3 stopped, creating block should work, because of fault tolerance."
-  );
+    await this.stopNode(3);
+    await this.createBlock();
+    console.log(
+      "node 3 stopped, creating block should work, because of fault tolerance."
+    );
 
-  await stopNode(4);
-  await createBlockAndRefresh();
-  console.log(
-    "node 4 stopped, creating block should work, because of fault tolerance. but above early epoch end tolerance"
-  );
-
-
+    await this.stopNode(4);
+    await this.createBlock();
+    console.log(
+      "node 4 stopped, creating block should work, because of fault tolerance. but above early epoch end tolerance"
+    );
 
     await sleep(5000);
 

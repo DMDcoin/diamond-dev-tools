@@ -26,7 +26,7 @@
       "installDir": "beta1",
       "nodesDir": "nodes-beta1",
       "screenName": "beta1",
-      "rpc": "https://beta-rpc.bit.diamonds",
+      "rpc": "http://62.171.133.46:64100/",
       "blockscout": "https://beta-explorer.bit.diamonds",
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
@@ -127,7 +127,13 @@
           "STAKING_TRANSITION_WINDOW_LENGTH": 60,
           "STAKING_EPOCH_DURATION": 60000,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
-        }
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=trace,engine=trace,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 500"
+        ]
       } 
     },
 
@@ -217,7 +223,13 @@
           "STAKING_TRANSITION_WINDOW_LENGTH": 30,
           "STAKING_EPOCH_DURATION": 60,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
-        }
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=trace,engine=debut,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 500"
+        ]
       }
     },
     {

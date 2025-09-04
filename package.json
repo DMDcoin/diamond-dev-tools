@@ -68,6 +68,7 @@
     "server-watchdog": "ts-node src/runWatchdogServer.ts",
     "server-contract-state": "ts-node src/server/runContractStateServer.ts",
     "net-log-blooms": "ts-node src/net/runLogBlooms.ts",
+    "net-dao-vote-yes": "ts-node src/net/dao/voteYes.ts",
     "net-stake-on-existing-pools": "ts-node src/runStakeOnExistingPools.ts",
     "net-pot-feed-delta": "ts-node src/net/runFeedDeltaPot.ts",
     "net-unstake": "ts-node src/net/runUnstake.ts",
@@ -143,7 +144,7 @@
     "localnet-data-delete-TESTNAME": "cd testnet && echo $(pwd) && ./localnet-test-delete-data.sh",
     "testnet-kill-processes": "pkill diamond-node || true",
     "testnet-testrun-grow-and-unstake": "npm-run-all testnet-kill-processes build-open-ethereum testnet-delete-grow-and-unstake localnet-test-grow-and-unstake",
-    "testnet-testrun-early-epoch-end": "npm-run-all testnet-kill-processes build-open-ethereum testnet-delete-early-epoch-end localnet-fresh-test-early-epoch-end localnet-test-early-epoch-end-test",
+    "testnet-testrun-early-epoch-end": "npm-run-all testnet-kill-processes build-open-ethereum testnet-delete-early-epoch-end localnet-test-early-epoch-end-test",
     "testnet-testrun-phoenix": "npm-run-all build-open-ethereum testnet-delete testnet-kill-processes testnet-fresh-test-phoenix localnet-test-phoenix localnet-start-current",
     "testnet-testrun-fork-test": "npm-run-all build-open-ethereum testnet-kill-processes testnet-delete-fork-test testnet-fork-test-create testnet-start-fork-test",
     "testnet-testrun-auto-restake": "npm-run-all testnet-kill-processes localnet-delete-auto-restake localnet-fresh-auto-restake localnet-test-auto-restake",
@@ -237,6 +238,7 @@
     "analyse-messages-pending-block": "ts-node src/runAnalyseMessagesPendingBlock.ts",
     "tool-fund": "ts-node src/tools/runFundAccount.ts",
     "tool-create-claiming-signatures": "ts-node src/tools/runGenerateTestClaimingSignatures.ts",
+    "tool-get-code": "ts-node src/tools/getCode.ts",
     "blockscout": "ts-node src/contracts/blockscout.ts"
   },
   "repository": {

@@ -21,7 +21,7 @@ class LargeNetworkTestRunner extends LocalnetScriptRunnerBase {
 
     console.log("Performance test took ", duration, " ms");
 
-    
+
     // we just wanted to know if we can manage to scale up to this network size.
     return true;
   }

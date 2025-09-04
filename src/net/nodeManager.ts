@@ -19,7 +19,9 @@ export class NodeState {
   public isStarted = false;
 
   isDeactivated: boolean = false;
+  isShuttingDown: boolean = false;
 
+  public restartAfterShutdown: boolean = true; //todo: false as default
 
   public constructor(public nodeID: number, public publicKey: string | undefined, public address: string | undefined) {
   }
@@ -99,10 +101,15 @@ export class NodeState {
     const spawned = child_process.spawn(resolvedPath, flags, spawnOption);
 
     spawned.once('exit', (code, signal) => {
+
       console.log(`node ${nodesNameDir} exited with code: ${code} and signal: ${signal}`);
     });
 
+
+
     spawned.once('close', (code, signal) => {
+
+     
       console.log(`node ${nodesNameDir} closed with code: ${code} and signal: ${signal}`);
     });
 
@@ -150,13 +157,22 @@ export class NodeState {
     //const extraFlags = '--tx-queue-mem-limit=1000 --no-persistent-txqueue'; //  --tx-queue-size=100000
     const extraFlags = ["--tx-queue-mem-limit=1000", "--no-persistent-txqueue", "--tx-queue-size=100000"];
 
+
+
     if (this.nodeID > 0) {
       this.childProcess = NodeState.startNode(this.nodeID, extraFlags);
     } else {
       this.childProcess = NodeState.startRpcNode(extraFlags);
     }
 
+    this.childProcess.once("close", (code, signal) =>  {
+      if (this.restartAfterShutdown && !this.isShuttingDown) {
+        this.isStarted = false;
+        this.start(force);
+      }
 
+    });
+    
     this.isStarted = true;
     console.log(`started child process with ID ${this.childProcess.pid}`);
   }
@@ -183,6 +199,7 @@ export class NodeState {
 
     let isExited = false;
 
+    this.isShuttingDown = true;
 
     this.childProcess.on("close", (x) => {
       console.log("closed!!", x);
@@ -276,6 +293,9 @@ export class NodeManager {
   static s_instance = new NodeManager();
 
   public network?: string;
+
+
+  public restartOnNodeShutdown = false;
 
   private constructor() {
 
