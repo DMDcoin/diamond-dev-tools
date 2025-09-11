@@ -5,7 +5,8 @@ import { NodeManager } from "../nodeManager";
 
 async function executeVoting() {
 
-    const calldata = "0x943e8216564319eb0fa2a023e8293f7241f18a0475a3a03188f8b999d5f32dcc4cbcded20000000000000000000000000000000000000000000000000000000000000002";
+    // http://62.84.188.137/#/dao
+    const calldata = "0x943e8216b9559c3414352439513dd9df50f57ce7ed471100875591ae70ed9671aa3b7b590000000000000000000000000000000000000000000000000000000000000001";
     const target = "0xDA0da0da0Da0Da0Da0DA00DA0da0da0DA0DA0dA0";
     const web3 = ConfigManager.getWeb3();
 
@@ -24,8 +25,8 @@ async function executeVoting() {
 
         if (wallets.find((x) => x.address.toLowerCase() == pool.toLowerCase())) {
             console.log("pool:", pool, " voting.");
-            web3.eth.sendTransaction({from: pool, to: target, data: calldata, gas: 1500000 });
-
+            let tx = web3.eth.sendTransaction({from: pool, to: target, data: calldata, gas: 1500000 });
+            tx.once("error", (e) => { console.log("error for pool ", pool)})
         } else {
             console.log("pool ", pool, " skipped, its not managed by diamond-dev-tools");
         }

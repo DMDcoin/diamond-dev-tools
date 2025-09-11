@@ -1,10 +1,10 @@
 {
-  "network": "beta1",
+  "network": "testnet",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
-  "networkGitRepoBranch": "main",
+  "networkGitRepoBranch": "release-testnet",
   "nodeProfile": "debug",
   "nodeRepoUrl": "https://github.com/SurfingNerd/diamond-node.git",
-  "nodeBranch": "i163-network-usage-monitoring-sync",
+  "nodeBranch": "0.12",
   "blockscoutInstance": "http://explorer.uniq.diamonds",
   "continuousSenderIntervalMin": 5,
   "continuousSenderIntervalMax": 100,
@@ -55,6 +55,46 @@
         "nodeArgs": [
           "[footprint]",
           "cache_size = 100"
+        ]
+      }
+    },
+    {
+      "name": "testnet",
+      "installDir": "testnet",
+      "nodesDir": "nodes-testnet",
+      "screenName": "testnet",
+      "rpc": "http://62.171.133.46:20100",
+      "blockscout": "https://testnet-explorer.bit.diamonds",
+      "db": "127.0.0.1:5432",
+      "nodeRepoAlias": "dmd",
+      "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
+      "nodeRepoBranch": "0.12",
+      "nodeBuildScript": "build-from-source-dev-tracing.sh",
+      "rustVersion": "1.85",
+      "claimingPotAddress": "0x0",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 27,
+        "networkID": 37373,
+        "p2pPortBase": 37300,
+        "rpcPortBase": 8300,
+        "rpcWSPortBase": 9300,
+        "metricsPortBase": 61000,
+        "hbbftArgs": {
+          "minimumBlockTime": 5,
+          "maximumBlockTime": 300
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 300,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 5184000,
+          "STAKING_EPOCH_DURATION": 43200
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=debug,engine=debug,own_tx=trace,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 2000"
+          
         ]
       }
     },
