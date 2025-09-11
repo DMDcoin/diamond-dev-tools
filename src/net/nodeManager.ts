@@ -135,11 +135,6 @@ export class NodeState {
     console.log(`node ${nodesNameDir} spawned!`);
 
     return spawned;
-    // //child_process.spawn()
-
-
-    // stdOut: ${stdout} \n
-    // stdErr: ${stderr}
 
   }
 
@@ -231,8 +226,8 @@ export class NodeState {
     console.log('wait for exit');
     while (isExited === false) {
       //await setTimeout(() =>{}, 1000);
-      await sleep(100);
-      process.stdout.write('.');
+      await sleep(1000);
+      process.stdout.write(`${this.nodeID},`);
     }
   }
 

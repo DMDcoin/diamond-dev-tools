@@ -59,8 +59,8 @@ async function runReplace(valueOld: string, valueNew: string) {
 
 
 async function runDowngradeLogging() {
-  const valueOld = 'logging = "txqueue=trace,consensus=trace,engine=trace"';
-  const valueNew = 'logging = "txqueue=info,consensus=info,engine=info"';
+  const valueOld = 'logging = "txqueue=trace,consensus=trace,engine=trace,own_tx=trace,tx_filter=trace,sync=trace,network=trace,io=trace"';
+  const valueNew = 'logging = "txqueue=info,consensus=debug,engine=debug,own_tx=trace,tx_filter=info,sync=info,network=info,io=info"';
 
   await runReplace(valueOld, valueNew);
 
@@ -142,4 +142,8 @@ async function runActivateDiamondProtectionLayer() {
 // runApplyAdditionConfigs();
 // runAdjustPeers() ;
 
-runUpgradeLogging();
+// runUpgradeLogging();
+
+
+
+runDowngradeLogging();

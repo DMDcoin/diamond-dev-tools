@@ -213,13 +213,11 @@ export abstract class LocalnetScriptRunnerBase {
       watchdog.startWatching(true);
     }
 
-
-
     const result = await this.runImplementation();
 
     if (result) {
       console.log(
-        "SUCCESS: Block created after tolerance reached was achieved again.:"
+        `SUCCESS: test ${this.networkOperation} was successful.:`
       );
     } else {
       console.log("FAILURE: this test failed");
@@ -232,8 +230,9 @@ export abstract class LocalnetScriptRunnerBase {
     // write operation result.
 
     // LogFileManager.writeNetworkOperationOutput(networkName, networkOperation)
-
+    console.log("stopAllNodes");
     await nodesManager.stopAllNodes(true);
+    console.log("stopRpcNode");
     await nodesManager.stopRpcNode(true);
 
     // todo: add a condition to stop this test.
@@ -242,7 +241,7 @@ export abstract class LocalnetScriptRunnerBase {
     //     // verify that network is running.
     //     // by sending a transaction and waiting for a new block.
     // }
-
+    console.log("process.exit");
     process.exit(result ? 0 : 1);
   }
 
