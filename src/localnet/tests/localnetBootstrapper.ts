@@ -231,9 +231,9 @@ export abstract class LocalnetScriptRunnerBase {
 
     // LogFileManager.writeNetworkOperationOutput(networkName, networkOperation)
     console.log("stopAllNodes");
-    await nodesManager.stopAllNodes(true);
+    await nodesManager.stopAllNodes(false);
     console.log("stopRpcNode");
-    await nodesManager.stopRpcNode(true);
+    await nodesManager.stopRpcNode(false);
 
     // todo: add a condition to stop this test.
     // maybe phoenix managed a recovery 3 times ?
