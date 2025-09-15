@@ -40,6 +40,7 @@ import { BonusScoreSystem, TxPermissionHbbft } from './abi/contracts';
 import JsonTxPermissionHbbft from './abi/json/TxPermissionHbbft.json';
 import { parseEther } from './utils/ether';
 import { h2bn, h2n, toNumber } from './utils/numberUtils';
+import { blockTimeAsUTC } from './utils/dateUtils';
 
 export enum KeyGenMode {
   NotAPendingValidator = 0,
@@ -106,6 +107,7 @@ export class NetworkAddress {
 }
 
 export class ContractManager {
+
 
 
   private cachedValidatorSetHbbft?: ValidatorSetHbbft;
@@ -289,6 +291,10 @@ export class ContractManager {
 
     const networkConfig = ConfigManager.getNetworkConfig();
     return networkConfig.claimingPotAddress;
+  }
+
+  async getActualEpochEndTime() {
+    return blockTimeAsUTC(await (await this.getStakingHbbft()).methods.actualEpochEndTime().call());
   }
 
   public async getGovernancePot(blockNumber: BlockType): Promise<string> {
