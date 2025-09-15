@@ -434,13 +434,11 @@ export class NodeManager {
   // stop's all validator nodes, but not the RPC Node
   public async stopAllNodes(force = false) {
 
-
-    await Promise.all(this.nodeStates.map(n => { return n.stop(force)})); 
-
-    //   if (n.isStarted) {
-    //     n.stop(force);
-    //   }
-    // });
+    if (force) {
+      await Promise.all(this.nodeStates.map(n => { return n.stop(true)})); 
+    } else {
+      await Promise.all(this.nodeStates.filter(x => { x.isStarted }).map(n => { return n.stop(false)}));
+    }
   }
 
   public async stopRpcNode(force = false) {
