@@ -62,7 +62,6 @@ async function startWatchdogServer() {
             res.send("invalid number specified: use pattern /latest/123" );
             return;
         }
-        log("retrieving:", num);
 
         // res.json(logs);
         //res.write(logs.join("\n"));    
@@ -83,12 +82,7 @@ async function startWatchdogServer() {
         log(`Server is running at http://localhost:${port}`);
     });
 
-    log("Server started, waiting for requests...");
-
-    log("damn...");
-
-    await sleep(1000);
-    log("sleeping done");
+    log("Server initialized.");
 }
 
 
