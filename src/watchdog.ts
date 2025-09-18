@@ -383,14 +383,62 @@ export class Watchdog {
       const numberOfAcksWritten = Number.parseInt(numberOfFragmentsWritten[1]);
 
       if (this.numberOfPartsWritten != numberOfPartsWritten) {
-        console.log(`Number of Parts written changed from ${this.numberOfPartsWritten} to ${numberOfPartsWritten}`);
 
+        // get the nodes who wrote the parts.
+
+        let validatorsOK = [];
+        let validatorsMissing = [];
+
+        for (let validator of this.pendingValidators) {
+          let key = await this.contractManager.getKeyPART(validator);
+
+          //console.log(`Key Part for validator ${validator} : ${key}`);
+
+          if (key != null && key.length > 3) {
+            validatorsOK.push(validator);
+          } else {
+            validatorsMissing.push(validator);
+          }
+        }
+        console.log(`Number of Parts written changed from ${this.numberOfPartsWritten} to ${numberOfPartsWritten}.}`);
+
+        if (validatorsOK.length > 0) {
+          console.log("Ok: \n", validatorsOK);
+        }
+        if (validatorsMissing.length > 0) {
+          console.log("Missing :\n", validatorsMissing);
+        }
+        
         this.numberOfPartsWritten = numberOfPartsWritten;
       }
 
 
       if (this.numberOfAcksWritten != numberOfAcksWritten) {
+
+
+        let validatorsOK = [];
+        let validatorsMissing = [];
+
+        for (let validator of this.pendingValidators) {
+          let keys = await this.contractManager.getKeyACKSNumber(validator);
+
+          
+          if (keys > 0) {
+            validatorsOK.push(validator);
+          } else {
+            validatorsMissing.push(validator);
+          }
+        }
+
         console.log(`Number of ACKS written changed from ${this.numberOfAcksWritten} to ${numberOfAcksWritten}`);
+
+        if (validatorsOK.length > 0) {
+          console.log("Ok: \n", validatorsOK);
+        }
+        if (validatorsMissing.length > 0) {
+          console.log("Missing :\n", validatorsMissing);
+        }
+        
         this.numberOfAcksWritten = numberOfAcksWritten;
       }
 
