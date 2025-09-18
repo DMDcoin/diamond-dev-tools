@@ -207,8 +207,6 @@ export class ContractManager {
     let permission = this.getContractPermission();
     let connectivityTrackerAddress = await permission.methods.connectivityTracker().call();
 
-    console.log(`connectivityTrackerAddress: ${connectivityTrackerAddress}`);
-
     const abi: any = JsonConnectivityTrackerHbbft.abi;
     let result: any = new this.web3.eth.Contract(abi, connectivityTrackerAddress);
 
