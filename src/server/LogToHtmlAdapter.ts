@@ -30,7 +30,6 @@ export class LogToHtmlAdapter {
     }
 
     getStorageDir(): string {
-
         return 'output/watchdog/';
     }
 
@@ -60,7 +59,6 @@ export class LogToHtmlAdapter {
 
         if (maxLogs) {
             //logsToPrint =
-            this.log("prining logs:", maxLogs, " total logs:", this.logs.length); 
             logsToPrint = this.logs.length < maxLogs ? this.logs : this.logs.slice(this.logs.length - maxLogs);
 
         } else {
