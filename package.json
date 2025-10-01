@@ -97,6 +97,7 @@
     "net-claiming-pot-dilution": "ts-node src/net/runClaimingPotDilution.ts",
     "net-transfer-abandoned-coins": "ts-node src/net/runTransferAbandonedCoins.ts",
     "net-initial-delta-transfer": "ts-node src/net/runInitialDeltaTransfer.ts",
+    "net-delta-pot-server": "ts-node src/net/netDeltaPotServer.ts",
     "net-print-key-gen-round-infos": "ts-node src/net/keygen/printKeyGenRoundInfos.ts",
     "net-print-analyze-nonce-gaps": "ts-node src/net/runAnalyzeNonceGaps.ts",
     "db-fresh": "npm-run-all db-delete-local --parallel db-start-local db-apply-migrations ",
