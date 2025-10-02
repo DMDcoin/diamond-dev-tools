@@ -61,19 +61,25 @@ async function doSearch() {
     "verification failed",
   ];
   
-  nodes.forEach(async(x) => {
-    const filename = `~/${installDir}/diamond-node.log`;
-    //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-    const searchterm = knownWatchedSearchterms[knownWatchedSearchterms.length -1];
-    //const searchterm = "BadProtocol";
-    //
-    const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
-      results[x.nodeID] = result;
-      
-    });
 
-    promis.push(promise);
-  });
+  for (let watchTerm of knownWatchedSearchterms) {
+
+    nodes.forEach(async(x) => {
+      const filename = `~/${installDir}/diamond-node.log`;
+      //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
+      const searchterm = watchTerm;
+      //const searchterm = "BadProtocol";
+      //
+      const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
+        results[x.nodeID] = result;
+        
+      });
+  
+      promis.push(promise);
+    });
+  
+  }
+
 
 
   // await Promise.all(nodes.map(x => {
