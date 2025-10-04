@@ -63,7 +63,7 @@
       "installDir": "testnet",
       "nodesDir": "nodes-testnet",
       "screenName": "testnet",
-      "rpc": "http://62.171.133.46:20100",
+      "rpc": "https://testnet-rpc.bit.diamonds",
       "blockscout": "https://testnet-explorer.bit.diamonds",
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
