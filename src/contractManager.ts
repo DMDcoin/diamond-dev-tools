@@ -830,4 +830,8 @@ export class ContractManager {
     console.log("warn: getStakeLastEpoch() called. not implemented since https://github.com/DMDcoin/diamond-contracts-core/issues/43");
     return BigInt(0);
   }
+
+  public async getValidatorAvailableSince(validator: string, blockNumber: BlockType = 'latest'): Promise<number> {
+    return toNumber(await this.getValidatorSetHbbft().methods.validatorAvailableSince(validator).call({}, blockNumber));
+  }
 }
