@@ -18,9 +18,12 @@ const startServer = async () => {
     try {
         await db.sequelize.authenticate();
         console.log('Database connected!');
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
     } catch (error) {
-        console.error('Unable to connect to the database:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.warn('Database connection failed - some endpoints may not work:', errorMessage);
+    } finally {
+        // Start server regardless of database connection status
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
     }
 };
 
