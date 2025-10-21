@@ -1,15 +1,15 @@
 {
-  "network": "testnet",
+  "network": "mainnet",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
   "networkGitRepoBranch": "release-testnet",
   "nodeProfile": "debug",
-  "nodeRepoUrl": "https://github.com/SurfingNerd/diamond-node.git",
-  "nodeBranch": "0.12",
+  "nodeRepoUrl": "https://github.com/DMDCoin/diamond-node.git",
+  "nodeBranch": "main",
   "blockscoutInstance": "http://explorer.uniq.diamonds",
   "continuousSenderIntervalMin": 5,
   "continuousSenderIntervalMax": 100,
   "testDurationMs": 18000000,
-  "mnemonicAccountIndex": 2,
+  "mnemonicAccountIndex": 0,
   "calcNonceEveryTurn": false,
   "trackPerformance": false,
   "logToTerminal": false,
@@ -68,7 +68,7 @@
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
       "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
-      "nodeRepoBranch": "0.12",
+      "nodeRepoBranch": "main",
       "nodeBuildScript": "build-from-source-dev-tracing.sh",
       "rustVersion": "1.85",
       "claimingPotAddress": "0x0",
@@ -92,6 +92,46 @@
         "nodeArgs": [
           "[misc]",
           "logging = \"txqueue=info,consensus=debug,engine=debug,own_tx=trace,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 2000"
+          
+        ]
+      }
+    },
+    {
+      "name": "mainnet",
+      "installDir": "mainnet",
+      "nodesDir": "nodes-mainnet",
+      "screenName": "mainnet",
+      "rpc": "https://rpc.bit.diamonds",
+      "blockscout": "https://explorer.bit.diamonds",
+      "db": "127.0.0.1:5432",
+      "nodeRepoAlias": "dmd",
+      "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
+      "nodeRepoBranch": "main",
+      "nodeBuildScript": "build-from-source-dev-tracing.sh",
+      "rustVersion": "1.85",
+      "claimingPotAddress": "0x0",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 27,
+        "networkID": 17771,
+        "p2pPortBase": 17771,
+        "rpcPortBase": 8300,
+        "rpcWSPortBase": 9300,
+        "metricsPortBase": 17000,
+        "hbbftArgs": {
+          "minimumBlockTime": 3,
+          "maximumBlockTime": 300
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 300,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 315576000,
+          "STAKING_EPOCH_DURATION": 43200
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=info,engine=info,own_tx=info,tx_filter=info,sync=info,network=info,io=info\"",
           "[footprint]",
           "cache_size = 2000"
           
