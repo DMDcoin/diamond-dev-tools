@@ -113,7 +113,7 @@ export async function printContractDetails(contractManager: ContractManager, nod
         }
 
         console.log(`Key state:`);
-        for (const validator of currentValidators) {
+        for (const validator of pendingValidators.length > 0 ? pendingValidators : currentValidators) {
             const partByteLength = await contractManager.getKeyPARTBytesLength(validator);
             const acks = await contractManager.getKeyACKSNumber(validator);
             console.log(`${await nodeManager.formatNodeName(validator)} partByteLength: ${partByteLength} acks: ${acks}`);

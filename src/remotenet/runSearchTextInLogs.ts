@@ -55,10 +55,11 @@ async function doSearch() {
 
 
   let knownWatchedSearchterms = [
-    'deadlock(s) detected',
-    "number of connections has been reached",
-    "HostCacheInconsistency",
-    "verification failed",
+    // 'deadlock(s) detected',
+    // "number of connections has been reached",
+    // "HostCacheInconsistency",
+    // "verification failed",
+    "Phoenix Protocol"
   ];
   
 
