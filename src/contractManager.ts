@@ -109,6 +109,8 @@ export class NetworkAddress {
 export class ContractManager {
 
 
+  
+
 
   private cachedValidatorSetHbbft?: ValidatorSetHbbft;
   private cachedStakingHbbft?: StakingHbbft;
@@ -187,6 +189,13 @@ export class ContractManager {
 
     return bonusScoreSystemContract;
 
+  }
+
+
+  public async getPoolOperatorAddress(pool: string, blockNumber: BlockType = 'latest') : Promise<string> {
+    let stakingContract = await this.getStakingHbbft();
+    let operator = await  stakingContract.methods.poolNodeOperator(pool).call({}, blockNumber);
+    return operator;
   }
 
   public async getBonusScore(miningAddress: string, blockNumber: BlockType): Promise<number> {
@@ -301,7 +310,7 @@ export class ContractManager {
     return await this.web3.eth.getBalance(governanceAddress, blockNumber);
   }
 
-  public async getEpoch(blockNumber: BlockType): Promise<number> {
+  public async getEpoch(blockNumber: BlockType = 'latest'): Promise<number> {
     return h2n(await (await this.getStakingHbbft()).methods.stakingEpoch().call({}, blockNumber));
   }
 
