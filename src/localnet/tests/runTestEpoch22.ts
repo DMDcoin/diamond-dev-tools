@@ -26,24 +26,36 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       let web3 = contractManager.web3;
 
       const poolMiner = await contractManager.getAddressMiningByStaking(testPool);
-      console.log("setting validator share: ", testPool, " mining: ", poolMiner, " contract address ", staking.options.address, " balance: ", await web3.eth.getBalance(testPool));
 
-      console.log("wallet accounts: ", web3.eth.accounts.wallet.length);
+      let currentOperator = web3.utils.toBN(await contractManager.getPoolOperatorAddress(testPool));
+
+       
+
+      if (currentOperator.isZero()) {
+        let random = Math.floor(Math.random() * 2000);
+        console.log("setting rng node operator share ", testPool, " testPool ", random);  
+        await staking.methods.setNodeOperator(testPool , random).send({ from: testPool, to:  staking.options.address, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+      }
+      else {
+        console.log("setting rng node operator share to noone at pool: ", testPool);
+        await staking.methods.setNodeOperator("0x0", 0 ).send({ from: testPool, to:  staking.options.address, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+      }
+
+      // console.log("setting validator share: ", testPool, " mining: ", poolMiner, " contract address ", staking.options.address, " balance: ", await web3.eth.getBalance(testPool));
+      // console.log("wallet accounts: ", web3.eth.accounts.wallet.length);
 
       
+      // tx.on("transactionHash", (hash: string) => { 
+      //   console.log("setting validator share tx:", hash);
       
-      let tx = staking.methods.setNodeOperator(testPool , 1000).send({ from: testPool, to:  staking.options.address, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });      
-      tx.on("transactionHash", (hash: string) => { 
-        console.log("setting validator share tx:", hash);
-
-      });
-      console.log("await setNodeOperator tx...");
-      const finalizedTx = await tx;
-      console.log("WARN: User ", testPool, " managed to stake on own Node!! hash:", finalizedTx.transactionHash);
+      
+      console.log("WARN: User ", testPool, " managed to stake on own Node!!");
     } catch (e) {
       console.log("Expected error:", e);
     }      
   }
+
+
 
   async runImplementation(watchdog: Watchdog): Promise<boolean> {
 
@@ -75,10 +87,15 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     const staking = await contractManager.getStakingHbbft();
     //const testPool = allPools[1];
     // pick random pool
-    let rng = Math.floor((Math.random() * allPools.length));
-    const testPool = allPools.at(rng)!;
+    
+    function getTestPoolAddress() {
+      let rng = Math.floor((Math.random() * allPools.length));
+      let result = allPools.at(rng)!;
+      console.log("choosing pool", rng, result);
+      return result;
+    };
 
-    await this.setNodeOperator(testPool);
+    await this.setNodeOperator(getTestPoolAddress());
 
 
     console.log("Pools Operator Shares:");
@@ -97,32 +114,43 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
     console.log("doing delegator stakes:");
 
-    await stakeAsDelegatorOnPool(testPool, contractManager);
+    await stakeAsDelegatorOnPool( getTestPoolAddress(), contractManager);
 
     await wait();
 
-    await wait();
 
-
-    await stakeAsDelegatorOnPool(testPool, contractManager);
-
-
-    await wait();
+    await this.setNodeOperator(getTestPoolAddress());
 
 
     await wait();
 
 
-    await stakeAsDelegatorOnPool(testPool, contractManager);
+    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
 
 
     await wait();
 
 
+    await this.setNodeOperator(getTestPoolAddress());
+
+
     await wait();
 
 
-    await stakeAsDelegatorOnPool(testPool, contractManager);
+    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+
+
+    await wait();
+
+
+
+    await this.setNodeOperator(getTestPoolAddress());
+
+
+    await wait();
+
+
+    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
 
 
     await wait();
@@ -138,8 +166,6 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     for (const pool of  allPools) {
       console.log(pool, " => ", (await contractManager.getTotalStake(pool)).toString());
     }
-    
-    
 
     console.log("FINALIZED!!");
 
