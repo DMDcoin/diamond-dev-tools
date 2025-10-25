@@ -105,6 +105,8 @@ export abstract class LocalnetScriptRunnerBase {
     };
 
     const networkName = this.networkName;
+    let nodesManager = NodeManager.get(networkName);
+    let contractManager = ContractManager.getForNetwork(this.networkName);
 
     let createNewNetwork = true;
     if (this.cacheCreatedNetwork) {
@@ -114,8 +116,12 @@ export abstract class LocalnetScriptRunnerBase {
         console.log(
           `Restored network ${networkName} from cache. Continuing with existing network.`
         );
-        createNewNetwork = false;
-        isFreshBoot = false;
+        let nodesManager = NodeManager.get(networkName);
+        const startedNodes = nodesManager.startAllNodes();
+        console.log("startedNodes from cache:", startedNodes);  
+        nodesManager.startRpcNode();
+        await this.runTestSteps(nodesManager, contractManager);
+        return;
       } else {
         console.log(
           `No cache found for network ${networkName}. Creating new network.`
@@ -123,14 +129,13 @@ export abstract class LocalnetScriptRunnerBase {
       }
     }
 
-    let nodesManager = NodeManager.get(networkName);
+    
 
-    if (createNewNetwork) {
-      console.log("creating new network");
-      await nodesManager.createLocalNetwork();
-      console.log("new network created");
-    }
-
+    console.log("creating new network");
+    await nodesManager.createLocalNetwork();
+    console.log("new network created");
+  
+    nodesManager = NodeManager.get(networkName); 
     // if (!nodesManager) {
     //   throw new Error(
     //     `Network ${networkName} not found. Please create it with 'npm run testnet-fresh-${networkName}'`
@@ -138,10 +143,10 @@ export abstract class LocalnetScriptRunnerBase {
     // }
 
     // we need to reinitialize the nodesManager after creating the network.
-    nodesManager = NodeManager.get(networkName);
+    
 
     console.log(`starting rpc`);
-    nodesManager.rpcNode?.start();
+    nodesManager.rpcNode!.start();
 
     console.log(
       `Starting up the network. Total nodes: ${nodesManager.nodeStates.length}`
@@ -155,13 +160,15 @@ export abstract class LocalnetScriptRunnerBase {
 
     await nodesManager.awaitRpcReady();
     console.log("rpc is ready!");
-    let contractManager = ContractManager.getForNetwork(this.networkName);
+    
 
     let watchdog = new Watchdog(contractManager, nodesManager);
     watchdog.startWatching(true);
 
     if (isFreshBoot) {
       await stakeOnValidators(this.expectedValidators);
+
+
     }
 
     console.log(
@@ -186,6 +193,23 @@ export abstract class LocalnetScriptRunnerBase {
 
     this.lastCheckedBlock = start_block;
 
+
+    //2000
+
+    console.log("Filling delta pot with excess funds...");
+
+    let rewardHbbft = await contractManager.getRewardHbbft();
+    // we keep 1.000.000 for further tests, and send the rest to delta.
+    let keep =  web3.utils.toBN(web3.utils.toWei("1000000", 'ether'));
+    let balance = web3.utils.toBN(await web3.eth.getBalance(web3.eth.defaultAccount!));
+
+    let deltaTransferString = balance.sub(keep).toString();
+    
+    console.log("delta transfer:",deltaTransferString );
+    
+    await rewardHbbft.methods.addToDeltaPot().send({ from: web3.eth.defaultAccount!, value: deltaTransferString, gas: 3000000 });
+    console.log("Total balance of rewardHbbft: ", await web3.eth.getBalance(rewardHbbft.options.address));
+
     // if we want a rerun cache, we need to store the current state here.
 
     if (createNewNetwork && this.cacheCreatedNetwork) {
@@ -195,7 +219,7 @@ export abstract class LocalnetScriptRunnerBase {
 
       await watchdog.stopWatching();
 
-      await nodesManager.stopAllNodes();
+      await nodesManager.stopAllNodes(true);
       await nodesManager.stopRpcNode();
 
       const localNetworkCache = new LocalNetworkCheckpointIo(this.networkName, this.networkOperation);
@@ -208,12 +232,22 @@ export abstract class LocalnetScriptRunnerBase {
       nodesManager.startRpcNode();
       nodesManager.startAllNodes();
 
-      await nodesManager.awaitRpcReady();
-      watchdog = new Watchdog(contractManager, nodesManager);
-      watchdog.startWatching(true);
+     
     }
 
-    const result = await this.runImplementation();
+
+    this.runTestSteps(nodesManager, contractManager);
+
+  }
+  
+  async runTestSteps(nodesManager: NodeManager, contractManager: ContractManager) {
+    
+    
+    await nodesManager.awaitRpcReady();
+    let watchdog = new Watchdog(contractManager, nodesManager);
+    watchdog.startWatching(true);
+
+    const result = await this.runImplementation(watchdog);
 
     if (result) {
       console.log(
@@ -245,5 +279,16 @@ export abstract class LocalnetScriptRunnerBase {
     process.exit(result ? 0 : 1);
   }
 
-  abstract runImplementation(): Promise<boolean>;
+  abstract runImplementation(watchdog: Watchdog): Promise<boolean>;
+
+  protected createWatchdog(): Watchdog {
+    let contractManager = ContractManager.getForNetwork(this.networkName);
+    let nodesManager = NodeManager.get(this.networkName);
+    let watchdog = new Watchdog(contractManager, nodesManager);
+    return watchdog;
+  }
+
+  public getDescription(): string { 
+    return `generic test ${this.networkOperation} on network ${this.networkName}`;
+  }
 }

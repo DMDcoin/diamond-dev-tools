@@ -216,7 +216,33 @@
         ]
       } 
     },
-
+    {
+      "name": "nodes-local-test-epoch22",
+      "rpc": "http://localhost:8540",
+      "blockscout": "http://localhost:4000/",
+      "db": "localhost:5432",
+      "installDir": "nodes-local-test-epoch22",
+      "nodesDir": "nodes-local-test-epoch22",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 6,
+        "hbbftArgs": {
+          "minimumBlockTime": 1,
+          "maximumBlockTime": 10
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 30,
+          "STAKING_EPOCH_DURATION": 120,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=debug,consensus=debug,engine=debug,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 100"
+        ]
+      }
+    },
     {
       "name": "nodes-local-test-performance",
       "rpc": "http://localhost:8540",
