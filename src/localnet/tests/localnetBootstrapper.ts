@@ -34,6 +34,8 @@ export abstract class LocalnetScriptRunnerBase {
   ) {
     ConfigManager.setNetwork(networkName);
     this.web3 = ConfigManager.getWeb3();
+    ConfigManager.insertWallets(this.web3);
+
     this.currentNodeManager = NodeManager.get(networkName);
     this.networkOperation = networkOperation;
 
@@ -123,7 +125,8 @@ export abstract class LocalnetScriptRunnerBase {
         );
         let nodesManager = NodeManager.get(networkName);
         const startedNodes = nodesManager.startAllNodes();
-        console.log("startedNodes from cache:", startedNodes);  
+        
+        //console.log("startedNodes from cache:", startedNodes);  
         nodesManager.startRpcNode();
         await this.runTestSteps(nodesManager, contractManager);
         return;

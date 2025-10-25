@@ -29,16 +29,24 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
       let currentOperator = web3.utils.toBN(await contractManager.getPoolOperatorAddress(testPool));
 
-       
+      let setupNodeOperator = currentOperator.isZero(); 
+      console.log("node operator ", testPool, " for miner ", poolMiner, " current operator  setup operator", currentOperator.toString(16), setupNodeOperator);
 
-      if (currentOperator.isZero()) {
+      if (setupNodeOperator) {
         let random = Math.floor(Math.random() * 2000);
-        console.log("setting rng node operator share ", testPool, " testPool ", random);  
-        await staking.methods.setNodeOperator(testPool , random).send({ from: testPool, to:  staking.options.address, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+        console.log("setting rng node operator share ", testPool,  " testPool ", random);  
+        
+        let tx = staking.methods.setNodeOperator(testPool , random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+        tx.once("transactionHash", (hash: string) => {
+          console.log("setting rng node operator share setNodeOperator tx:", hash);
+        });
+
+        await tx;
+        console.log("WARN: User ", testPool, " managed to stake on own Node!!");
       }
       else {
         console.log("setting rng node operator share to noone at pool: ", testPool);
-        await staking.methods.setNodeOperator("0x0", 0 ).send({ from: testPool, to:  staking.options.address, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+        await staking.methods.setNodeOperator("0x0", 0 ).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("10", "gwei") });
       }
 
       // console.log("setting validator share: ", testPool, " mining: ", poolMiner, " contract address ", staking.options.address, " balance: ", await web3.eth.getBalance(testPool));
@@ -49,7 +57,6 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       //   console.log("setting validator share tx:", hash);
       
       
-      console.log("WARN: User ", testPool, " managed to stake on own Node!!");
     } catch (e) {
       console.log("Expected error:", e);
     }      
@@ -95,6 +102,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       return result;
     };
 
+    console.log("setting first Node operator:");
     await this.setNodeOperator(getTestPoolAddress());
 
 
@@ -110,16 +118,26 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       console.log(pool, " -> ", shareAddress);
     }
 
+
+    console.log("wait 1:");
+
     await wait();
 
     console.log("doing delegator stakes:");
 
     await stakeAsDelegatorOnPool( getTestPoolAddress(), contractManager);
 
+    console.log("wait 2:");
+
+
     await wait();
 
 
+
     await this.setNodeOperator(getTestPoolAddress());
+
+
+    console.log("wait 3:");
 
 
     await wait();
@@ -127,6 +145,9 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
     await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
 
+
+
+    console.log("wait 4:");
 
     await wait();
 
@@ -186,6 +207,7 @@ run();
 
 async function stakeAsDelegatorOnPool(poolToStakeOn: string, contractManager: ContractManager) {
 
+  console.log("Staking as delegator on pool: ", poolToStakeOn);
 
   const web3 = contractManager.web3;
 
@@ -193,7 +215,9 @@ async function stakeAsDelegatorOnPool(poolToStakeOn: string, contractManager: Co
   web3.eth.accounts.wallet.add(account);
 
   const tx = await web3.eth.sendTransaction({ from: web3.defaultAccount!, to: account.address, value: web3.utils.toWei("101", 'ether'), gas: 21000 })
+  console.log("funded: ", poolToStakeOn);
 
+  
   const staking = await contractManager.getStakingHbbft();
 
   const stakeTX = await staking.methods.stake(poolToStakeOn).send({ from: account.address, gas: 300000, value: web3.utils.toWei("100", 'ether') })
