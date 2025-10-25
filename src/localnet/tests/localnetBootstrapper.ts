@@ -47,6 +47,11 @@ export abstract class LocalnetScriptRunnerBase {
     this.lastCheckedBlock = 0;
   }
 
+  public createContractManager() {
+
+    return new ContractManager(this.web3);
+  }
+
   protected async createBlock() {
     await createBlock(this.web3, this.lastCheckedBlock);
     await this.refreshBlock();
