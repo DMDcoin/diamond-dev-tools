@@ -46,7 +46,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       }
       else {
         console.log("setting rng node operator share to noone at pool: ", testPool);
-        await staking.methods.setNodeOperator("0x0", 0 ).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("10", "gwei") });
+        await staking.methods.setNodeOperator("0x0000000000000000000000000000000000000000", 0 ).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("10", "gwei") });
       }
 
       // console.log("setting validator share: ", testPool, " mining: ", poolMiner, " contract address ", staking.options.address, " balance: ", await web3.eth.getBalance(testPool));
@@ -130,58 +130,45 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     console.log("wait 2:");
 
 
-    await wait();
+    // await wait();
+    // await this.setNodeOperator(getTestPoolAddress());
+    // console.log("wait 3:");
+    // await wait();
+    // await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+    // console.log("wait 4:");
+    // await wait();
+    // await this.setNodeOperator(getTestPoolAddress());
+    // await wait();
+    // await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+    // await wait();
+    // await this.setNodeOperator(getTestPoolAddress());
+    // await wait();
 
 
-
-    await this.setNodeOperator(getTestPoolAddress());
-
-
-    console.log("wait 3:");
+    // await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
 
 
-    await wait();
+    // await wait();
 
 
-    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+    // await wait();
 
 
+    // await wait();
 
-    console.log("wait 4:");
+    setInterval(async () => {
+      console.log("Interval delegator stake and node operator set:");
+      await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+      console.log("(un)setting Node operator:");
+      await this.setNodeOperator(getTestPoolAddress());
 
-    await wait();
+    }, 5000);
 
-
-    await this.setNodeOperator(getTestPoolAddress());
-
-
-    await wait();
-
-
-    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-
-
-    await wait();
-
-
-
-    await this.setNodeOperator(getTestPoolAddress());
-
-
-    await wait();
-
-
-    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-
-
-    await wait();
-
-
-    await wait();
-
-
-    await wait();
-
+    
+    for (let index = 0; index < 100; index++) {
+      console.log("Awaiting epoch end ", index);
+      await wait();
+    }
 
     console.log("stakes:");
     for (const pool of  allPools) {
@@ -214,13 +201,17 @@ async function stakeAsDelegatorOnPool(poolToStakeOn: string, contractManager: Co
   const account = web3.eth.accounts.create();
   web3.eth.accounts.wallet.add(account);
 
-  const tx = await web3.eth.sendTransaction({ from: web3.defaultAccount!, to: account.address, value: web3.utils.toWei("101", 'ether'), gas: 21000 })
+  const tx = web3.eth.sendTransaction({ from: web3.defaultAccount!, to: account.address, value: web3.utils.toWei("101", 'ether'), gas: 21000, gasPrice: web3.utils.toWei("1", 'gwei') })
+  tx.on("transactionHash", (hash: string) => { 
+    console.log("funding delegator account tx:", hash);
+  });
+  await tx;
   console.log("funded: ", poolToStakeOn);
 
   
   const staking = await contractManager.getStakingHbbft();
 
-  const stakeTX = await staking.methods.stake(poolToStakeOn).send({ from: account.address, gas: 300000, value: web3.utils.toWei("100", 'ether') })
+  const stakeTX = await staking.methods.stake(poolToStakeOn).send({ from: account.address, gas: 300000, value: web3.utils.toWei("100", 'ether') , gasPrice: web3.utils.toWei("1", 'gwei')})
 
   console.log("Delegator staked 100 DMD on pool ", poolToStakeOn, " tx:", stakeTX.transactionHash);
 }
