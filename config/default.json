@@ -1,5 +1,5 @@
 {
-  "network": "mainnet",
+  "network": "testnet",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
   "networkGitRepoBranch": "release-testnet",
   "nodeProfile": "debug",
@@ -225,14 +225,14 @@
       "nodesDir": "nodes-local-test-epoch22",
       "builder": {
         "initialValidatorsCount": 1,
-        "nodesCount": 6,
+        "nodesCount": 5,
         "hbbftArgs": {
           "minimumBlockTime": 1,
-          "maximumBlockTime": 10
+          "maximumBlockTime": 3
         },
         "contractArgs": {
-          "STAKING_TRANSITION_WINDOW_LENGTH": 30,
-          "STAKING_EPOCH_DURATION": 120,
+          "STAKING_TRANSITION_WINDOW_LENGTH": 40,
+          "STAKING_EPOCH_DURATION": 60,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
         },
         "nodeArgs": [
