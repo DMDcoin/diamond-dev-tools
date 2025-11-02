@@ -58,7 +58,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       
       
     } catch (e) {
-      console.log("Expected error:", e);
+      console.log("Expected error:");
     }      
   }
 
@@ -127,42 +127,17 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
     await stakeAsDelegatorOnPool( getTestPoolAddress(), contractManager);
 
-    console.log("wait 2:");
-
-
-    // await wait();
-    // await this.setNodeOperator(getTestPoolAddress());
-    // console.log("wait 3:");
-    // await wait();
-    // await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-    // console.log("wait 4:");
-    // await wait();
-    // await this.setNodeOperator(getTestPoolAddress());
-    // await wait();
-    // await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-    // await wait();
-    // await this.setNodeOperator(getTestPoolAddress());
-    // await wait();
-
-
-    // await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-
-
-    // await wait();
-
-
-    // await wait();
-
-
-    // await wait();
-
+    const interval = 1000;
+    console.log("starting  applying Random Actions with an interval of ", interval, " ms");
+    
     setInterval(async () => {
+      
       console.log("Interval delegator stake and node operator set:");
       await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
       console.log("(un)setting Node operator:");
       await this.setNodeOperator(getTestPoolAddress());
 
-    }, 5000);
+    }, interval);
 
     
     for (let index = 0; index < 100; index++) {
