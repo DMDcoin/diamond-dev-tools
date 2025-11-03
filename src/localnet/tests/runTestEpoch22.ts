@@ -139,12 +139,13 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       }
       isInProgress = true;
       try {
-
-        console.log("Interval delegator stake and node operator set:");
-        await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-        console.log("(un)setting Node operator:");
-        await this.setNodeOperator(getTestPoolAddress());
-
+        if (Math.random() < 0.5)  {
+          console.log("Interval delegator stake and node operator set:");
+          await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+        } else {
+          console.log("(un)setting Node operator:");
+          await this.setNodeOperator(getTestPoolAddress());
+        }
       } catch (e) {
         console.log("Error in interval action:", e);
       }
