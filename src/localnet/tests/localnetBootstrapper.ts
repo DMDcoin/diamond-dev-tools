@@ -24,13 +24,15 @@ export abstract class LocalnetScriptRunnerBase {
   lastCheckedBlock: number;
   web3: Web3;
   expectedValidators: number;
+  stakeOnValidators: number;
 
   cacheCreatedNetwork: boolean;
 
   constructor(
     public networkName: string,
     public networkOperation: string,
-    public expectedValidators_: number | undefined = undefined
+    expectedValidators_: number | undefined = undefined,
+    stakeOnValidators_: number | undefined = undefined
   ) {
     ConfigManager.setNetwork(networkName);
     this.web3 = ConfigManager.getWeb3();
@@ -45,6 +47,12 @@ export abstract class LocalnetScriptRunnerBase {
       this.expectedValidators = this.currentNodeManager.nodeStates.length - 1;
     } else {
       this.expectedValidators = expectedValidators_;
+    }
+
+    if (stakeOnValidators_ === undefined) {
+      this.stakeOnValidators = this.expectedValidators;
+    } else {
+      this.stakeOnValidators = stakeOnValidators_;
     }
     this.lastCheckedBlock = 0;
   }
@@ -174,7 +182,7 @@ export abstract class LocalnetScriptRunnerBase {
     watchdog.startWatching(true);
 
     if (isFreshBoot) {
-      await stakeOnValidators(this.expectedValidators);
+      await stakeOnValidators(this.stakeOnValidators);
 
 
     }
