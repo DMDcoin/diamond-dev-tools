@@ -130,13 +130,25 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     const interval = 1000;
     console.log("starting  applying Random Actions with an interval of ", interval, " ms");
     
+    let isInProgress = false;
     setInterval(async () => {
       
-      console.log("Interval delegator stake and node operator set:");
-      await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-      console.log("(un)setting Node operator:");
-      await this.setNodeOperator(getTestPoolAddress());
+      if (isInProgress) {
+        console.log("skipping interval, still in progress");
+        return;
+      }
+      isInProgress = true;
+      try {
 
+        console.log("Interval delegator stake and node operator set:");
+        await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+        console.log("(un)setting Node operator:");
+        await this.setNodeOperator(getTestPoolAddress());
+        
+      } catch (e) {
+        console.log("Error in interval action:", e);
+      }
+      isInProgress = false;
     }, interval);
 
     
