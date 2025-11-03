@@ -305,6 +305,8 @@ export class Watchdog {
           const epochEndTime = await this.contractManager.getActualEpochEndTime();
           
           console.log(`epoch ${this.latestKnownEpochNumber} (${keyGenRound}) end: ${epochEndTime.toLocaleString()}: switched currentValidators  from ${this.currentValidators.length} - to ${currentValidators.length}`, this.currentValidators, currentValidators);
+
+          console.log(`Difference current v.: `, Watchdog.createDiffgram(this.currentValidators, currentValidators));
         }
         
         //console.log(`Difference: `, Watchdog.createDiffgram(this.currentValidators, currentValidators));
