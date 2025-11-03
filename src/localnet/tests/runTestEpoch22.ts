@@ -13,7 +13,7 @@ import { all } from "axios";
 
 export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
   public constructor() {
-    super("nodes-local-test-epoch22", "incident_22", 4);
+    super("nodes-local-test-epoch22", "incident_22", 4, 6);
     // "reproduces Epoch22 incident of DMD mainnet  https://github.com/DMDcoin/Diamond/issues/6"
   }
 
@@ -144,7 +144,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
         await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
         console.log("(un)setting Node operator:");
         await this.setNodeOperator(getTestPoolAddress());
-        
+
       } catch (e) {
         console.log("Error in interval action:", e);
       }
@@ -152,7 +152,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     }, interval);
 
     
-    for (let index = 0; index < 100; index++) {
+    for (let index = 0; index < 25; index++) {
       console.log("Awaiting epoch end ", index);
       await wait();
     }
