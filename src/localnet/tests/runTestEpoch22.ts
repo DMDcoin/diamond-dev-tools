@@ -55,8 +55,16 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
         console.log("WARN: User ", testPool, " managed to stake on own Node!!");
       }
       else {
+
+        let nodeOperatorAddress = "0x0000000000000000000000000000000000000000";
+        const rng = Math.random(); 
+        
+        if (rng > 0.5) { // in 50 % of cases, we switch to a random Node Operator instead of zero
+          nodeOperatorAddress =  web3.eth.accounts.create().address;
+        }
+
         console.log("setting rng node operator share to noone at pool: ", testPool);
-        await staking.methods.setNodeOperator("0x0000000000000000000000000000000000000000", 0 ).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("10", "gwei") });
+        await staking.methods.setNodeOperator(nodeOperatorAddress, 0 ).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
       }
 
       // console.log("setting validator share: ", testPool, " mining: ", poolMiner, " contract address ", staking.options.address, " balance: ", await web3.eth.getBalance(testPool));
@@ -149,12 +157,16 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       }
       isInProgress = true;
       try {
-        if (Math.random() < 0.5)  {
+        const rng = Math.random()
+        if (rng < 0.3)  {
           console.log("Interval delegator stake and node operator set:");
           await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
-        } else {
+        } else if (rng < 0.65) {
           console.log("(un)setting Node operator:");
           await this.setNodeOperator(getTestPoolAddress());
+        } else {
+          console.log("withdrawing:");
+          await this.withdraw(getTestPoolAddress(), contractManager);
         }
       } catch (e) {
         console.log("Error in interval action:", e);
@@ -183,6 +195,54 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     console.log("FINALIZED!!");
 
     return true;
+  }
+
+
+  async withdraw(pool: string, contractManager: ContractManager) {
+
+    // make a node owner withdraw.
+
+      console.log("withdrawing from pool: ", pool);
+      const web3 = contractManager.web3;
+
+      
+      let minStake = await contractManager.getMinStake();
+
+      let stakeAmount = await contractManager.getStake(pool, pool);
+
+
+      let withdrawAmount = stakeAmount.minus(minStake);
+
+      if (withdrawAmount.lte(0)) {
+        console.log("nothing to withdraw for pool owner at pool: ", pool);
+        return;
+      }
+
+      const poolMiner = await contractManager.getAddressMiningByStaking(pool);
+      const validators = await contractManager.getValidators();
+
+      if (validators.includes(poolMiner)) { 
+        const orderWithdraw = await contractManager.orderWithdraw(pool, pool, withdrawAmount);
+      } else {
+        const tx = await contractManager.withdraw(pool, pool, withdrawAmount);
+        console.log("withdraw tx:", tx.transactionHash);
+      }
+
+      
+      // const tx = web3.eth.sendTransaction({ from: web3.defaultAccount!, to: account.address, value: web3.utils.toWei("101", 'ether'), gas: 21000, gasPrice: web3.utils.toWei("1", 'gwei') })
+      // tx.on("transactionHash", (hash: string) => { 
+      //   console.log("funding delegator account tx:", hash);
+      // });
+      // await tx;
+      // console.log("funded: ", poolToStakeOn);
+
+      
+      // const staking = await contractManager.getStakingHbbft();
+
+      // const stakeTX = await staking.methods.stake(poolToStakeOn).send({ from: account.address, gas: 300000, value: web3.utils.toWei("100", 'ether') , gasPrice: web3.utils.toWei("1", 'gwei')})
+
+      // console.log("Delegator staked 100 DMD on pool ", poolToStakeOn, " tx:", stakeTX.transactionHash);
+
   }
 
 }

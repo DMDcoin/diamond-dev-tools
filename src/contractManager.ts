@@ -108,10 +108,6 @@ export class NetworkAddress {
 
 export class ContractManager {
 
-
-  
-
-
   private cachedValidatorSetHbbft?: ValidatorSetHbbft;
   private cachedStakingHbbft?: StakingHbbft;
   private cachedKeyGenHistory?: KeyGenHistory;
@@ -650,6 +646,43 @@ export class ContractManager {
   public async getMinStake(blockNumber: BlockType = 'latest') {
     return h2bn(await (await this.getStakingHbbft()).methods.candidateMinStake().call({}, blockNumber));
   }
+
+  public async getStake(pool: string, delegator: string) {
+    return h2bn(await (await this.getStakingHbbft()).methods.stakeAmount(pool, delegator).call())
+  }
+
+  public async withdraw(pool: string, delegator: string, withdrawAmount: BigNumber) {
+    
+    const staking = await this.getStakingHbbft();
+
+    console.log(`Withdrawing ${withdrawAmount.toString()} from pool ${pool} for delegator ${delegator}`);
+    
+    // let validators = await this.getValidators();
+
+
+    // let miningAddress = await this.getAddressStakingByMining(delegator);
+
+    const tx = staking.methods.withdraw(pool, withdrawAmount.toString()).send({ from: delegator, gas: 300000});
+
+    await tx;
+
+    return tx;
+  }
+
+
+  public async orderWithdraw(pool: string, delegator: string, withdrawAmount: BigNumber) {
+    
+    const staking = await this.getStakingHbbft();
+    console.log(`ordering Withdraw ${withdrawAmount.toString()} from pool ${pool} for delegator ${delegator}`);
+    
+    // let validators = await this.getValidators();
+    // let miningAddress = await this.getAddressStakingByMining(delegator);
+
+    const tx = staking.methods.orderWithdraw(pool, withdrawAmount.toString()).send({ from: delegator, gas: 300000});
+    await tx;
+    return tx;
+  }
+  
 
   public async getValidators(blockNumber: BlockType = 'latest') {
     return await this.getValidatorSetHbbft().methods.getValidators().call({}, blockNumber);
