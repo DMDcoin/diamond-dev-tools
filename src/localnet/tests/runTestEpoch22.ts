@@ -29,13 +29,23 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
       let currentOperator = web3.utils.toBN(await contractManager.getPoolOperatorAddress(testPool));
 
-      let setupNodeOperator = currentOperator.isZero(); 
-      console.log("node operator ", testPool, " for miner ", poolMiner, " current operator  setup operator", currentOperator.toString(16), setupNodeOperator);
+      let isZero = currentOperator.isZero(); 
+      console.log("node operator ", testPool, " for miner ", poolMiner, " current operator  setup operator", currentOperator.toString(16), isZero);
 
-      if (setupNodeOperator) {
+      if (isZero) {
         let random = Math.floor(Math.random() * 2000);
         console.log("setting rng node operator share ", testPool,  " testPool ", random);  
         
+        let nodeOperatorAddress = "";
+
+        if (Math.random() > 0.5) { 
+          nodeOperatorAddress = poolMiner;
+        }  else {
+          // random address
+          const randomAccount = web3.eth.accounts.create();
+          nodeOperatorAddress = randomAccount.address;
+        }
+
         let tx = staking.methods.setNodeOperator(testPool , random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
         tx.once("transactionHash", (hash: string) => {
           console.log("setting rng node operator share setNodeOperator tx:", hash);
@@ -153,7 +163,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     }, interval);
 
     
-    for (let index = 0; index < 25; index++) {
+    for (let index = 0; index < 10; index++) {
       console.log("Awaiting epoch end ", index);
       await wait();
     }
@@ -161,6 +171,13 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     console.log("stakes:");
     for (const pool of  allPools) {
       console.log(pool, " => ", (await contractManager.getTotalStake(pool)).toString());
+      const poolDelegators = await staking.methods.poolDelegators(pool).call();
+      for (const dele of poolDelegators) {
+        const stake = await staking.methods.stakeAmount(pool, dele).call();
+        console.log("   delegator ", dele, " stake: ", stake.toString());
+      }
+
+      //contractManager.getStakingHbbft(;)
     }
 
     console.log("FINALIZED!!");
