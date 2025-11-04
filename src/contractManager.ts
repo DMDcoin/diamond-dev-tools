@@ -41,6 +41,7 @@ import JsonTxPermissionHbbft from './abi/json/TxPermissionHbbft.json';
 import { parseEther } from './utils/ether';
 import { h2bn, h2n, toNumber } from './utils/numberUtils';
 import { blockTimeAsUTC } from './utils/dateUtils';
+import { deepEqual } from 'assert';
 
 export enum KeyGenMode {
   NotAPendingValidator = 0,
@@ -643,12 +644,19 @@ export class ContractManager {
     return h2bn(await (await this.getStakingHbbft()).methods.stakeAmountTotal(address).call({}, blockNumber));
   }
 
+  
+
   public async getMinStake(blockNumber: BlockType = 'latest') {
     return h2bn(await (await this.getStakingHbbft()).methods.candidateMinStake().call({}, blockNumber));
   }
 
   public async getStake(pool: string, delegator: string) {
     return h2bn(await (await this.getStakingHbbft()).methods.stakeAmount(pool, delegator).call())
+  }
+
+  public async getOrderedWithdrawalAmount(pool: string, delegator: string) {
+
+    return this.web3.utils.toBN(await (await this.getStakingHbbft()).methods.orderedWithdrawAmount(pool, delegator).call());
   }
 
   public async withdraw(pool: string, delegator: string, withdrawAmount: BigNumber) {

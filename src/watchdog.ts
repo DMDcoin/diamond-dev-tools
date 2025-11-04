@@ -9,6 +9,8 @@ import BigNumber from "bignumber.js";
 import deepEqual from "deep-equal";
 import { ConnectivityTrackerWatchdogPlugin } from "./watchdog-connectivity-tracker";
 import { blockTimeAsUTC } from "./utils/dateUtils";
+import { WatchdogPluginStakingDiff } from "./watchdogPluginStakingDiff";
+import { WatchdogPluginComposite } from "./watchdog-plugin";
 
 
 
@@ -228,7 +230,16 @@ export class Watchdog {
     });
 
 
+    //const stakingDiffWatcher = ;
+    //stakingDiffWatcher.contractManager = this.contractManager;
     
+
+
+    const plugins = new WatchdogPluginComposite(this.contractManager, [
+      new WatchdogPluginStakingDiff(),
+      new ConnectivityTrackerWatchdogPlugin()
+    ]);
+
 
 
     //this.subscription =
@@ -283,6 +294,11 @@ export class Watchdog {
         if (oldEpochNumber != 0 && newEpochNumber != oldEpochNumber + 1) {
           console.log(`Strange increase of Epoch Number: Epoch number jumped from ${oldEpochNumber} to ${newEpochNumber}`);
         }
+
+        // ALL EPOCH SWITCH  PLUGINS
+
+
+        await plugins.processEpochStart(currentBlock, newEpochNumber);
 
         this.onEpochSwitch(newEpochNumber, currentBlock);
       }
@@ -454,11 +470,11 @@ export class Watchdog {
       // }
 
       // await this.checkValidaterState()
+      await plugins.processBlock(currentBlock);
 
-      const connectivityWatcher = new ConnectivityTrackerWatchdogPlugin();
-      connectivityWatcher.contractManager = this.contractManager;
-      await connectivityWatcher.processBlock(currentBlock);
 
+
+      
       let connectivityTracker = await this.contractManager.getContractConnectivityTrackerHbbft();
       let currentFlaggedValidators = await connectivityTracker.methods.getFlaggedValidators().call();
       

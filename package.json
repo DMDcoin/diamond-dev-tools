@@ -297,6 +297,7 @@
     "@typechain/web3-v1": "^6.0.7",
     "@types/express": "^5.0.0",
     "@types/js-yaml": "^4.0.5",
+    "@types/node": "^24.10.0",
     "@types/request": "^2.48.8",
     "mocha": "^10.1.0",
     "npm-run-all": "^4.1.2",

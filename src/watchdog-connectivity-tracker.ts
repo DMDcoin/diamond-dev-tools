@@ -1,13 +1,4 @@
-
-import { ContractManager } from "./contractManager";
-
-
-
-export class WatchdogPlugin {
-
-    public contractManager?: ContractManager;
-
-}
+import { WatchdogPlugin } from "./watchdog-plugin";
 
 
 export class ConnectivityTrackerWatchdogPlugin extends WatchdogPlugin{

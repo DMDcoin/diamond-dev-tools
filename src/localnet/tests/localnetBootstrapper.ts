@@ -251,7 +251,8 @@ export abstract class LocalnetScriptRunnerBase {
      
     }
 
-
+    await watchdog.stopWatching();
+    
     this.runTestSteps(nodesManager, contractManager);
 
   }

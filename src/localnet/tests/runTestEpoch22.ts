@@ -115,7 +115,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     
     function getTestPoolAddress() {
       let rng = Math.floor((Math.random() * allPools.length));
-      let result = allPools.at(rng)!;
+      let result = allPools[rng]!;
       console.log("choosing pool", rng, result);
       return result;
     };
@@ -148,14 +148,9 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     const interval = 1000;
     console.log("starting  applying Random Actions with an interval of ", interval, " ms");
     
-    let isInProgress = false;
-    setInterval(async () => {
+
+    let runSingleRngChaosTest = async () => {
       
-      if (isInProgress) {
-        console.log("skipping interval, still in progress");
-        return;
-      }
-      isInProgress = true;
       try {
         const rng = Math.random()
         if (rng < 0.3)  {
@@ -171,27 +166,55 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       } catch (e) {
         console.log("Error in interval action:", e);
       }
-      isInProgress = false;
-    }, interval);
+      
+    };
 
+
+    let runSingleRngChaosTestAsInterval = async () => {
+      await runSingleRngChaosTest();
+      lastTimeout = setTimeout(() => runSingleRngChaosTestAsInterval(), interval);
+    }
+
+    let lastTimeout: NodeJS.Timeout = setTimeout(() => {runSingleRngChaosTestAsInterval()}, 100);
     
     for (let index = 0; index < 10; index++) {
       console.log("Awaiting epoch end ", index);
       await wait();
     }
 
-    console.log("stakes:");
-    for (const pool of  allPools) {
-      console.log(pool, " => ", (await contractManager.getTotalStake(pool)).toString());
-      const poolDelegators = await staking.methods.poolDelegators(pool).call();
-      for (const dele of poolDelegators) {
-        const stake = await staking.methods.stakeAmount(pool, dele).call();
-        console.log("   delegator ", dele, " stake: ", stake.toString());
-      }
-
-      //contractManager.getStakingHbbft(;)
+    console.log("finalizing test, cancelling timout...");
+    if (lastTimeout) {
+      lastTimeout.unref();
     }
 
+    await watchdog.stopWatching();
+
+    console.log("stakes:");
+    for (const pool of  allPools) {
+      const totalStake = await contractManager.getTotalStake(pool);
+      let totalStakeCalced = web3.utils.toBN(0);
+      console.log(pool, " => ", web3.utils.fromWei(totalStake.toString(), "ether"));
+      const poolDelegators = await staking.methods.poolDelegators(pool).call();
+      console.log("= delegators =");
+      for (const dele of poolDelegators) {
+        const stake = await staking.methods.stakeAmount(pool, dele).call();
+        const orderedWithdrawAmount = await contractManager.getOrderedWithdrawalAmount(pool, dele);
+        totalStakeCalced = totalStakeCalced.add(web3.utils.toBN(stake));
+        console.log("   delegator ", dele, " stake: ", web3.utils.fromWei(stake, "ether"), " withdraw ordered: ", web3.utils.toWei(orderedWithdrawAmount.toString(), "ether"));
+      }
+      console.log("= /delegators =");
+
+      let stakeAmountSelf = await staking.methods.stakeAmount(pool, pool).call(); 
+      totalStakeCalced = totalStakeCalced.add(web3.utils.toBN(stakeAmountSelf));
+      console.log("self: ", stakeAmountSelf);
+
+
+      console.log("   pool owner withdraw order: ",);
+      //contractManager.getStakingHbbft(;)
+      console.log("   calced total stake: ", web3.utils.fromWei(totalStakeCalced.toString(), "ether"));
+      console.log("   difference", web3.utils.fromWei(totalStakeCalced.sub( web3.utils.toBN(totalStake.toString())).toString(), "ether"));
+      console.log("======");
+    }
     console.log("FINALIZED!!");
 
     return true;
