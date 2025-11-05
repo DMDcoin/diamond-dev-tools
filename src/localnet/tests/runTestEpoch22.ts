@@ -11,7 +11,64 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     // "reproduces Epoch22 incident of DMD mainnet  https://github.com/DMDcoin/Diamond/issues/6"
   }
 
-  async setNodeOperator(testPool: string) {
+  async unsetNodeOperator(testPool: string) {
+
+    let contractManager = this.createContractManager();
+    let staking = await contractManager.getStakingHbbft();
+    let web3 = contractManager.web3;
+
+    const poolMiner = await contractManager.getAddressMiningByStaking(testPool);
+
+    let currentOperator = web3.utils.toBN(await contractManager.getPoolOperatorAddress(testPool));
+
+    let isZero = currentOperator.isZero();
+    console.log("node operator ", testPool, " for miner ", poolMiner, " current operator  setup operator", currentOperator.toString(16), isZero);
+
+    if (isZero) {
+      throw "unsetNodeOperator was expected to have an operator set already.";
+    }
+    else {
+
+      let nodeOperatorAddress = "0x0000000000000000000000000000000000000000";
+      console.log("setting rng node operator share to noone at pool: ", testPool);
+      await staking.methods.setNodeOperator(nodeOperatorAddress, 0).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+    }
+  }
+
+  async setNodeOperator(testPool: string, operatorAddress: string = "") {
+
+
+    let contractManager = this.createContractManager();
+    let staking = await contractManager.getStakingHbbft();
+    let web3 = contractManager.web3;
+
+    const poolMiner = await contractManager.getAddressMiningByStaking(testPool);
+
+    let currentOperator = web3.utils.toBN(await contractManager.getPoolOperatorAddress(testPool));
+
+    let isZero = currentOperator.isZero();
+    console.log("node operator ", testPool, " for miner ", poolMiner, " current operator  setup operator", currentOperator.toString(16), isZero);
+
+    if (isZero) {
+      let random = Math.floor(Math.random() * 2000);
+      console.log("setting node operator share ", testPool, " testPool ", random);
+
+      let finalOperator = operatorAddress == "" ? poolMiner : operatorAddress;
+
+      let tx = staking.methods.setNodeOperator(finalOperator, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+      tx.once("transactionHash", (hash: string) => {
+        console.log("setting node operator share setNodeOperator tx:", hash);
+      });
+
+      await tx;
+      console.log("WARN: User ", testPool, " managed to stake on own Node!!");
+    }
+    else {
+      throw "setNodeOperator was expected to have no operator set already.";
+    }
+  }
+
+  async switchNodeOperator(testPool: string, operatorAddress: string = "") {
 
     try {
 
@@ -29,7 +86,10 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       if (isZero) {
         let random = Math.floor(Math.random() * 2000);
         console.log("setting node operator share ", testPool, " testPool ", random);
-        let tx = staking.methods.setNodeOperator(testPool, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+
+        let finalOperator = operatorAddress == "" ? poolMiner : operatorAddress;
+
+        let tx = staking.methods.setNodeOperator(finalOperator, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
         tx.once("transactionHash", (hash: string) => {
           console.log("setting node operator share setNodeOperator tx:", hash);
         });
@@ -92,7 +152,8 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
       await spoolWait(1000, async () => {
 
-        if ((new Date().getTime() - startDate.getTime()) > stakingEpochDuration * 1000) {
+
+        if ((new Date().getTime() - startDate.getTime()) > (stakingEpochDuration * 1000 * 1.5) /* 50 % extra time, so we dont run into timing issues.*/ ) {
           throw new Error("Epoch switch dit not happen in expected time");
         }
 
@@ -104,28 +165,6 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     };
 
     const staking = await contractManager.getStakingHbbft();
-    //const testPool = allPools[1];
-    // pick random pool
-
-    function getTestPoolAddress() {
-      let rng = Math.floor((Math.random() * allPools.length));
-      let result = allPools[rng]!;
-      console.log("choosing pool", rng, result);
-      return result;
-    };
-
-    // console.log("Pools Operator Shares:");
-
-    // for (const pool of allPools) {
-
-    //   //const operator = cm.getPoolOperatorAddress(pool);
-    //   //const shares = await pool.getOperatorShares();
-    //   //console.log(`Pool: ${pool.address} | Operator: ${operator} | Shares: ${web3.utils.fromWei(shares.toString(), "ether")} DMD`);
-
-    //   const shareAddress = await contractManager.getPoolOperatorAddress(pool);
-    //   console.log(pool, " -> ", shareAddress);
-    // }
-
 
     console.log("waiting until validators become pending.");
 
@@ -142,7 +181,6 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       return result;
     };
 
-
     console.log("Setting node operator...");
     const pending = await waitForPending();
     const validatorForExperiment = pending[0];
@@ -151,20 +189,26 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     //validatorForExperiment
     console.log("Pending validator for experiment: ", validatorForExperiment, " Pool: ", poolForExperiment);
 
-    await this.setNodeOperator(poolForExperiment);
+
+    let rngNodeOperatorAddress = poolForExperiment; //web3.eth.accounts.create().address;
+
+    await waitForEpochSwitch();
+    await this.setNodeOperator(poolForExperiment, rngNodeOperatorAddress);
+    await waitForEpochSwitch();
+
+
+    await waitForPending();
+    // unset
     await waitForEpochSwitch();
 
 
     console.log("Unsetting node operator...");
-    await waitForPending();
-    // unset
-    await this.setNodeOperator(poolForExperiment);
-    await waitForEpochSwitch();
+    await this.unsetNodeOperator(poolForExperiment);
 
-
-    console.log("Setting node operator 2...");
-    await waitForPending();
-    await this.setNodeOperator(poolForExperiment);
+    //console.log("Setting node operator 2...");
+    //await waitForPending();
+    //await this.setNodeOperator(poolForExperiment, rngNodeOperatorAddress);
+    
     await waitForEpochSwitch();
 
     await watchdog.stopWatching();
