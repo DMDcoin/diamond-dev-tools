@@ -1,3 +1,5 @@
+
+
 import {
   LocalnetScriptRunnerBase
 } from "./localnetBootstrapper";
@@ -7,7 +9,7 @@ import { ContractManager } from "../../contractManager";
 import { spoolWait } from "../../utils/time";
 export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
   public constructor() {
-    super("nodes-local-test-epoch22", "incident_22", 13, 13);
+    super("nodes-local-test-epoch22", "incident_22_chaos", 13, 13);
     // "reproduces Epoch22 incident of DMD mainnet  https://github.com/DMDcoin/Diamond/issues/6"
   }
 
@@ -28,10 +30,21 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
 
       if (isZero) {
         let random = Math.floor(Math.random() * 2000);
-        console.log("setting node operator share ", testPool, " testPool ", random);
-        let tx = staking.methods.setNodeOperator(testPool, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
+        console.log("setting rng node operator share ", testPool, " testPool ", random);
+
+        let nodeOperatorAddress = "";
+
+        if (Math.random() > 0.5) {
+          nodeOperatorAddress = poolMiner;
+        } else {
+          // random address
+          const randomAccount = web3.eth.accounts.create();
+          nodeOperatorAddress = randomAccount.address;
+        }
+
+        let tx = staking.methods.setNodeOperator(nodeOperatorAddress, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
         tx.once("transactionHash", (hash: string) => {
-          console.log("setting node operator share setNodeOperator tx:", hash);
+          console.log("setting rng node operator share setNodeOperator tx:", hash);
         });
 
         await tx;
@@ -40,9 +53,23 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       else {
 
         let nodeOperatorAddress = "0x0000000000000000000000000000000000000000";
+        const rng = Math.random();
+
+        if (rng > 0.5) { // in 50 % of cases, we switch to a random Node Operator instead of zero
+          nodeOperatorAddress = web3.eth.accounts.create().address;
+        }
+
         console.log("setting rng node operator share to noone at pool: ", testPool);
         await staking.methods.setNodeOperator(nodeOperatorAddress, 0).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
       }
+
+      // console.log("setting validator share: ", testPool, " mining: ", poolMiner, " contract address ", staking.options.address, " balance: ", await web3.eth.getBalance(testPool));
+      // console.log("wallet accounts: ", web3.eth.accounts.wallet.length);
+
+
+      // tx.on("transactionHash", (hash: string) => { 
+      //   console.log("setting validator share tx:", hash);
+
 
     } catch (e) {
       console.log("Expected error:");
@@ -85,7 +112,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       throw new Error("Could not determine STAKING_EPOCH_DURATION from network config");
     }
 
-    let waitForEpochSwitch = async () => {
+    let wait = async () => {
       console.log(new Date().toLocaleTimeString() + " waiting for epoch", epoch + 1);
 
       const startDate = new Date();
@@ -114,58 +141,70 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       return result;
     };
 
-    // console.log("Pools Operator Shares:");
+    console.log("Pools Operator Shares:");
 
-    // for (const pool of allPools) {
+    for (const pool of allPools) {
 
-    //   //const operator = cm.getPoolOperatorAddress(pool);
-    //   //const shares = await pool.getOperatorShares();
-    //   //console.log(`Pool: ${pool.address} | Operator: ${operator} | Shares: ${web3.utils.fromWei(shares.toString(), "ether")} DMD`);
+      //const operator = cm.getPoolOperatorAddress(pool);
+      //const shares = await pool.getOperatorShares();
+      //console.log(`Pool: ${pool.address} | Operator: ${operator} | Shares: ${web3.utils.fromWei(shares.toString(), "ether")} DMD`);
 
-    //   const shareAddress = await contractManager.getPoolOperatorAddress(pool);
-    //   console.log(pool, " -> ", shareAddress);
-    // }
+      const shareAddress = await contractManager.getPoolOperatorAddress(pool);
+      console.log(pool, " -> ", shareAddress);
+    }
 
 
-    console.log("waiting until validators become pending.");
+    console.log("wait 1:");
 
-    let waitForPending = async () => {
-      // await a fresh epoch switch.
-      await waitForEpochSwitch();
-      let result: string[] = [];
-      await spoolWait(1000, async () => {
-        const pendingValidators = await contractManager.getPendingValidators();
-        result = pendingValidators;
-        return pendingValidators.length > 0;
-      });
+    await wait();
 
-      return result;
+    console.log("doing delegator stakes:");
+
+    await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+
+    const interval = 1000;
+    console.log("starting  applying Random Actions with an interval of ", interval, " ms");
+
+
+    let runSingleRngChaosTest = async () => {
+
+      try {
+        const rng = Math.random()
+        if (rng < 0.3) {
+          console.log("Interval delegator stake and node operator set:");
+          await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
+        } else if (rng < 0.65) {
+          console.log("(un)setting Node operator:");
+          //console.log("ignoring setting Node operator");
+          await this.setNodeOperator(getTestPoolAddress());
+        } else {
+          console.log("withdrawing:");
+          await this.withdraw(getTestPoolAddress(), contractManager);
+        }
+      } catch (e) {
+
+        console.log("Error in interval action:", e);
+      }
+
     };
 
 
-    console.log("Setting node operator...");
-    const pending = await waitForPending();
-    const validatorForExperiment = pending[0];
-    let poolForExperiment = await contractManager.getAddressStakingByMining(pending[0]);
+    let runSingleRngChaosTestAsInterval = async () => {
+      await runSingleRngChaosTest();
+      lastTimeout = setTimeout(() => runSingleRngChaosTestAsInterval(), interval);
+    }
 
-    //validatorForExperiment
-    console.log("Pending validator for experiment: ", validatorForExperiment, " Pool: ", poolForExperiment);
+    let lastTimeout: NodeJS.Timeout = setTimeout(() => { runSingleRngChaosTestAsInterval() }, 100);
 
-    await this.setNodeOperator(poolForExperiment);
-    await waitForEpochSwitch();
+    for (let index = 0; index < 10; index++) {
+      console.log("Awaiting epoch end ", index);
+      await wait();
+    }
 
-
-    console.log("Unsetting node operator...");
-    await waitForPending();
-    // unset
-    await this.setNodeOperator(poolForExperiment);
-    await waitForEpochSwitch();
-
-
-    console.log("Setting node operator 2...");
-    await waitForPending();
-    await this.setNodeOperator(poolForExperiment);
-    await waitForEpochSwitch();
+    console.log("finalizing test, cancelling timout...");
+    if (lastTimeout) {
+      lastTimeout.unref();
+    }
 
     await watchdog.stopWatching();
 
