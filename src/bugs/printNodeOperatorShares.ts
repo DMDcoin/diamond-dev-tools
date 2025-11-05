@@ -11,6 +11,7 @@ async function printNodeOperatorShares() {
     const staking = await cm.getStakingHbbft();
     const allPools = await cm.getAllPools();
 
+    //const totalStakeAllPoolCalculated = toBN();
     console.log("stakes:");
     for (const pool of allPools) {
 
@@ -28,7 +29,6 @@ async function printNodeOperatorShares() {
             totalStakeCalced = totalStakeCalced.add(web3.utils.toBN(stake));
             console.log("   delegator ", dele, " stake: ", web3.utils.fromWei(stake, "ether"), " withdraw ordered: ", web3.utils.toWei(orderedWithdrawAmount.toString(), "ether"));
         }
-
 
         let stakeAmountSelf = await staking.methods.stakeAmount(pool, pool).call(); 
         totalStakeCalced = totalStakeCalced.add(web3.utils.toBN(stakeAmountSelf));

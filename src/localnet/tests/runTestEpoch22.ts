@@ -13,7 +13,7 @@ import { all } from "axios";
 
 export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
   public constructor() {
-    super("nodes-local-test-epoch22", "incident_22", 4, 6);
+    super("nodes-local-test-epoch22", "incident_22", 13, 15);
     // "reproduces Epoch22 incident of DMD mainnet  https://github.com/DMDcoin/Diamond/issues/6"
   }
 
@@ -98,10 +98,35 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     
     let epoch = await contractManager.getEpoch();
     console.log("epoch:", epoch);
+    
+    let stakingEpochDuration : number = 0;
+
+    let networkConfig = this.getNetworkConfig();
+    if (networkConfig.builder) {
+      if (networkConfig.builder.contractArgs) {
+        
+        let tmpNumber = Number.parseInt(networkConfig.builder.contractArgs["STAKING_EPOCH_DURATION"]);
+        if (Number.isInteger(tmpNumber)) {
+          stakingEpochDuration = tmpNumber;
+        }
+      }
+    }  
+
+    if (stakingEpochDuration === 0) { 
+      throw new Error("Could not determine STAKING_EPOCH_DURATION from network config");
+    }
 
     let wait = async () => {
-      console.log("waiting for epoch", epoch + 1);
+      console.log(new Date().toLocaleTimeString() +  " waiting for epoch", epoch + 1);
+
+      const startDate = new Date();
+
       await spoolWait(1000, async () => {
+
+        if ((new Date().getTime() - startDate.getTime()) > stakingEpochDuration * 1000) { 
+          throw new Error("Epoch switch dit not happen in expected time");
+        }
+
         const newEpoch = await contractManager.getEpoch();      
         const result =  newEpoch > epoch;
         epoch = newEpoch;
@@ -119,10 +144,6 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       console.log("choosing pool", rng, result);
       return result;
     };
-
-    console.log("setting first Node operator:");
-    await this.setNodeOperator(getTestPoolAddress());
-
 
     console.log("Pools Operator Shares:");
 
@@ -158,12 +179,14 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
           await stakeAsDelegatorOnPool(getTestPoolAddress(), contractManager);
         } else if (rng < 0.65) {
           console.log("(un)setting Node operator:");
+          //console.log("ignoring setting Node operator");
           await this.setNodeOperator(getTestPoolAddress());
         } else {
           console.log("withdrawing:");
           await this.withdraw(getTestPoolAddress(), contractManager);
         }
       } catch (e) {
+        
         console.log("Error in interval action:", e);
       }
       
@@ -242,7 +265,8 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       }
 
       const poolMiner = await contractManager.getAddressMiningByStaking(pool);
-      const validators = await contractManager.getValidators();
+      let validators = await contractManager.getValidators();
+      validators.push(...await contractManager.getPendingValidators());
 
       if (validators.includes(poolMiner)) { 
         const orderWithdraw = await contractManager.orderWithdraw(pool, pool, withdrawAmount);

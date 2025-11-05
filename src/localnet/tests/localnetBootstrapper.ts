@@ -6,7 +6,7 @@ import Web3 from "web3";
 import { createBlock } from "./testUtils";
 import { stakeOnValidators } from "../../net/stakeOnValidators";
 import { Watchdog } from "../../watchdog";
-import { ConfigManager } from "../../configManager";
+import { ConfigManager, Network } from "../../configManager";
 import { LocalNetworkCheckpointIo } from "../localNetworkCache";
 
 export interface LocalnetScriptRunnerResult {
@@ -34,6 +34,8 @@ export abstract class LocalnetScriptRunnerBase {
     expectedValidators_: number | undefined = undefined,
     stakeOnValidators_: number | undefined = undefined
   ) {
+
+
     ConfigManager.setNetwork(networkName);
     this.web3 = ConfigManager.getWeb3();
     ConfigManager.insertWallets(this.web3);
@@ -59,7 +61,12 @@ export abstract class LocalnetScriptRunnerBase {
 
   public createContractManager() {
 
+    // this contract manager has the wallets inserted, but recreates cached contracts
     return new ContractManager(this.web3);
+  }
+
+  public getNetworkConfig() : Network {
+    return ConfigManager.getNetworkConfig(this.networkName);
   }
 
   protected async createBlock() {

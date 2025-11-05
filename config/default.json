@@ -225,7 +225,7 @@
       "nodesDir": "nodes-local-test-epoch22",
       "builder": {
         "initialValidatorsCount": 1,
-        "nodesCount": 7,
+        "nodesCount": 16,
         "hbbftArgs": {
           "minimumBlockTime": 1,
           "maximumBlockTime": 3

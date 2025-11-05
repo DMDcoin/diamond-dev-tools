@@ -18,8 +18,8 @@ export interface NetworkBuilderArgs {
     rpcWSPortBase?: number,
     metricsPortBase?: number,
     txQueuePerSender?: number,
-    hbbftArgs?: {},
-    contractArgs?: {},
+    hbbftArgs?: { [index: string]: any },
+    contractArgs?: { [index: string]: any },
     nodeArgs?: Array<string>,
 }
 
