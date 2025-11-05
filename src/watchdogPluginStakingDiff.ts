@@ -23,7 +23,7 @@ export class WatchdogPluginStakingDiff extends WatchdogPlugin {
             const poolDelegators = await staking.methods.poolDelegators(pool).call();
             for (const dele of poolDelegators) {
                 const stake = await staking.methods.stakeAmount(pool, dele).call();
-                const orderedWithdrawAmount = await cm.getOrderedWithdrawalAmount(pool, pool);
+                const orderedWithdrawAmount = await cm.getOrderedWithdrawalAmount(pool, dele);
                 totalStakeCalced = totalStakeCalced.add(web3.utils.toBN(stake));
                 poolInfo = poolInfo + `\n    Delegator: ${dele} | Stake: ${web3.utils.fromWei(stake, "ether")} DMD | Ordered withdraw: ${web3.utils.fromWei(orderedWithdrawAmount, "ether")} DMD`;
             }
