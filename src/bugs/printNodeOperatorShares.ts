@@ -1,7 +1,5 @@
 import { ContractManager } from "../contractManager";
 
-
-
 async function printNodeOperatorShares() {
 
     const { ConfigManager } = await import("../configManager");
@@ -66,9 +64,8 @@ async function printNodeOperatorShares() {
 
     const contractBalanace = await web3.eth.getBalance(staking.options.address);
 
-    
-
     console.log(">>>>>>>>>> Grant Total Comparision <<<<<<<<<<<<<<<<<");
+    console.log(" contract stakes   : ", web3.utils.fromWei(await staking.methods.totalStakedAmount().call()), "DMD");
     console.log(" grand total stakes: ", web3.utils.fromWei(grantTotalStakes.toString(10)), "DMD");
     console.log(" contract balance:   ", web3.utils.fromWei(contractBalanace), "DMD");
     const grantTotalDiff = grantTotalStakes.sub(web3.utils.toBN(contractBalanace));
