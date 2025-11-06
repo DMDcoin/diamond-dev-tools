@@ -12,6 +12,9 @@ export class WatchdogPluginStakingDiff extends WatchdogPlugin {
         let staking = await cm.getStakingHbbft();
 
         const allPools = await cm.getAllPools();
+
+        let grantTotalStakes = web3.utils.toBN(0);
+
         for (const pool of allPools) {
      
             const totalStake = await cm.getTotalStake(pool);
@@ -26,6 +29,8 @@ export class WatchdogPluginStakingDiff extends WatchdogPlugin {
                 const orderedWithdrawAmount = await cm.getOrderedWithdrawalAmount(pool, dele);
                 totalStakeCalced = totalStakeCalced.add(web3.utils.toBN(stake));
                 poolInfo = poolInfo + `\n    Delegator: ${dele} | Stake: ${web3.utils.fromWei(stake, "ether")} DMD | Ordered withdraw: ${web3.utils.fromWei(orderedWithdrawAmount, "ether")} DMD`;
+
+                grantTotalStakes = grantTotalStakes.add(web3.utils.toBN(totalStakeCalced.toString(10)));
             }
     
     
@@ -47,6 +52,19 @@ export class WatchdogPluginStakingDiff extends WatchdogPlugin {
                 console.log("======");
             }
         }
+
+        let totalStakedAmount = await staking.methods.totalStakedAmount().call();
+
+        let diffGrantTotal = grantTotalStakes.sub(web3.utils.toBN(totalStakedAmount));
+
+        if (diffGrantTotal.isZero()) {
+            console.log("===== WARNING: GRANT TOTAL STAKED AMOUNT DIFF DETECTED ======");
+            console.log("   Calculated grand total stakes:  ", web3.utils.fromWei(grantTotalStakes.toString()) );
+            console.log("   Contract reported total stakes: ", web3.utils.fromWei(totalStakedAmount.toString()) );
+            console.log("   Difference: ", web3.utils.fromWei(diffGrantTotal.toString()) );
+
+        }
+
     }
 
 }
