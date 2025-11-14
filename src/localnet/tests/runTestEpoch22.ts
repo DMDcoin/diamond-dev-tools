@@ -49,22 +49,29 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     let isZero = currentOperator.isZero();
     console.log("node operator ", testPool, " for miner ", poolMiner, " current operator  setup operator", currentOperator.toString(16), isZero);
 
-    if (isZero) {
-      let random = Math.floor(Math.random() * 2000);
-      console.log("setting node operator share ", testPool, " testPool ", random);
+    let random = Math.floor(Math.random() * 2000);
+    console.log("setting node operator share ", testPool, " testPool ", random);
 
-      let finalOperator = operatorAddress == "" ? poolMiner : operatorAddress;
+    let finalOperator = operatorAddress == "" ? poolMiner : operatorAddress;
+    console.log("set operator: pools:",   testPool, " miner: ", poolMiner, " current operator: ", currentOperator, " new operator", finalOperator);
 
+  
+    try {
       let tx = staking.methods.setNodeOperator(finalOperator, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
       tx.once("transactionHash", (hash: string) => {
         console.log("setting node operator share setNodeOperator tx:", hash);
       });
 
       await tx;
-      console.log("WARN: User ", testPool, " managed to stake on own Node!!");
-    }
-    else {
-      throw "setNodeOperator was expected to have no operator set already.";
+      console.log("WARN: User ", testPool, " managed to stake on own Node!!");  
+    } catch (e) {
+      
+      // this is the problem, that is not allowed anymore.
+      if (finalOperator.toLowerCase() == testPool.toLowerCase()) { 
+        console.log("Expected error: ");
+        return ;
+      }
+      throw e;
     }
   }
 
@@ -190,10 +197,10 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     console.log("Pending validator for experiment: ", validatorForExperiment, " Pool: ", poolForExperiment);
 
 
-    let rngNodeOperatorAddress = poolForExperiment; //web3.eth.accounts.create().address;
+    //let rngNodeOperatorAddress = web3.eth.accounts.create().address;
 
     await waitForEpochSwitch();
-    await this.setNodeOperator(poolForExperiment, rngNodeOperatorAddress);
+    await this.setNodeOperator(poolForExperiment, poolForExperiment);
     await waitForEpochSwitch();
 
 
@@ -202,13 +209,16 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     await waitForEpochSwitch();
 
 
-    console.log("Unsetting node operator...");
-    await this.unsetNodeOperator(poolForExperiment);
+    console.log("setting node operator share to RNG address...");
+    //await this.unsetNodeOperator(poolForExperiment);
+    await this.setNodeOperator(poolForExperiment, web3.eth.accounts.create().address);
 
     //console.log("Setting node operator 2...");
     //await waitForPending();
     //await this.setNodeOperator(poolForExperiment, rngNodeOperatorAddress);
     
+    await waitForEpochSwitch();
+    await waitForEpochSwitch();
     await waitForEpochSwitch();
 
     await watchdog.stopWatching();
