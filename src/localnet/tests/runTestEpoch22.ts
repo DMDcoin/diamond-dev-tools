@@ -53,9 +53,9 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     console.log("setting node operator share ", testPool, " testPool ", random);
 
     let finalOperator = operatorAddress == "" ? poolMiner : operatorAddress;
-    console.log("set operator: pools:",   testPool, " miner: ", poolMiner, " current operator: ", currentOperator, " new operator", finalOperator);
+    console.log("set operator: pools:", testPool, " miner: ", poolMiner, " current operator: ", currentOperator, " new operator", finalOperator);
 
-  
+
     try {
       let tx = staking.methods.setNodeOperator(finalOperator, random).send({ from: testPool, gas: 500000, gasPrice: web3.utils.toWei("1", "gwei") });
       tx.once("transactionHash", (hash: string) => {
@@ -63,13 +63,13 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       });
 
       await tx;
-      console.log("WARN: User ", testPool, " managed to stake on own Node!!");  
+      console.log("WARN: User ", testPool, " managed to stake on own Node!!");
     } catch (e) {
-      
+
       // this is the problem, that is not allowed anymore.
-      if (finalOperator.toLowerCase() == testPool.toLowerCase()) { 
+      if (finalOperator.toLowerCase() == testPool.toLowerCase()) {
         console.log("Expected error: ");
-        return ;
+        return;
       }
       throw e;
     }
@@ -160,7 +160,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
       await spoolWait(1000, async () => {
 
 
-        if ((new Date().getTime() - startDate.getTime()) > (stakingEpochDuration * 1000 * 1.5) /* 50 % extra time, so we dont run into timing issues.*/ ) {
+        if ((new Date().getTime() - startDate.getTime()) > (stakingEpochDuration * 1000 * 1.5) /* 50 % extra time, so we dont run into timing issues.*/) {
           throw new Error("Epoch switch dit not happen in expected time");
         }
 
@@ -216,7 +216,7 @@ export class Epch22NetworkRunner extends LocalnetScriptRunnerBase {
     //console.log("Setting node operator 2...");
     //await waitForPending();
     //await this.setNodeOperator(poolForExperiment, rngNodeOperatorAddress);
-    
+
     await waitForEpochSwitch();
     await waitForEpochSwitch();
     await waitForEpochSwitch();
