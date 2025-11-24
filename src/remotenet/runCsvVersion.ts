@@ -25,21 +25,51 @@ function parseVersion(version: string) {
   }
 }
 
+
+/// error guarded number proimise for web3 calls
+async function egs(promise: Promise<string>) : Promise<string> {
+  try {
+    return (await promise).toString();
+  } catch (e) {
+    return " (Err) ";
+  }
+}
+
+/// error guarded number proimise for web3 calls
+async function egn(promise: Promise<number>) : Promise<string> {
+  try {
+    return (await promise).toString();
+  } catch (e) {
+    return " (Err) ";
+  }
+}
+
+/// error guarded number proimise for web3 calls
+async function egb(promise: Promise<boolean>) : Promise<string> {
+  try {
+    return (await promise) ? "true": "false";
+  } catch (e) {
+    return " (Err) ";
+  }
+}
+
 async function csvLine(n: NodeState, contractManager: ContractManager, block: number, minStake: BigNumber, allValidators: string[]) {
   const nodeName = `hbbft${n.nodeID}`;
   console.log(`=== ${nodeName} ===`);
   let version = getNodeVersion(nodeName);
   let parsedVersion = parseVersion(version);
-  let isAvailable = false;
+  let isAvailable = "";
   let isStaked = false;
-  let bonusScore = await contractManager.getBonusScore(n.address ?? "", block);
+  let bonusScore =  await egn(contractManager.getBonusScore(n.address ?? "", block));
   let totalStake = new BigNumber(0);
   let stakeString = "0";
   let poolAddress = "";
   if (n.address) {
-    isAvailable = await contractManager.isValidatorAvailable(n.address, block);
-    poolAddress = await contractManager.getAddressStakingByMining(n.address);
-    totalStake = await contractManager.getTotalStake(poolAddress);
+    isAvailable = await egb(contractManager.isValidatorAvailable(n.address, block));
+    poolAddress = await egs(contractManager.getAddressStakingByMining(n.address));
+    try {
+      totalStake = await contractManager.getTotalStake(poolAddress);
+    } catch {}
     stakeString = totalStake.toString(10);
     console.log(`stake: ${stakeString}`);
     isStaked = totalStake.isGreaterThanOrEqualTo(minStake);
