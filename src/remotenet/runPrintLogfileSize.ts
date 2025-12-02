@@ -15,7 +15,7 @@ async function run() {
     let result = "";
     for(let node of nodes) { 
         try {
-            let r = cmdR(node.sshNodeName(), `wc -c ~/${config.installDir}/parity.log`);
+            let r = cmdR(node.sshNodeName(), `wc -c ~/${config.installDir}/diamond-node.log`);
             let splittet = r.split(" ");
 
             if (splittet.length > 1) {

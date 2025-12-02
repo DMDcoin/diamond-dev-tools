@@ -81,25 +81,6 @@ async function doSearch() {
   
   }
 
-
-
-  // await Promise.all(nodes.map(x => {
-  //   return new Promise(async () => {
-
-  //     const filename = `~/${installDir}/parity.log`;
-  //     //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-  //     const searchterm = 'shutdown-on-missing-block-import';
-
-  //     try {
-  //       const result = await cmdRemoteAsync(x.sshNodeName(), `grep '${searchterm}' ${filename} | cat`);
-  //       results[x.nodeID] = result;
-  //     } catch (e: any) {
-  //       results[x.nodeID] = e.toString();
-  //     }
-
-  //   })
-  // }));
-
   await Promise.all(promis);
   let noOutputNodes: Array<number> = [];
   for (let nodeName in results) {

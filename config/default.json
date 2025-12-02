@@ -68,7 +68,7 @@
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
       "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
-      "nodeRepoBranch": "main",
+      "nodeRepoBranch": "4.0",
       "nodeBuildScript": "build-from-source-dev-tracing.sh",
       "rustVersion": "1.85",
       "claimingPotAddress": "0x0",
