@@ -22,43 +22,6 @@
   ],
   "networks": [
     {
-      "name": "beta1",
-      "installDir": "beta1",
-      "nodesDir": "nodes-beta1",
-      "screenName": "beta1",
-      "rpc": "http://62.171.133.46:64100/",
-      "blockscout": "https://beta-explorer.bit.diamonds",
-      "db": "127.0.0.1:5432",
-      "nodeRepoAlias": "dmd",
-      "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
-      "nodeRepoBranch": "main",
-      "nodeBuildScript": "build-from-source-dev-tracing.sh",
-      "rustVersion": "1.85",
-      "claimingPotAddress": "0xe0E6787A55049A90aAa4335D0Ff14fAD26B8e88e",
-      "builder": {
-        "initialValidatorsCount": 1,
-        "nodesCount": 27,
-        "networkID": 27272,
-        "p2pPortBase": 27200,
-        "rpcPortBase": 8100,
-        "rpcWSPortBase": 9100,
-        "metricsPortBase": 59000,
-        "hbbftArgs": {
-          "minimumBlockTime": 3,
-          "maximumBlockTime": 600
-        },
-        "contractArgs": {
-          "STAKING_TRANSITION_WINDOW_LENGTH": 300,
-          "VALIDATOR_INACTIVITY_THRESHOLD": 315576000,
-          "STAKING_EPOCH_DURATION": 43200
-        },
-        "nodeArgs": [
-          "[footprint]",
-          "cache_size = 100"
-        ]
-      }
-    },
-    {
       "name": "testnet",
       "installDir": "testnet",
       "nodesDir": "nodes-testnet",
