@@ -59,7 +59,8 @@ async function doSearch() {
     // "number of connections has been reached",
     // "HostCacheInconsistency",
     // "verification failed",
-    "Phoenix Protocol"
+    //"Phoenix Protocol"
+    "collected garbage transaction from"
   ];
   
 
