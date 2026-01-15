@@ -37,7 +37,7 @@
       "claimingPotAddress": "0x0",
       "builder": {
         "initialValidatorsCount": 1,
-        "nodesCount": 27,
+        "nodesCount": 60,
         "networkID": 37373,
         "p2pPortBase": 37300,
         "rpcPortBase": 8300,
@@ -178,6 +178,33 @@
           "cache_size = 500"
         ]
       } 
+    },
+    {
+      "name": "nodes-local-fast-epochs",
+      "rpc": "http://localhost:8540",
+      "blockscout": "http://localhost:4000/",
+      "db": "localhost:5432",
+      "installDir": "nodes-local-test-fast-epochs",
+      "nodesDir": "nodes-local-test-fast-epochs",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 6,
+        "hbbftArgs": {
+          "minimumBlockTime": 1,
+          "maximumBlockTime": 3
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 30,
+          "STAKING_EPOCH_DURATION": 40,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=info,engine=info,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 100"
+        ]
+      }
     },
     {
       "name": "nodes-local-test-epoch22",
