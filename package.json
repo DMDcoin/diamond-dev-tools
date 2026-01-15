@@ -119,6 +119,7 @@
     "localnet-fresh-auto-restake": "ts-node ./src/localnet/runCreateTestnet.ts --network=nodes-local-test-auto-restake",
     "localnet-create-mnemonic": "ts-node src/localnet/create-random-mnemonic.ts",
     "localnet-start-phonix-test": "ts-node src/localnet/tests/runPhoenixTestNetwork.ts",
+    "localnet-test-fast-epochs": "ts-node src/localnet/tests/runFastEpochTest.ts",
     "localnet-test-early-epoch-end-test": "ts-node src/localnet/tests/runEarlyEpochEndTestNetwork.ts",
     "localnet-test-small-network": "ts-node src/localnet/tests/runSmallNetwork.ts",
     "localnet-test-single": "ts-node src/localnet/tests/runSingleNodeTest.ts",
