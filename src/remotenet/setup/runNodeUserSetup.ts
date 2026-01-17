@@ -1,5 +1,5 @@
-import { cmd, cmdR } from "../remoteCommand";
-import { getNodesFromCliArgs } from "./remotenetArgs";
+import { cmd, cmdR } from "../../remoteCommand";
+import { getNodesFromCliArgs } from "../remotenetArgs";
 
 
 async function run() {

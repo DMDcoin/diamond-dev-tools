@@ -1,7 +1,5 @@
-import { config } from "process";
-import { cmd, cmdR, cmdRemoteAsync } from "../remoteCommand";
-import { getNodesFromCliArgs } from "./remotenetArgs";
-import { ConfigManager } from "../configManager";
+import { cmd } from "../../remoteCommand";
+import { getNodesFromCliArgs } from ".././remotenetArgs";
 
 
 async function run() {
