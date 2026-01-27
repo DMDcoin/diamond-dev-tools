@@ -72,6 +72,7 @@
     "net-stake-on-existing-pools": "ts-node src/runStakeOnExistingPools.ts",
     "net-pot-feed-delta": "ts-node src/net/runFeedDeltaPot.ts",
     "net-unstake": "ts-node src/net/runUnstake.ts",
+    "net-unstake-delegators": "ts-node src/net/runUnstakeDeletators.ts",
     "net-contracts-upgrade": "ts-node src/contracts/runUpgradeContracts.ts",
     "net-contracts-test": "ts-node src/contracts/verifySourceCode.ts",
     "net-contracts-print-details": "ts-node src/contracts/runPrintContractDetails.ts",
