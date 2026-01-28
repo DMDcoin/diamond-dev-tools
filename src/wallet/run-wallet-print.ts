@@ -22,7 +22,7 @@ async function run() {
         const balance = await web3.eth.getBalance(wallet.address);
         const miningAddress  = await contractManager.getAddressMiningByStaking(wallet.address);
         const stake = await contractManager.getStake(wallet.address, wallet.address);
-        console.log(`Wallet ${i}: Address: ${wallet.address} balance: ${web3.utils.fromWei(balance, "ether")} staked on: ${miningAddress} stake: ${stake} `);
+        console.log(`Wallet ${i}: Address: ${wallet.address} balance: ${web3.utils.fromWei(balance, "ether")} staked on: ${miningAddress} stake: ${web3.utils.fromWei(stake.toString(10), "ether")}} `);
     }
 
 }
