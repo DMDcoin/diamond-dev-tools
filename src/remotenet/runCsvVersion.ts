@@ -61,20 +61,24 @@ async function csvLine(n: NodeState, contractManager: ContractManager, block: nu
   let isAvailable = "";
   let isStaked = false;
   let bonusScore =  await egn(contractManager.getBonusScore(n.address ?? "", block));
-  let totalStake = new BigNumber(0);
+  let stakeFromOwner = new BigNumber(0);
   let stakeString = "0";
   let poolAddress = "";
   if (n.address) {
     isAvailable = await egb(contractManager.isValidatorAvailable(n.address, block));
     poolAddress = await egs(contractManager.getAddressStakingByMining(n.address));
     try {
-      totalStake = await contractManager.getTotalStake(poolAddress);
+      stakeFromOwner = await contractManager.getStake(poolAddress, poolAddress);
     } catch {}
-    stakeString = totalStake.toString(10);
+
+
+    stakeString = stakeFromOwner.toString(10);
     console.log(`stake: ${stakeString}`);
-    isStaked = totalStake.isGreaterThanOrEqualTo(minStake);
+    isStaked = stakeFromOwner.isGreaterThanOrEqualTo(minStake);
+
+    stakeString = (await contractManager.getTotalStake(poolAddress)).toString(10);
   }
-  stakeString = totalStake.div(new BigNumber("1000000000000000000")).toString();
+  stakeString = stakeFromOwner.div(new BigNumber("1000000000000000000")).toString();
   let current = "FALSE";
   if (n.address && allValidators.includes(n.address.toLowerCase())) {
     current = "TRUE";
