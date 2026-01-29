@@ -37,7 +37,7 @@
       "claimingPotAddress": "0x0",
       "builder": {
         "initialValidatorsCount": 1,
-        "nodesCount": 60,
+        "nodesCount": 80,
         "networkID": 37373,
         "p2pPortBase": 37300,
         "rpcPortBase": 8300,
