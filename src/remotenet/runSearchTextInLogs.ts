@@ -60,7 +60,8 @@ async function doSearch() {
     // "HostCacheInconsistency",
     // "verification failed",
     //"Phoenix Protocol"
-    "collected garbage transaction from"
+    //"collected garbage transaction from",
+    "Unable to finalize handshake for token"
   ];
   
 
