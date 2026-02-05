@@ -45,51 +45,43 @@ async function doSearch() {
 
   let promis : Promise<void>[] = [];
 
-  let limitOutput = false;
+  let limitOutput = true;
+  let limitTail = false 
 
   let grepLimit = limitOutput ? " -m 10" : "";
   //let tailLimit = limitOutput ? " -n 100000" : "";
 
-  let gatherCommand = limitOutput ? `tail -n 10000` : `cat`;
+  let gatherCommand = limitTail ? `tail -n 10000` : `cat`;
 
 
   let knownWatchedSearchterms = [
-    'deadlock(s) detected',
-    "number of connections has been reached",
-    "HostCacheInconsistency",
+    // 'deadlock(s) detected',
+    // "number of connections has been reached",
+    // "HostCacheInconsistency",
+    // "verification failed",
+    //"Phoenix Protocol"
+    //"collected garbage transaction from",
+    "Unable to finalize handshake for token"
   ];
   
-  nodes.forEach(async(x) => {
-    const filename = `~/${installDir}/diamond-node.log`;
-    //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-    const searchterm = knownWatchedSearchterms[2];
-    //const searchterm = "BadProtocol";
-    //
-    const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
-      results[x.nodeID] = result;
-      
+
+  for (let watchTerm of knownWatchedSearchterms) {
+
+    nodes.forEach(async(x) => {
+      const filename = `~/${installDir}/diamond-node.log`;
+      //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
+      const searchterm = watchTerm;
+      //const searchterm = "BadProtocol";
+      //
+      const promise = cmdRemoteAsync(x.sshNodeName(), `${gatherCommand} ${filename} | grep ${grepLimit} '${searchterm}'  | cat`).then((result) => { 
+        results[x.nodeID] = result;
+        
+      });
+  
+      promis.push(promise);
     });
-
-    promis.push(promise);
-  });
-
-
-  // await Promise.all(nodes.map(x => {
-  //   return new Promise(async () => {
-
-  //     const filename = `~/${installDir}/parity.log`;
-  //     //const searchterm = 'Initiating Shutdown: Honey Badger Consensus detected that this Node has been flagged as unavailable, while it should be available.';
-  //     const searchterm = 'shutdown-on-missing-block-import';
-
-  //     try {
-  //       const result = await cmdRemoteAsync(x.sshNodeName(), `grep '${searchterm}' ${filename} | cat`);
-  //       results[x.nodeID] = result;
-  //     } catch (e: any) {
-  //       results[x.nodeID] = e.toString();
-  //     }
-
-  //   })
-  // }));
+  
+  }
 
   await Promise.all(promis);
   let noOutputNodes: Array<number> = [];

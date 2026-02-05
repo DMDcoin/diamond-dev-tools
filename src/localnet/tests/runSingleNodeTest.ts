@@ -4,13 +4,14 @@ import {
   LocalnetScriptRunnerResult,
 } from "./localnetBootstrapper";
 import { sleep } from "../../utils/time";
+import { Watchdog } from "../../watchdog";
 
 export class SingleNodeRunner extends LocalnetScriptRunnerBase {
   public constructor() {
     super("nodes-local-test-single", "simple 1 validator network", 1);
   }
 
-  async runImplementation(): Promise<boolean> {
+  async runImplementation(watchdog: Watchdog): Promise<boolean> {
     // we are on a 16 node validator network now.
     // we expect a early epoch end tolerance of 2. -> todo: maybe we should read that from contract
     // required: 2f + 1

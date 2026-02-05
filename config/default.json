@@ -1,15 +1,15 @@
 {
   "network": "testnet",
   "networkGitRepo": "https://github.com/DMDcoin/dmdv4-testnet",
-  "networkGitRepoBranch": "release-testnet",
+  "networkGitRepoBranch": "main",
   "nodeProfile": "debug",
-  "nodeRepoUrl": "https://github.com/SurfingNerd/diamond-node.git",
-  "nodeBranch": "0.12",
+  "nodeRepoUrl": "https://github.com/DMDCoin/diamond-node.git",
+  "nodeBranch": "main",
   "blockscoutInstance": "http://explorer.uniq.diamonds",
   "continuousSenderIntervalMin": 5,
   "continuousSenderIntervalMax": 100,
   "testDurationMs": 18000000,
-  "mnemonicAccountIndex": 2,
+  "mnemonicAccountIndex": 0,
   "calcNonceEveryTurn": false,
   "trackPerformance": false,
   "logToTerminal": false,
@@ -22,59 +22,22 @@
   ],
   "networks": [
     {
-      "name": "beta1",
-      "installDir": "beta1",
-      "nodesDir": "nodes-beta1",
-      "screenName": "beta1",
-      "rpc": "http://62.171.133.46:64100/",
-      "blockscout": "https://beta-explorer.bit.diamonds",
+      "name": "testnet",
+      "installDir": "testnet",
+      "nodesDir": "nodes-testnet",
+      "screenName": "testnet",
+      "rpc": "https://testnet-rpc.bit.diamonds",
+      "blockscout": "https://testnet-explorer.bit.diamonds",
       "db": "127.0.0.1:5432",
       "nodeRepoAlias": "dmd",
       "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
       "nodeRepoBranch": "main",
       "nodeBuildScript": "build-from-source-dev-tracing.sh",
       "rustVersion": "1.85",
-      "claimingPotAddress": "0xe0E6787A55049A90aAa4335D0Ff14fAD26B8e88e",
-      "builder": {
-        "initialValidatorsCount": 1,
-        "nodesCount": 27,
-        "networkID": 27272,
-        "p2pPortBase": 27200,
-        "rpcPortBase": 8100,
-        "rpcWSPortBase": 9100,
-        "metricsPortBase": 59000,
-        "hbbftArgs": {
-          "minimumBlockTime": 3,
-          "maximumBlockTime": 600
-        },
-        "contractArgs": {
-          "STAKING_TRANSITION_WINDOW_LENGTH": 300,
-          "VALIDATOR_INACTIVITY_THRESHOLD": 315576000,
-          "STAKING_EPOCH_DURATION": 43200
-        },
-        "nodeArgs": [
-          "[footprint]",
-          "cache_size = 100"
-        ]
-      }
-    },
-    {
-      "name": "testnet",
-      "installDir": "testnet",
-      "nodesDir": "nodes-testnet",
-      "screenName": "testnet",
-      "rpc": "http://62.171.133.46:20100",
-      "blockscout": "https://testnet-explorer.bit.diamonds",
-      "db": "127.0.0.1:5432",
-      "nodeRepoAlias": "dmd",
-      "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
-      "nodeRepoBranch": "0.12",
-      "nodeBuildScript": "build-from-source-dev-tracing.sh",
-      "rustVersion": "1.85",
       "claimingPotAddress": "0x0",
       "builder": {
         "initialValidatorsCount": 1,
-        "nodesCount": 27,
+        "nodesCount": 80,
         "networkID": 37373,
         "p2pPortBase": 37300,
         "rpcPortBase": 8300,
@@ -92,6 +55,46 @@
         "nodeArgs": [
           "[misc]",
           "logging = \"txqueue=info,consensus=debug,engine=debug,own_tx=trace,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 2000"
+          
+        ]
+      }
+    },
+    {
+      "name": "mainnet",
+      "installDir": "mainnet",
+      "nodesDir": "nodes-mainnet",
+      "screenName": "mainnet",
+      "rpc": "https://rpc.bit.diamonds",
+      "blockscout": "https://explorer.bit.diamonds",
+      "db": "127.0.0.1:5432",
+      "nodeRepoAlias": "dmd",
+      "nodeRepoUrl": "https://github.com/dmdcoin/diamond-node.git",
+      "nodeRepoBranch": "main",
+      "nodeBuildScript": "build-from-source-dev-tracing.sh",
+      "rustVersion": "1.85",
+      "claimingPotAddress": "0x0",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 27,
+        "networkID": 17771,
+        "p2pPortBase": 17771,
+        "rpcPortBase": 8300,
+        "rpcWSPortBase": 9300,
+        "metricsPortBase": 17000,
+        "hbbftArgs": {
+          "minimumBlockTime": 3,
+          "maximumBlockTime": 300
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 300,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 315576000,
+          "STAKING_EPOCH_DURATION": 43200
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=info,engine=info,own_tx=info,tx_filter=info,sync=info,network=info,io=info\"",
           "[footprint]",
           "cache_size = 2000"
           
@@ -164,7 +167,7 @@
           "maximumBlockTime": 5
         },
         "contractArgs": {
-          "STAKING_TRANSITION_WINDOW_LENGTH": 60,
+          "STAKING_TRANSITION_WINDOW_LENGTH": 70,
           "STAKING_EPOCH_DURATION": 60000,
           "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
         },
@@ -176,7 +179,60 @@
         ]
       } 
     },
-
+    {
+      "name": "nodes-local-fast-epochs",
+      "rpc": "http://localhost:8540",
+      "blockscout": "http://localhost:4000/",
+      "db": "localhost:5432",
+      "installDir": "nodes-local-test-fast-epochs",
+      "nodesDir": "nodes-local-test-fast-epochs",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 6,
+        "hbbftArgs": {
+          "minimumBlockTime": 1,
+          "maximumBlockTime": 3
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 30,
+          "STAKING_EPOCH_DURATION": 40,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=info,consensus=info,engine=info,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 100"
+        ]
+      }
+    },
+    {
+      "name": "nodes-local-test-epoch22",
+      "rpc": "http://localhost:8540",
+      "blockscout": "http://localhost:4000/",
+      "db": "localhost:5432",
+      "installDir": "nodes-local-test-epoch22",
+      "nodesDir": "nodes-local-test-epoch22",
+      "builder": {
+        "initialValidatorsCount": 1,
+        "nodesCount": 16,
+        "hbbftArgs": {
+          "minimumBlockTime": 1,
+          "maximumBlockTime": 3
+        },
+        "contractArgs": {
+          "STAKING_TRANSITION_WINDOW_LENGTH": 40,
+          "STAKING_EPOCH_DURATION": 60,
+          "VALIDATOR_INACTIVITY_THRESHOLD": 1209600
+        },
+        "nodeArgs": [
+          "[misc]",
+          "logging = \"txqueue=debug,consensus=debug,engine=debug,own_tx=debug,tx_filter=info,sync=info,network=info,io=info\"",
+          "[footprint]",
+          "cache_size = 100"
+        ]
+      }
+    },
     {
       "name": "nodes-local-test-performance",
       "rpc": "http://localhost:8540",

@@ -60,7 +60,7 @@ export class LocalNetworkCheckpointIo {
         let sourceDirectory = this.getCacheDirectory() + "/" + ConfigManager.getNodesDir(this.networkName) + "/*";
         let targetDirectory = ConfigManager.getNodesDirAbsolut(this.networkName);
         this.copyDirectoryRecursive(sourceDirectory, targetDirectory);
-
+        manager.initFromTestnetManifest();
         return true;
         
         // Logic to restore network state from cache

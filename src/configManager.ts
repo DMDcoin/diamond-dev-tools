@@ -18,8 +18,8 @@ export interface NetworkBuilderArgs {
     rpcWSPortBase?: number,
     metricsPortBase?: number,
     txQueuePerSender?: number,
-    hbbftArgs?: {},
-    contractArgs?: {},
+    hbbftArgs?: { [index: string]: any },
+    contractArgs?: { [index: string]: any },
     nodeArgs?: Array<string>,
 }
 
@@ -328,7 +328,7 @@ export class ConfigManager {
         return result;
     }
 
-    public static insertWallets(web3: Web3, count = 30) : Array<AddedAccount> {
+    public static insertWallets(web3: Web3, count = 50) : Array<AddedAccount> {
 
         const addressPairs = generateAddressesFromSeed(config.mnemonic, count);
         let result = Array<AddedAccount>();
