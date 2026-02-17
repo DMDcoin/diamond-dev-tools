@@ -7,7 +7,13 @@ import { ContinuousTransactionsSender } from './continuousTransactionsSender';
 import { Account, AddedAccount } from 'web3-core';
 import { parse } from 'ts-command-line-args';
 import { parseNetworkArgs } from './remotenet/remotenetArgs';
+import { Node } from './db/schema';
 
+export interface NodeArgs {
+    Footprint: {
+        cache_size: number;
+    }
+}
 
 export interface NetworkBuilderArgs {
     initialValidatorsCount: number,
@@ -72,6 +78,8 @@ export interface TestConfig {
     maximumPoolSize: number | undefined
     defaultNodeArgs?: Array<string>,
     networks: Array<Network>,
+    bonusScoreSystemAddress?: string,
+    bonusScoreSystemABI?: any[]
 }
 
 
