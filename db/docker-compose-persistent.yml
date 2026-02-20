@@ -1,0 +1,75 @@
+version: '3.8'
+
+networks:
+  monitor-net:
+    driver: bridge
+
+volumes:
+  db-data:
+    name: diamond-dev-tools-db-data
+    driver: local
+  grafana-data:
+    name: diamond-dev-tools-grafana-data
+    driver: local
+
+services:
+  db:
+    #image: postgres:15.3
+    build: .
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+    ports:
+      - '${DMD_DB_POSTGRES_PORT}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
+    networks:
+      - monitor-net
+
+  pgadmin:
+    build: ./pgadmin 
+    ports:
+      - '3002:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_RENDERING_SERVER_URL=http://grafana_renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+      - GF_LOG_FILTERS=rendering:debug
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+  grafana_renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - "3001:8081"
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  express:
+    build: ./express
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
+

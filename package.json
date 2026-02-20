@@ -100,6 +100,8 @@
     "net-print-key-gen-round-infos": "ts-node src/net/keygen/printKeyGenRoundInfos.ts",
     "net-print-analyze-nonce-gaps": "ts-node src/net/runAnalyzeNonceGaps.ts",
     "db-fresh": "./scripts/db-fresh.sh",
+    "db-resume": "./scripts/db-resume.sh",
+    "db-wipe": "./scripts/db-wipe.sh",
     "test-db": "./scripts/test-db.sh",
     "db-fresh-detached": "npm-run-all db-delete-local db-start-local-detached db-apply-migrations db-grant-grafana-permissions",
     "db-delete-local": "cd db && docker compose down",
