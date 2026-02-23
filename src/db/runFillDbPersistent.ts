@@ -76,6 +76,10 @@ async function run() {
         console.log(`   Last block timestamp: ${lastProcessedBlock.block_time}`);
         console.log(`   Known nodes in DB: ${nodesFromDB.length}`);
         console.log(`   Last POSDAO epoch: ${lastInsertedPosdaoEpoch}`);
+        
+        // Clean up data from a block onwards to avoid duplicates
+        console.log(`🧹 Cleaning up data from block ${currentBlockNumber} onwards...`);
+        await dbManager.deleteDataFromBlock(currentBlockNumber);
     } else {
         console.log(`   No existing data found. Starting fresh from block 0`);
     }

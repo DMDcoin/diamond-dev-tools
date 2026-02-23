@@ -78,6 +78,7 @@ const TIMESTAMP_TYPE_ID = 1114;
 
 /// Tables of the DB in the order of dependency reversed.
 export const DB_TABLES = [
+  "bonus_score_change_reasons",
   "stake_delegators",
   "delegate_reward",
   "posdao_epoch_node",
@@ -109,6 +110,73 @@ export class DbManager {
 
     for (let table of tablesToDelete) {
       await this.connectionPool.query(sql`DELETE FROM public.${sql.ident(table)};`);
+    }
+  }
+
+  /**
+   * Delete data from a specific block number onwards
+   */
+  public async deleteDataFromBlock(blockNumber: number) {
+    console.log(`🧹 Cleaning up data from block ${blockNumber} onwards...`);
+    
+    try {
+      // Get epochs that will be deleted
+      const epochsToDelete = await this.connectionPool.query(sql`
+        SELECT id FROM public.posdao_epoch WHERE block_start >= ${blockNumber};
+      `);
+      const epochIds = epochsToDelete.map(e => e.id);
+      
+      // Delete child records that depend on epochs
+      // These must be deleted BEFORE posdao_epoch
+      if (epochIds.length > 0) {
+        for (const epoch of epochsToDelete) {
+          await this.connectionPool.query(sql`DELETE FROM public.posdao_epoch_node WHERE id_posdao_epoch = ${epoch.id};`);
+          await this.connectionPool.query(sql`DELETE FROM public.delegate_reward WHERE id_posdao_epoch = ${epoch.id};`);
+          await this.connectionPool.query(sql`DELETE FROM public.stake_delegators WHERE epoch = ${epoch.id};`);
+        }
+      }
+      
+      // Delete bonus_score_change_reasons
+      await this.connectionPool.query(sql`DELETE FROM public.bonus_score_change_reasons WHERE block_number >= ${blockNumber};`);
+      
+      // Delete available_event
+      await this.connectionPool.query(sql`DELETE FROM public.available_event WHERE block >= ${blockNumber};`);
+      
+      // Delete bonus_score_history entries
+      await this.connectionPool.query(sql`DELETE FROM public.bonus_score_history WHERE from_block >= ${blockNumber};`);
+      
+      // Close bonus score history entries
+      await this.connectionPool.query(sql`UPDATE public.bonus_score_history 
+        SET to_block = ${blockNumber - 1} 
+        WHERE from_block < ${blockNumber} AND (to_block IS NULL OR to_block >= ${blockNumber});`);
+      
+      // Delete stake_history
+      await this.connectionPool.query(sql`DELETE FROM public.stake_history WHERE from_block >= ${blockNumber};`);
+      
+      // Delete ordered_withdrawal
+      await this.connectionPool.query(sql`DELETE FROM public.ordered_withdrawal 
+        WHERE block_number >= ${blockNumber} OR claimed_on_block >= ${blockNumber};`);
+      
+      // Reopen records that entered BEFORE this block but were closed AT/AFTER this block
+      // These need to be reopened because we'll reprocess their exit
+      await this.connectionPool.query(sql`UPDATE public.pending_validator_state_event 
+        SET on_exit_block_number = NULL 
+        WHERE on_enter_block_number < ${blockNumber} 
+          AND on_exit_block_number >= ${blockNumber};`);
+      
+      // Delete records that entered AT/AFTER this block
+      await this.connectionPool.query(sql`DELETE FROM public.pending_validator_state_event 
+        WHERE on_enter_block_number >= ${blockNumber};`);
+      
+      // Delete epochs
+      if (epochIds.length > 0) {
+        await this.connectionPool.query(sql`DELETE FROM public.posdao_epoch WHERE block_start >= ${blockNumber};`);
+      }
+      
+      // Delete headers
+      await this.connectionPool.query(sql`DELETE FROM public.headers WHERE block_number >= ${blockNumber};`);      
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -522,7 +590,6 @@ export class DbManager {
     if (!existingRecord) {
       return null;
     }
-
     const result = await pending_validator_state_event(this.connectionPool).update({
       node: addressToBuffer(node),
       state: state,
