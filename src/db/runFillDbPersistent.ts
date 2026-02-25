@@ -25,8 +25,9 @@ async function run() {
     // so you need only to sync to the first occurence of a situation you are developing on.
     let autostop = Number.MAX_VALUE;
 
-    // PERSISTENT VERSION: We do NOT delete existing data - we resume from where we left off
-    console.log("🔄 PERSISTENT MODE: Checking for existing data to resume...");
+    // this sync process is not designed to continue after a stop,
+    // so we delete all data from the known tables to always make a fresh sync.
+    // await dbManager.deleteCurrentData();
 
     let validatorObserver = await ValidatorObserver.build(contractManager, dbManager);
 
@@ -65,32 +66,16 @@ async function run() {
     }
 
     let lastProcessedBlock = await dbManager.getLastProcessedBlock();
-    // Resume from lastBlock - 1 to ensure the last block is fully re-processed
-    let currentBlockNumber = lastProcessedBlock 
-        ? Math.max(0, lastProcessedBlock.block_number - 1)
-        : 0;
+    let currentBlockNumber = lastProcessedBlock ? lastProcessedBlock.block_number + 1 : 0;
     //if currentBlockNumber < latest_known_block
-
-    if (lastProcessedBlock) {
-        console.log(`   Resuming from block ${currentBlockNumber} (last processed: ${lastProcessedBlock.block_number})`);
-        console.log(`   Last block timestamp: ${lastProcessedBlock.block_time}`);
-        console.log(`   Known nodes in DB: ${nodesFromDB.length}`);
-        console.log(`   Last POSDAO epoch: ${lastInsertedPosdaoEpoch}`);
-        
-        // Clean up data from a block onwards to avoid duplicates
-        console.log(`🧹 Cleaning up data from block ${currentBlockNumber} onwards...`);
-        await dbManager.deleteDataFromBlock(currentBlockNumber);
-    } else {
-        console.log(`   No existing data found. Starting fresh from block 0`);
-    }
 
     await bonusScoreProcessor.init(currentBlockNumber);
 
-    let blockBeforeTimestamp = lastProcessedBlock && currentBlockNumber > 0
+    let blockBeforeTimestamp = lastProcessedBlock
         ? Math.floor(lastProcessedBlock.block_time.getTime() / 1000)
         : 0;
 
-    console.log(`importing blocks from ${currentBlockNumber} to ${latest_known_block} (${latest_known_block - currentBlockNumber + 1} blocks remaining)`);
+    console.log(`importing blocks from ${currentBlockNumber} to ${latest_known_block}`);
 
     let insertNode = async (poolAddress: string, blockNumber: number) => {
 
@@ -110,27 +95,13 @@ async function run() {
         allValidators.push(miningAddress);
     }
 
-    // Progress tracking
-    let lastProgressUpdate = Date.now();
-    const PROGRESS_INTERVAL = 10000; // Log progress every 10 seconds
-
     while (currentBlockNumber <= latest_known_block) {
 
         if (currentBlockNumber >= autostop) {
             console.log("autostop treshold reached.");
             return;
         }
-
-        // Log progress periodically
-        const now = Date.now();
-        if (now - lastProgressUpdate >= PROGRESS_INTERVAL) {
-            const remaining = latest_known_block - currentBlockNumber;
-            const progress = ((currentBlockNumber / latest_known_block) * 100).toFixed(2);
-            console.log(`📊 Progress: ${progress}% (block ${currentBlockNumber}/${latest_known_block}, ${remaining} remaining)`);
-            lastProgressUpdate = now;
-        } else {
-            console.log(`processing block ${currentBlockNumber}`);
-        }
+        console.log(`processing block ${currentBlockNumber}`);
 
         try {
 
