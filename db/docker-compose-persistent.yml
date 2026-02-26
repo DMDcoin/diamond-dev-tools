@@ -11,6 +11,9 @@ volumes:
   grafana-data:
     name: diamond-dev-tools-grafana-data
     driver: local
+  redis-data:
+    name: diamond-dev-tools-redis-data
+    driver: local
 
 services:
   db:
@@ -63,6 +66,18 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
   express:
     build: ./express
     ports:
@@ -70,8 +85,12 @@ services:
     environment:
       - NODE_ENV=development
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - REDIS_URL=redis://redis:6379
     volumes:
       - ./express/src:/app/src
+    depends_on:
+      - db
+      - redis
     networks:
       - monitor-net
 

@@ -103,6 +103,7 @@
     "db-resume": "./scripts/db-resume.sh",
     "db-wipe": "./scripts/db-wipe.sh",
     "test-db": "./scripts/test-db.sh",
+    "keygen": "ts-node db/express/src/utils/keygen.ts",
     "db-fresh-detached": "npm-run-all db-delete-local db-start-local-detached db-apply-migrations db-grant-grafana-permissions",
     "db-delete-local": "cd db && docker compose down",
     "db-start-local": "cd db && envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml && docker compose up",

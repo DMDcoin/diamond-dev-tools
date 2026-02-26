@@ -19,3 +19,5 @@ outputImported
 .mainaddress
 
 tmp
+
+package-lock.json

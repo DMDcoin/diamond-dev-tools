@@ -6,23 +6,32 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/app.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "gen-models": "sequelize-auto -o \"./src/models\" -d postgres -h 127.0.0.1 -u postgres -p 54321 -x $DMD_DB_POSTGRES -e postgres --lang ts"
+    "gen-models": "sequelize-auto -o \"./src/models\" -d postgres -h 127.0.0.1 -u postgres -p 54321 -x $DMD_DB_POSTGRES -e postgres --lang ts",
+    "keygen": "ts-node src/utils/keygen.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
     "pg": "^8.13.3",
     "pg-hstore": "^2.3.4",
+    "redis": "^5.11.0",
     "sequelize": "^6.37.5",
+    "uuid": "^9.0.1",
     "web3": "^1.10.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.5",
+    "@types/redis": "^4.0.10",
+    "@types/uuid": "^10.0.0",
     "sequelize-auto": "^0.8.8",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",

@@ -1,9 +1,20 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import db from './models';
 import routes from './routes';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+app.use(cors({
+    origin: [
+        'http://localhost:3003', // Local development
+        'https://diamond-ui.vercel.app/' // Deployed test UI
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'Origin']
+}));
 
 app.use(express.json());
 
