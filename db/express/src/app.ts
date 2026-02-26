@@ -34,7 +34,8 @@ const startServer = async () => {
         console.warn('Database connection failed - some endpoints may not work:', errorMessage);
     } finally {
         // Start server regardless of database connection status
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        const HOST = process.env.HOST || '0.0.0.0';
+        app.listen(Number(PORT), HOST, () => console.log(`Server running on ${HOST}:${PORT}`));
     }
 };
 

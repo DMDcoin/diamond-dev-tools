@@ -81,11 +81,13 @@ services:
   express:
     build: ./express
     ports:
-      - "4000:4000"
+      - "${PORT:-9990}:${PORT:-9990}"
     environment:
       - NODE_ENV=development
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
       - REDIS_URL=redis://redis:6379
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-9990}
     volumes:
       - ./express/src:/app/src
     depends_on:
