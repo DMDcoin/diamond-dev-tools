@@ -88,6 +88,9 @@ services:
       - REDIS_URL=redis://redis:6379
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-9990}
+      - RPC_URL=${RPC_URL_DOCKER}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./express/src:/app/src
     depends_on:

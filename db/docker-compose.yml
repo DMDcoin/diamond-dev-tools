@@ -70,6 +70,9 @@ services:
       - NODE_ENV=development
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
       - REDIS_URL=redis://redis:6379
+      - RPC_URL=${RPC_URL_DOCKER}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
       - redis
