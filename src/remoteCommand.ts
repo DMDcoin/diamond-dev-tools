@@ -18,7 +18,7 @@ export function cmdR(hostSSH: string, command: string, logOutput: boolean = true
 
     return txt;
   } catch (error: any) {
-    console.log(`cmdR Error: ${hostSSH} : ${command}`);
+    console.log(`cmdR Error: ${hostSSH} : ${command}`, error);
     //console.log(error);
     // if (error.output) {
 
