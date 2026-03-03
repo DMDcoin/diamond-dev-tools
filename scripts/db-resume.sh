@@ -15,6 +15,8 @@ if [ -f ".env" ]; then
     source .env
     set +a
     echo "✅ Environment variables loaded"
+    echo "   DMD_DB_POSTGRES: $DMD_DB_POSTGRES"
+    echo "   DMD_DB_POSTGRES_PORT: $DMD_DB_POSTGRES_PORT"
 fi
 
 # Verify environment variables are set
