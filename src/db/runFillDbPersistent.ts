@@ -1,5 +1,5 @@
 import { Node } from "./schema";
-import { DbManager } from "./database";
+import { DbManager } from "./database-persistent";
 
 import { ContractManager, DelegateRewardData } from "../contractManager";
 import { EventProcessor } from "../eventProcessor";
@@ -244,11 +244,25 @@ async function run() {
             currentBlockNumber += 1;
 
 
-        } catch (err) {
-            console.log(`error processing block ${currentBlockNumber}`);
-            console.log(err);
-            await sleep(1000);
+        } catch (err: any) {
+            const errorMessage = err?.message || String(err);
+            const isConnectionError = 
+                errorMessage.includes('Connection terminated unexpectedly') ||
+                errorMessage.includes('password authentication failed') ||
+                errorMessage.includes('connect ECONNREFUSED') ||
+                errorMessage.includes('Client has encountered a connection error');
 
+            console.log(`error processing block ${currentBlockNumber}`);
+            console.error(err);
+
+            if (isConnectionError) {
+                console.error('❌ Database connection error detected');
+                console.log('⏳ Waiting 10 seconds before continuing to next block...');
+                await sleep(10000);
+            } else {
+                console.log('⏳ Non-connection error - waiting 5 seconds before retrying...');
+                await sleep(5000);
+            }
         }
     }
 
