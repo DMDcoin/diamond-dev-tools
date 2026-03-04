@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 
 import { SQLQuery, sql } from "@databases/pg";
 import tables, { WhereCondition, not } from '@databases/pg-typed';
-import createConnectionPool, { ConnectionPool } from '@databases/pg';
+import createConnectionPool, { ConnectionPool, Transaction } from '@databases/pg';
 
 import moment from 'moment';
 
@@ -101,6 +101,7 @@ export class DbManager {
   private connectionRetries: number = 0;
   private maxConnectionRetries: number = 10;
   private isReconnecting: boolean = false;
+  private currentTransaction: Transaction | null = null;
     
 
   public constructor() {
@@ -221,6 +222,46 @@ export class DbManager {
     throw new Error(`Operation ${operationName} failed after ${maxAttempts} attempts`);
   }
 
+  /**
+   * Execute a function within a transaction context
+   * Automatically handles BEGIN, COMMIT, and ROLLBACK
+   * 
+   * @param blockNumber - The block number being processed
+   * @param operation - The function containing database operations
+   * @returns The result of the operation function
+   */
+  public async executeInTransaction<T>(
+    blockNumber: number,
+    operation: (tx: Transaction) => Promise<T>
+  ): Promise<T> {
+    return await this.connectionPool.tx(async (tx) => {      
+      try {
+        // Store the transaction context
+        const previousTransaction = this.currentTransaction;
+        this.currentTransaction = tx;
+        
+        // Execute the operation with the transaction
+        const result = await operation(tx);
+        
+        // Restore previous transaction context
+        this.currentTransaction = previousTransaction;
+        
+        return result;
+        
+      } catch (error) {
+        console.error(`❌ ROLLBACK TRANSACTION for block ${blockNumber} due to error:`, error);
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Get the current transaction context, or the connection pool if no transaction is active
+   */
+  private getDbContext(): ConnectionPool | Transaction {
+    return this.currentTransaction || this.connectionPool;
+  }
+
   public async deleteCurrentData() {
     let tablesToDelete = DB_TABLES;
 
@@ -298,7 +339,7 @@ export class DbManager {
 
   public async writeInitialBonusScore(pool: string, blockNumber: number, currentScore: number) {
       
-    await bonus_score_history(this.connectionPool).insert({
+    await bonus_score_history(this.getDbContext()).insert({
         node: addressToBuffer(pool),
         from_block: blockNumber,
         to_block: null,
@@ -313,14 +354,14 @@ export class DbManager {
     // so we need to set the end block of the existing record,
     // and create a new record with an open end block.
 
-    await bonus_score_history(this.connectionPool).update({
+    await bonus_score_history(this.getDbContext()).update({
       node: addressToBuffer(pool),
       to_block: null
     }, {
       to_block: changeBlock - 1,
     });
 
-    await bonus_score_history(this.connectionPool).insert({
+    await bonus_score_history(this.getDbContext()).insert({
       node: addressToBuffer(pool),
       from_block: changeBlock,
       to_block: null,
@@ -328,7 +369,7 @@ export class DbManager {
     });
 
 
-    await node(this.connectionPool).update({
+    await node(this.getDbContext()).update({
       pool_address: addressToBuffer(pool)
     }, {
       bonus_score: bonusScore
@@ -353,13 +394,13 @@ export class DbManager {
   ) {
 
     return await this.executeWithRetry(async () => {
-      let existing = await headers(this.connectionPool).findOne({ block_number: number });
+      let existing = await headers(this.getDbContext()).findOne({ block_number: number });
 
       if (existing) {
         return;
       }
 
-      await headers(this.connectionPool).insert({
+      await headers(this.getDbContext()).insert({
         block_hash: hash,
         block_duration: duration,
         block_number: number,
@@ -423,7 +464,7 @@ export class DbManager {
   public async insertStakingEpoch(epochNumber: number, blockStartNumber: number) {
     return await this.executeWithRetry(async () => {
       // todo...
-      let result = await posdao_epoch(this.connectionPool).insert(
+      let result = await posdao_epoch(this.getDbContext()).insert(
         {
           id: epochNumber,
           block_start: blockStartNumber
@@ -438,7 +479,7 @@ export class DbManager {
     return await this.executeWithRetry(async () => {
       let validator = addressToBuffer(rewardedValidator);
 
-      await posdao_epoch_node(this.connectionPool).update({
+      await posdao_epoch_node(this.getDbContext()).update({
         id_posdao_epoch: epoch, id_node: validator
       }, {
         owner_reward: reward.toString(),
@@ -449,7 +490,7 @@ export class DbManager {
 
   public async endStakingEpoch(epochToEnd: number, epochsLastBlockNumber: number) {
     return await this.executeWithRetry(async () => {
-      await posdao_epoch(this.connectionPool).update({
+      await posdao_epoch(this.getDbContext()).update({
         id: epochToEnd
       }, {
         block_end: epochsLastBlockNumber
@@ -465,7 +506,7 @@ export class DbManager {
     bonusScore: number,
   ): Promise<Node> {
     return await this.executeWithRetry(async () => {
-      let result = await node(this.connectionPool).insert({
+      let result = await node(this.getDbContext()).insert({
         pool_address: addressToBuffer(poolAddress),
         mining_address: addressToBuffer(miningAddress),
         mining_public_key: addressToBuffer(miningPublicKey),
@@ -479,7 +520,7 @@ export class DbManager {
 
   public async insertEpochNode(posdaoEpoch: number, validator: string): Promise<PosdaoEpochNode> {
     return await this.executeWithRetry(async () => {
-      let result = await posdao_epoch_node(this.connectionPool).insert({
+      let result = await posdao_epoch_node(this.getDbContext()).insert({
         id_node: addressToBuffer(validator),
         id_posdao_epoch: posdaoEpoch,
         is_claimed: null,
@@ -510,7 +551,7 @@ export class DbManager {
     try {
       const sqlPoolAddress = addressToBuffer(poolAddress);
       
-      const result = await node(this.connectionPool).update(
+      const result = await node(this.getDbContext()).update(
         { pool_address: sqlPoolAddress },
         { bonus_score: newScore }
       );
@@ -524,38 +565,38 @@ export class DbManager {
   }
 
   public async insertAvailabilityEvent(params: AvailableEvent_InsertParameters): Promise<AvailableEvent> {
-    const result = await available_event(this.connectionPool).insert(params);
+    const result = await available_event(this.getDbContext()).insert(params);
 
     return result[0];
   }
 
   public async insertOrderWithdrawalEvent(params: OrderedWithdrawal_InsertParameters): Promise<OrderedWithdrawal> {
-    const result = await ordered_withdrawal(this.connectionPool).insert(params);
+    const result = await ordered_withdrawal(this.getDbContext()).insert(params);
 
     return result[0];
   }
 
   public async getOrderWithdrawalEvent(params: WhereCondition<OrderedWithdrawal>): Promise<OrderedWithdrawal | null> {
-    return await ordered_withdrawal(this.connectionPool).findOne(params);
+    return await ordered_withdrawal(this.getDbContext()).findOne(params);
   }
 
   public async updateOrderWithdrawalEvent(
     where: WhereCondition<OrderedWithdrawal>,
     update: Partial<OrderedWithdrawal>
   ): Promise<OrderedWithdrawal> {
-    const result = await ordered_withdrawal(this.connectionPool).update(where, update);
+    const result = await ordered_withdrawal(this.getDbContext()).update(where, update);
 
     return result[0];
   }
 
   public async insertStakeHistoryRecord(params: StakeHistory_InsertParameters): Promise<StakeHistory> {
-    const result = await stake_history(this.connectionPool).insert(params);
+    const result = await stake_history(this.getDbContext()).insert(params);
 
     return result[0];
   }
 
   public async insertStakeDelegator(poolAddress: string, delegator: string, value: string): Promise<StakeDelegators> {
-    const result = await stake_delegators(this.connectionPool).insert({
+    const result = await stake_delegators(this.getDbContext()).insert({
       pool_address: addressToBuffer(poolAddress),
       delegator: addressToBuffer(delegator),
       total_delegated: value
@@ -568,16 +609,16 @@ export class DbManager {
 
     const entry = { id: addressToBuffer(delegator)}; 
 
-    const found = await delegate_staker(this.connectionPool).findOne(entry);
+    const found = await delegate_staker(this.getDbContext()).findOne(entry);
 
     if (!found) {
-      await delegate_staker(this.connectionPool).insert(entry);
+      await delegate_staker(this.getDbContext()).insert(entry);
     }
   }
 
 
   public async updateStakeDelegator(poolAddress: string, delegator: string, value: string): Promise<StakeDelegators> {
-    const result = await stake_delegators(this.connectionPool).update({
+    const result = await stake_delegators(this.getDbContext()).update({
       pool_address: addressToBuffer(poolAddress),
       delegator: addressToBuffer(delegator)
     }, {
@@ -588,7 +629,7 @@ export class DbManager {
   }
 
   public async getStakeDelegator(poolAddress: string, delegator: string): Promise<StakeDelegators | null> {
-    return await stake_delegators(this.connectionPool).findOne({
+    return await stake_delegators(this.getDbContext()).findOne({
       pool_address: addressToBuffer(poolAddress),
       delegator: addressToBuffer(delegator)
     });
@@ -597,7 +638,7 @@ export class DbManager {
   public async getLastStakeHistoryRecord(poolAddress: string): Promise<StakeHistory | null> {
     const sqlPoolAddress = addressToBuffer(poolAddress);
 
-    const result = await this.connectionPool.query(sql`
+    const result = await this.getDbContext().query(sql`
       SELECT
         from_block, to_block, stake_amount, node
       FROM stake_history
@@ -621,7 +662,7 @@ export class DbManager {
       return null;
     }
 
-    return await stake_history(this.connectionPool).findOne({
+    return await stake_history(this.getDbContext()).findOne({
       from_block: resultLine.from_block,
       to_block: resultLine.to_block,
       stake_amount: resultLine.stake_amount,
@@ -630,13 +671,13 @@ export class DbManager {
   }
 
   public async updateStakeHistory(where: WhereCondition<StakeHistory>, update: Partial<StakeHistory>): Promise<StakeHistory> {
-    const result = await stake_history(this.connectionPool).update(where, update);
+    const result = await stake_history(this.getDbContext()).update(where, update);
 
     return result[0];
   }
 
   public async getDelegatorRewardRecord(pool: string, epoch: number, delegator: string): Promise<DelegateReward | null> {
-    return await delegate_reward(this.connectionPool).findOne({
+    return await delegate_reward(this.getDbContext()).findOne({
       id_delegator: addressToBuffer(delegator),
       id_node: addressToBuffer(pool),
       id_posdao_epoch: epoch
@@ -644,7 +685,7 @@ export class DbManager {
   }
 
   public async updateDelegatorRewardRecord(pool: string, epoch: number, delegator: string): Promise<DelegateReward> {
-    const result = await delegate_reward(this.connectionPool).update({
+    const result = await delegate_reward(this.getDbContext()).update({
       id_delegator: addressToBuffer(delegator),
       id_node: addressToBuffer(pool),
       id_posdao_epoch: epoch
@@ -663,7 +704,7 @@ export class DbManager {
         }
       });
       
-      return await delegate_staker(this.connectionPool).insertOrIgnore(...insertData);
+      return await delegate_staker(this.getDbContext()).insertOrIgnore(...insertData);
     }, `insertDelegateStaker(${delegators.length} delegators)`);
   }
 
@@ -679,7 +720,7 @@ export class DbManager {
         }
       });
 
-      const result = await delegate_reward(this.connectionPool).bulkInsert({
+      const result = await delegate_reward(this.getDbContext()).bulkInsert({
         columnsToInsert: ['is_claimed', 'reward_amount'],
         records: records
       });
@@ -689,13 +730,13 @@ export class DbManager {
   }
 
   public async getValidators(): Promise<PendingValidatorStateEvent[]> {
-    return await pending_validator_state_event(this.connectionPool).find({
+    return await pending_validator_state_event(this.getDbContext()).find({
       on_exit_block_number: null
     }).all();
   }
 
   public async findValidator(node: string, state: string): Promise<PendingValidatorStateEvent | null> {
-    return await pending_validator_state_event(this.connectionPool).findOne({
+    return await pending_validator_state_event(this.getDbContext()).findOne({
       node: addressToBuffer(node),
       on_exit_block_number: null,
       state: state
@@ -705,7 +746,7 @@ export class DbManager {
   public async insertValidator(
     validator: PendingValidatorStateEvent_InsertParameters
   ): Promise<PendingValidatorStateEvent> {
-    const result = await pending_validator_state_event(this.connectionPool).insert(validator);
+    const result = await pending_validator_state_event(this.getDbContext()).insert(validator);
 
     return result[0];
   }
@@ -716,20 +757,36 @@ export class DbManager {
     exitBlockNumber: number,
     keygenRound: number
   ): Promise<PendingValidatorStateEvent | null> {
-    const existingRecord = await pending_validator_state_event(this.connectionPool).findOne({
-      node: addressToBuffer(node),
-      on_enter_block_number: not(exitBlockNumber),
-      on_exit_block_number: null,
-      state: state
-    });
+    const sqlNode = addressToBuffer(node);
+    
+    const existingRecords = await this.getDbContext().query(sql`
+      SELECT 
+        state, 
+        on_enter_block_number, 
+        on_exit_block_number, 
+        node, 
+        keygen_round
+      FROM pending_validator_state_event
+      WHERE 
+        node = ${sqlNode}
+        AND on_enter_block_number != ${exitBlockNumber}
+        AND on_exit_block_number IS NULL
+        AND state = ${state}
+      ORDER BY on_enter_block_number DESC, keygen_round DESC
+      LIMIT 1
+    `);
 
-    if (!existingRecord) {
+    if (existingRecords.length === 0) {
       return null;
     }
-    const result = await pending_validator_state_event(this.connectionPool).update({
+
+    const existingRecord = existingRecords[0];
+    
+    const result = await pending_validator_state_event(this.getDbContext()).update({
       node: addressToBuffer(node),
       state: state,
       on_enter_block_number: existingRecord.on_enter_block_number,
+      keygen_round: existingRecord.keygen_round
     }, {
       on_exit_block_number: exitBlockNumber
     });
@@ -752,7 +809,7 @@ export class DbManager {
   ) {
     try {
       // Insert into bonus_score_change_reasons table
-      await this.connectionPool.query(sql`
+      await this.getDbContext().query(sql`
         INSERT INTO bonus_score_change_reasons (
           node_pool_address,
           block_number,
