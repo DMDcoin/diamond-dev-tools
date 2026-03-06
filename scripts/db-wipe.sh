@@ -26,7 +26,7 @@ docker volume rm diamond-dev-tools-db-data 2>/dev/null && echo "   ✅ Removed d
 docker volume rm diamond-dev-tools-grafana-data 2>/dev/null && echo "   ✅ Removed grafana volume" || echo "   ℹ️  Grafana volume didn't exist"
 
 echo ""
-echo "✅ All persistent data has been wiped"
+echo "✅ All data has been wiped"
 echo ""
 echo "🚀 Next steps:"
 echo "   ./scripts/db-resume.sh          # Start fresh with persistent storage"

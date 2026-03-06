@@ -8,23 +8,40 @@ echo "=========================================="
 # Ensure we're in the right directory
 cd "$(dirname "$0")/.."
 
-# Load environment variables if they exist
+# Load environment variables if they exist and EXPORT them
 if [ -f ".env" ]; then
-    echo "📋 Loading environment variables..."
+    echo "📋 Loading and exporting environment variables..."
+    set -a  # Automatically export all variables
+    source .env
+    set +a  # Stop auto-exporting
+    echo "✅ Environment variables loaded and exported"
+    echo "   DMD_DB_POSTGRES: ${DMD_DB_POSTGRES:-NOT SET}"
+    echo "   DMD_DB_POSTGRES_PORT: ${DMD_DB_POSTGRES_PORT:-NOT SET}"
+else
+    echo "⚠️  WARNING: .env file not found!"
+    echo "   Creating .env file with defaults..."
+    cat > .env << 'EOF'
+export DMD_DB_POSTGRES=postgres
+export DMD_DB_POSTGRES_PORT=5433
+export POSTGRES_INSTANCE=127.0.0.1:5433
+export RPC_URL=http://localhost:54100/
+export RPC_URL_DOCKER=http://host.docker.internal:54100/
+export HOST=localhost
+export PORT=4000
+EOF
+    echo "✅ Created .env file with defaults"
     set -a
     source .env
     set +a
-    echo "✅ Environment variables loaded"
-    echo "   DMD_DB_POSTGRES: $DMD_DB_POSTGRES"
-    echo "   DMD_DB_POSTGRES_PORT: $DMD_DB_POSTGRES_PORT"
 fi
 
 # Verify environment variables are set
 if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
-    echo "⚠️  Environment variables not set. Setting defaults..."
-    export DMD_DB_POSTGRES=${DMD_DB_POSTGRES:-"postgres"}
-    export DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT:-"5435"}
-    echo "✅ Using defaults: DMD_DB_POSTGRES=$DMD_DB_POSTGRES, DMD_DB_POSTGRES_PORT=$DMD_DB_POSTGRES_PORT"
+    echo "❌ ERROR: Required environment variables not set after loading .env"
+    echo "   Please check your .env file contains:"
+    echo "   export DMD_DB_POSTGRES=postgres"
+    echo "   export DMD_DB_POSTGRES_PORT=5433"
+    exit 1
 fi
 
 # Check if this is first run or resume
@@ -97,6 +114,6 @@ echo "   Grafana: http://localhost:3000"
 echo "   PgAdmin: http://localhost:3002"
 echo ""
 echo "🚀 Next steps:"
+echo "   npm run test-db                 # Test database connection"
 echo "   npm run db-fill-from-network    # Fill database from network (fresh)"
 echo "   npm run db-fill-from-network-persistent    # Fill database from network (persistent)"
-echo "   npm run test-db                 # Test database connection"

@@ -394,13 +394,7 @@ export class DbManager {
   ) {
 
     return await this.executeWithRetry(async () => {
-      let existing = await headers(this.getDbContext()).findOne({ block_number: number });
-
-      if (existing) {
-        return;
-      }
-
-      await headers(this.getDbContext()).insert({
+      await headers(this.getDbContext()).insertOrIgnore({
         block_hash: hash,
         block_duration: duration,
         block_number: number,
