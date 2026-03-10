@@ -1,4 +1,6 @@
 import type { Sequelize } from "sequelize";
+import { api_keys as _api_keys } from "./api_keys";
+import type { api_keysAttributes, api_keysCreationAttributes } from "./api_keys";
 import { available_event as _available_event } from "./available_event";
 import type { available_eventAttributes, available_eventCreationAttributes } from "./available_event";
 import { bonus_score_history as _bonus_score_history } from "./bonus_score_history";
@@ -25,6 +27,7 @@ import { stake_history as _stake_history } from "./stake_history";
 import type { stake_historyAttributes, stake_historyCreationAttributes } from "./stake_history";
 
 export {
+  _api_keys as api_keys,
   _available_event as available_event,
   _bonus_score_history as bonus_score_history,
   _delegate_reward as delegate_reward,
@@ -40,6 +43,8 @@ export {
 };
 
 export type {
+  api_keysAttributes,
+  api_keysCreationAttributes,
   available_eventAttributes,
   available_eventCreationAttributes,
   bonus_score_historyAttributes,
@@ -67,6 +72,7 @@ export type {
 };
 
 export function initModels(sequelize: Sequelize) {
+  const api_keys = _api_keys.initModel(sequelize);
   const available_event = _available_event.initModel(sequelize);
   const bonus_score_history = _bonus_score_history.initModel(sequelize);
   const delegate_reward = _delegate_reward.initModel(sequelize);
@@ -136,6 +142,7 @@ export function initModels(sequelize: Sequelize) {
   posdao_epoch.hasMany(posdao_epoch_node, { as: "posdao_epoch_nodes", foreignKey: "id_posdao_epoch"});
 
   return {
+    api_keys: api_keys,
     available_event: available_event,
     bonus_score_history: bonus_score_history,
     delegate_reward: delegate_reward,
