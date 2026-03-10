@@ -96,6 +96,18 @@ async function runDeactivateReservedPeers() {
 
 }
 
+
+async function runActivatenshutdown_on_missing_block_import() {
+
+  const valueOld = '[misc]';
+  const valueNew = '[misc]\nshutdown_on_missing_block_import = 900';
+  // reserved_peers = "reserved-peers"
+
+  await runReplace(valueOld, valueNew);
+
+}
+
+
 async function runAdjustPeers() {
 
 
@@ -146,4 +158,5 @@ async function runActivateDiamondProtectionLayer() {
 
 
 
- runDowngradeLogging();
+//runDowngradeLogging();
+runActivatenshutdown_on_missing_block_import();
