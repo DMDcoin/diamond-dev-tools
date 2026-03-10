@@ -18,8 +18,6 @@ function logPromiEvent(tx: PromiEvent<TransactionReceipt>) {
   tx.on("receipt", (receipt) => {
     console.log(`receipt: ${receipt}`);
   });
-
-  
 }
 
 export async function unstake(){
@@ -27,19 +25,15 @@ export async function unstake(){
 
   const contractManager = ContractManager.get();
   const staking = await contractManager.getStakingHbbft();
-  const validatoreSet = await contractManager.getValidatorSetHbbft();
   const pools = await staking.methods.getPools().call();
 
   const web3 = contractManager.web3;
 
   ConfigManager.insertWallets(web3);
 
-  //const allValidators = (await contractManager.getValidators()).map(x=> x.toLowerCase());
+  const validators = await contractManager.getValidators();
 
   const nodes = await getNodesFromCliArgs();
-
-  //console.log('available pools:', pools);
-  //let amountToStake = amount ?? (await staking.methods.delegatorMinStake().call());
 
   console.log('running unstake for : ', nodes);
 
@@ -49,31 +43,17 @@ export async function unstake(){
       console.log(`INFO: No Address for node: ${node.nodeID} ${node.address}`);
       continue;
     }
-      //const available = await contractManager.isValidatorAvailable(node.address)
-      
-      // if (allValidators.includes(node.address)) {
-      // console.log(`INFO: Skipping ${node.nodeID} ${node.address} because it is a current validator`);
-      // }
 
-      // if (!available) {
-
-      // }
-      // else {
-      //   const isCurrent = contractManager.isValidatorCurrent(node.address);
-      // }
 
     let nodeText =  `${node.nodeID} ${node.address}`;
-
 
     const stakingAddress = await contractManager.getAddressStakingByMining(node.address);
     const stakingAddressBN = new BigNumber(stakingAddress);
 
     if (stakingAddressBN.isZero()) {
-      console.log(`INFO: Not a Pool: ${nodeText}`);
+      console.log(`skipping: Not a Pool: ${nodeText}`);
       continue;
     }
-
-    //staking.methods.maxWithdrawAllowed.call() 
 
     const stakeAmount = new BigNumber(await staking.methods.stakeAmount(stakingAddress, stakingAddress).call());
     nodeText = `${node.nodeID} ${node.address} staking Address: ${stakingAddress}`;
@@ -83,35 +63,31 @@ export async function unstake(){
       continue;
     }
 
-    
-
     const maxWithdrawAllowed = await staking.methods.maxWithdrawAllowed(stakingAddress, stakingAddress).call({from: stakingAddress });
+    const maxWithdrawAllowedBN = web3.utils.toBN(maxWithdrawAllowed);
 
-    //console.log('max withdraw allowed:', maxWithdrawAllowed);
-    //return;
+    if (maxWithdrawAllowedBN.isZero()) {
+      console.log(`INFO: nothing withdrawable for: ${nodeText}`);
+      continue;
+    }
 
     // we keep a symbolik  stake so the pool does not get removed.
-
-    const withdrawAmount = stakeAmount.minus(1.0).toString(10);
+    console.log("max withdraw allowed for ", stakingAddress, ": ", maxWithdrawAllowed);
+    const withdrawAmount = maxWithdrawAllowed //stakeAmount.minus(1.0).toString(10);
     console.log(`${nodeText} withdrawing ${withdrawAmount}`);
-    // const withdrawCall = staking.methods.withdraw(stakingAddress, withdrawAmount );
-    // const callResult = await withdrawCall.call({ from: stakingAddress, gas: '100000000'  });
-    // const sendTx =  withdrawCall.send({ from: stakingAddress, gas: '100000',  gasPrice: '100000000000' });
-    // ;
-    
-    // const sendTx = staking.methods.orderWithdraw(stakingAddress, withdrawAmount).send({ from: stakingAddress, gas: '100000',  gasPrice: '100000000000' });
-    const sendTx = staking.methods.removeMyPool().send({ from: stakingAddress, gas: '1000000',  gasPrice: '100000000000' });
-    
-    // staking.methods.removeMyPool().call
-    logPromiEvent(sendTx);
 
-    const sendResult = await sendTx;
-    console.log(`Executed withdraw for ${nodeText} tx: ${sendResult.transactionHash}`);
-    
-    
-  }
-  
+    if (validators.includes(node.address)) {
+      console.log(`INFO: Node is validator, skipping this node: ${nodeText}`);
+      continue;
+    } else {
+      
+      const sendTx = staking.methods.withdraw(stakingAddress, withdrawAmount).send({ from: stakingAddress, gas: '1000000' });
+      logPromiEvent(sendTx);
+
+      const sendResult = await sendTx;
+      console.log(`Executed withdraw for ${nodeText} tx: ${sendResult.transactionHash}`);    
+    }
+  }  
 }
-
 
 unstake();

@@ -21,14 +21,14 @@ async function run() {
 
   // const cmd_boring_connections = 'INFO parity_ws::io  Accepted a new tcp connection from';
 
+  const pruneLog = true;
+  const lines = 1000000;
 
-
-  //const command = `tail ${remoteDirectory}parity.log -n 1000000 | sed '/Rejecting recently rejected/d' | sed '/Rejected tx already in the blockchain/d' | sed '/Accepted a new tcp connection from/d' > ${remoteDirectory}${outputFileRemote}`;
+  const command = pruneLog  
+    ?  `tail ${remoteDirectory}diamond-node.log -n ${lines} | sed '/Rejecting recently rejected/d' | sed '/Rejected tx already in the blockchain/d' | sed '/Accepted a new tcp connection from/d' > ${remoteDirectory}${outputFileRemote}`
+    : `cp ${remoteDirectory}diamond-node.log ${remoteDirectory}${outputFileRemote}`;
   
-  const command = `cp ${remoteDirectory}diamond-node.log ${remoteDirectory}${outputFileRemote}`;
   const nodes = await getNodesFromCliArgs();
-
-
 
   async function workNodeAsync(node: NodeState) {
 

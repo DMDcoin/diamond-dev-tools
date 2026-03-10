@@ -25,26 +25,60 @@ function parseVersion(version: string) {
   }
 }
 
+
+/// error guarded number proimise for web3 calls
+async function egs(promise: Promise<string>) : Promise<string> {
+  try {
+    return (await promise).toString();
+  } catch (e) {
+    return " (Err) ";
+  }
+}
+
+/// error guarded number proimise for web3 calls
+async function egn(promise: Promise<number>) : Promise<string> {
+  try {
+    return (await promise).toString();
+  } catch (e) {
+    return " (Err) ";
+  }
+}
+
+/// error guarded number proimise for web3 calls
+async function egb(promise: Promise<boolean>) : Promise<string> {
+  try {
+    return (await promise) ? "true": "false";
+  } catch (e) {
+    return " (Err) ";
+  }
+}
+
 async function csvLine(n: NodeState, contractManager: ContractManager, block: number, minStake: BigNumber, allValidators: string[]) {
   const nodeName = `hbbft${n.nodeID}`;
   console.log(`=== ${nodeName} ===`);
   let version = getNodeVersion(nodeName);
   let parsedVersion = parseVersion(version);
-  let isAvailable = false;
+  let isAvailable = "";
   let isStaked = false;
-  let bonusScore = await contractManager.getBonusScore(n.address ?? "", block);
-  let totalStake = new BigNumber(0);
+  let bonusScore =  await egn(contractManager.getBonusScore(n.address ?? "", block));
+  let stakeFromOwner = new BigNumber(0);
   let stakeString = "0";
   let poolAddress = "";
   if (n.address) {
-    isAvailable = await contractManager.isValidatorAvailable(n.address, block);
-    poolAddress = await contractManager.getAddressStakingByMining(n.address);
-    totalStake = await contractManager.getTotalStake(poolAddress);
-    stakeString = totalStake.toString(10);
+    isAvailable = await egb(contractManager.isValidatorAvailable(n.address, block));
+    poolAddress = await egs(contractManager.getAddressStakingByMining(n.address));
+    try {
+      stakeFromOwner = await contractManager.getStake(poolAddress, poolAddress);
+    } catch {}
+
+
+    stakeString = stakeFromOwner.toString(10);
     console.log(`stake: ${stakeString}`);
-    isStaked = totalStake.isGreaterThanOrEqualTo(minStake);
+    isStaked = stakeFromOwner.isGreaterThanOrEqualTo(minStake);
+
+    stakeString = (await contractManager.getTotalStake(poolAddress)).toString(10);
   }
-  stakeString = totalStake.div(new BigNumber("1000000000000000000")).toString();
+  stakeString = stakeFromOwner.div(new BigNumber("1000000000000000000")).toString();
   let current = "FALSE";
   if (n.address && allValidators.includes(n.address.toLowerCase())) {
     current = "TRUE";

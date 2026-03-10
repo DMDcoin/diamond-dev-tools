@@ -5,6 +5,7 @@ import {
 } from "./localnetBootstrapper";
 import { sleep, spoolWait } from "../../utils/time";
 import { ContractManager } from "../../contractManager";
+import { Watchdog } from "../../watchdog";
 
 export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
@@ -35,7 +36,7 @@ export class PhoenixTestRunner extends LocalnetScriptRunnerBase {
 
   }
 
-  async runImplementation(): Promise<boolean> {
+  async runImplementation(watchdog: Watchdog): Promise<boolean> {
 
     const contractManager = new ContractManager(this.web3);
 
