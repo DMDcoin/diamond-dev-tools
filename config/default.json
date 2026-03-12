@@ -74,7 +74,7 @@
       "nodeRepoBranch": "main",
       "nodeBuildScript": "build-from-source-dev-tracing.sh",
       "rustVersion": "1.85",
-      "claimingPotAddress": "0x0",
+      "claimingPotAddress": "0xe0E6787A55049A90aAa4335D0Ff14fAD26B8e88e",
       "builder": {
         "initialValidatorsCount": 1,
         "nodesCount": 27,
