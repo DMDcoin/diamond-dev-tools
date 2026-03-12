@@ -78,22 +78,22 @@ export class ValidatorObserver {
     }
 
     public async initialize(): Promise<void> {
-        //const result = await this.dbManager.getValidators();
+        const result = await this.dbManager.getValidators();
 
         this.currentValidators = new Array<string>();
         this.pendingValidators = new Array<string>();
 
-        // for (const entity of result) {
-        //     const validator = Validator.fromEntity(entity);
+        for (const entity of result) {
+            const validatorAddress = bufferToAddress(entity.node).toLowerCase();
+            
+            if (entity.state === ValidatorState.Current.valueOf()) {
+                this.currentValidators.push(validatorAddress);
+            }
 
-        //     if (validator.state == ValidatorState.Current) {
-        //         this.currentValidators.push(validator.node);
-        //     }
-
-        //     if (validator.state == ValidatorState.Pending) {
-        //         this.pendingValidators.push(validator.node);
-        //     }
-        // }
+            if (entity.state === ValidatorState.Pending.valueOf()) {
+                this.pendingValidators.push(validatorAddress);
+            }
+        }
     }
 
     public async updateValidators(blockNumber: number, posdaoEpoch: number): Promise<void> {
@@ -143,6 +143,13 @@ export class ValidatorObserver {
 
     private async processAddedValidators(addedValidators: string[], blockNumber: number, state: ValidatorState, keyGenRound: number): Promise<void> {
         for (const added of addedValidators) {
+            // Check if there's already an open record for this validator state
+            const existingValidator = await this.dbManager.findValidator(added, state.valueOf());
+            
+            if (existingValidator) {
+                continue;
+            }
+
             const validator = new Validator(
                 state,
                 added,
