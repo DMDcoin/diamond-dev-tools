@@ -7,6 +7,6 @@ const nodeManager = NodeManager.get();
 
 nodeManager.nodeStates.forEach(async (s) => {
   if (s.nodeID > 0) {
-    await s.clearDB();
+    await s.clearDBLocal();
   }
 });
