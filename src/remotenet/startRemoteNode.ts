@@ -10,7 +10,7 @@ export function startRemoteNode(node: NodeState) {
     let runOnThisNode = true;
 
     try {
-      const runningScreens = cmdR(nodeName, 'screen -ls');
+      const runningScreens = cmdR(nodeName, 'screen -ls', true, true);
 
       if (runningScreens.includes(ConfigManager.getRemoteScreenName())) {
         console.log(`WARNING: ${ConfigManager.getRemoteScreenName()} screen already running, not starting another one.!!`);
