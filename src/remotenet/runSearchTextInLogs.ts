@@ -61,7 +61,8 @@ async function doSearch() {
      "verification failed",
      "Phoenix Protocol",
      "collected garbage transaction from",
-    "Unable to finalize handshake for token"
+     "Unable to finalize handshake for token",
+     "Failed to promote handshake" 
   ];
   
 
