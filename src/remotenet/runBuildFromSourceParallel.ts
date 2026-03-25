@@ -1,8 +1,6 @@
-import { FAILSAFE_SCHEMA } from 'js-yaml';
 import { ConfigManager } from '../configManager';
 import { NodeState } from '../net/nodeManager';
-import { cmdR, cmdRemoteAsync } from '../remoteCommand';
-import { getBuildFromSourceCmd } from './buildFromSource';
+import { cmdRemoteAsync } from '../remoteCommand';
 import { getNodesFromCliArgs } from './remotenetArgs';
 import { gitUpdateBranchAndPull } from './gitPullDiamondNode';
 
