@@ -79,6 +79,7 @@ const TIMESTAMP_TYPE_ID = 1114;
 
 /// Tables of the DB in the order of dependency reversed.
 export const DB_TABLES = [
+  "stake_transactions",
   "bonus_score_change_reasons",
   "stake_delegators",
   "delegate_reward",
@@ -293,6 +294,9 @@ export class DbManager {
         }
       }
       
+      // Delete stake_transactions
+      await this.connectionPool.query(sql`DELETE FROM public.stake_transactions WHERE block_number >= ${blockNumber};`);
+
       // Delete bonus_score_change_reasons
       await this.connectionPool.query(sql`DELETE FROM public.bonus_score_change_reasons WHERE block_number >= ${blockNumber};`);
       
@@ -1001,6 +1005,192 @@ export class DbManager {
         avgScoreChange: 0
       };
     }
+  }
+
+  /**
+   * Insert an individual stake/unstake transaction record.
+   */
+  public async insertStakeTransaction(params: {
+    block_number: number;
+    block_timestamp: number;
+    action_type: string;
+    pool_address: string;
+    staker_address?: string | null;
+    to_pool_address?: string | null;
+    caller_address?: string | null;
+    amount: string;
+    staking_epoch?: number | null;
+    is_delegator_stake?: boolean;
+  }) {
+    try {
+      await this.connectionPool.query(sql`
+        INSERT INTO stake_transactions (
+          block_number,
+          block_timestamp,
+          action_type,
+          pool_address,
+          staker_address,
+          to_pool_address,
+          caller_address,
+          amount,
+          staking_epoch,
+          is_delegator_stake,
+          created_at
+        ) VALUES (
+          ${params.block_number},
+          ${params.block_timestamp},
+          ${params.action_type},
+          ${addressToBuffer(params.pool_address)},
+          ${params.staker_address ? addressToBuffer(params.staker_address) : null},
+          ${params.to_pool_address ? addressToBuffer(params.to_pool_address) : null},
+          ${params.caller_address ? addressToBuffer(params.caller_address) : null},
+          ${params.amount},
+          ${params.staking_epoch ?? null},
+          ${params.is_delegator_stake ?? false},
+          NOW()
+        )
+      `);
+    } catch (error) {
+      console.error(`Error inserting stake transaction (${params.action_type} block ${params.block_number}):`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Query stake transactions by staker address.
+   */
+  public async getStakeTransactionsByStaker(
+    stakerAddress: string,
+    actionType?: string,
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<any[]> {
+    const conditions = [sql`staker_address = ${addressToBuffer(stakerAddress)}`];
+    if (actionType) {
+      conditions.push(sql`action_type = ${actionType}`);
+    }
+
+    return await this.connectionPool.query(sql`
+      SELECT * FROM stake_transactions
+      WHERE ${sql.join(conditions, sql` AND `)}
+      ORDER BY block_timestamp DESC, id DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `);
+  }
+
+  /**
+   * Query stake transactions by pool address.
+   */
+  public async getStakeTransactionsByPool(
+    poolAddress: string,
+    actionType?: string,
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<any[]> {
+    const conditions = [sql`pool_address = ${addressToBuffer(poolAddress)}`];
+    if (actionType) {
+      conditions.push(sql`action_type = ${actionType}`);
+    }
+
+    return await this.connectionPool.query(sql`
+      SELECT * FROM stake_transactions
+      WHERE ${sql.join(conditions, sql` AND `)}
+      ORDER BY block_timestamp DESC, id DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `);
+  }
+
+  /**
+   * Query stake transactions within a block range.
+   */
+  public async getStakeTransactionsByBlockRange(
+    startBlock: number,
+    endBlock: number
+  ): Promise<any[]> {
+    return await this.connectionPool.query(sql`
+      SELECT * FROM stake_transactions
+      WHERE block_number >= ${startBlock} AND block_number <= ${endBlock}
+      ORDER BY block_number ASC, id ASC
+    `);
+  }
+
+  /**
+   * Query stake transactions within a time range.
+   */
+  public async getStakeTransactionsByTimeRange(
+    startTimestamp: number,
+    endTimestamp: number,
+    actionType?: string,
+    limit: number = 1000
+  ): Promise<any[]> {
+    const conditions = [
+      sql`block_timestamp >= ${startTimestamp}`,
+      sql`block_timestamp <= ${endTimestamp}`
+    ];
+    if (actionType) {
+      conditions.push(sql`action_type = ${actionType}`);
+    }
+
+    return await this.connectionPool.query(sql`
+      SELECT * FROM stake_transactions
+      WHERE ${sql.join(conditions, sql` AND `)}
+      ORDER BY block_timestamp DESC, id DESC
+      LIMIT ${limit}
+    `);
+  }
+
+  /**
+   * Get recent stake transactions.
+   */
+  public async getRecentStakeTransactions(
+    limit: number = 50,
+    actionType?: string
+  ): Promise<any[]> {
+    if (actionType) {
+      return await this.connectionPool.query(sql`
+        SELECT * FROM stake_transactions
+        WHERE action_type = ${actionType}
+        ORDER BY block_timestamp DESC, id DESC
+        LIMIT ${limit}
+      `);
+    }
+
+    return await this.connectionPool.query(sql`
+      SELECT * FROM stake_transactions
+      ORDER BY block_timestamp DESC, id DESC
+      LIMIT ${limit}
+    `);
+  }
+
+  /**
+   * Get aggregated stake/unstake volume grouped by action type.
+   */
+  public async getStakeTransactionVolume(
+    startTimestamp?: number,
+    endTimestamp?: number
+  ): Promise<any[]> {
+    const conditions: SQLQuery[] = [];
+    if (startTimestamp !== undefined) {
+      conditions.push(sql`block_timestamp >= ${startTimestamp}`);
+    }
+    if (endTimestamp !== undefined) {
+      conditions.push(sql`block_timestamp <= ${endTimestamp}`);
+    }
+
+    const whereClause = conditions.length > 0
+      ? sql` WHERE ${sql.join(conditions, sql` AND `)}`
+      : sql``;
+
+    return await this.connectionPool.query(sql`
+      SELECT
+        action_type,
+        COUNT(*) as transaction_count,
+        SUM(amount) as total_amount
+      FROM stake_transactions
+      ${whereClause}
+      GROUP BY action_type
+      ORDER BY transaction_count DESC
+    `);
   }
 }
 
