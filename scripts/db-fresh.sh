@@ -28,12 +28,12 @@ fi
 # Stop any existing containers
 echo "🛑 Stopping existing containers..."
 cd db
-docker compose down || true
+docker compose -f docker-compose-persistent.yml down || true
 
 # Start fresh containers
 echo "🚀 Starting fresh database containers..."
 envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml
-docker compose up -d
+docker compose -f docker-compose-persistent.yml up -d
 
 # Wait for database to be ready
 echo "⏳ Waiting for database to be ready..."
