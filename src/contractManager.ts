@@ -41,6 +41,7 @@ import JsonTxPermissionHbbft from './abi/json/TxPermissionHbbft.json';
 import { parseEther } from './utils/ether';
 import { h2bn, h2n, toNumber } from './utils/numberUtils';
 import { blockTimeAsUTC } from './utils/dateUtils';
+import { deepEqual } from 'assert';
 
 export enum KeyGenMode {
   NotAPendingValidator = 0,
@@ -108,8 +109,6 @@ export class NetworkAddress {
 
 export class ContractManager {
 
-
-
   private cachedValidatorSetHbbft?: ValidatorSetHbbft;
   private cachedStakingHbbft?: StakingHbbft;
   private cachedKeyGenHistory?: KeyGenHistory;
@@ -117,10 +116,10 @@ export class ContractManager {
   private cachedPermission?: TxPermissionHbbft;
   private cachedBonusScoreSystem?: BonusScoreSystem;
   private cachedConnectivityTrackerHbbft?: ConnectivityTrackerHbbft;
-  
+
   private apyStakeFraction: BigNumber;
 
-  
+
 
   public constructor(public web3: Web3) {
     this.apyStakeFraction = parseEther(this.web3.utils.toWei('10000', 'ether'));
@@ -189,6 +188,13 @@ export class ContractManager {
 
   }
 
+
+  public async getPoolOperatorAddress(pool: string, blockNumber: BlockType = 'latest'): Promise<string> {
+    let stakingContract = await this.getStakingHbbft();
+    let operator = await stakingContract.methods.poolNodeOperator(pool).call({}, blockNumber);
+    return operator;
+  }
+
   public async getBonusScore(miningAddress: string, blockNumber: BlockType): Promise<number> {
 
     const bonusScore = toNumber(await this.getBonusScoreSystem().methods.getValidatorScore(miningAddress).call({}, blockNumber));
@@ -199,7 +205,7 @@ export class ContractManager {
   public async getContractConnectivityTrackerHbbft(): Promise<ConnectivityTrackerHbbft> {
 
     //throw new Error("no available");
-   
+
     if (this.cachedConnectivityTrackerHbbft) {
       return this.cachedConnectivityTrackerHbbft;
     }
@@ -211,7 +217,7 @@ export class ContractManager {
     let result: any = new this.web3.eth.Contract(abi, connectivityTrackerAddress);
 
     this.cachedConnectivityTrackerHbbft = result;
-    
+
     return result;
   }
 
@@ -285,7 +291,7 @@ export class ContractManager {
     return await blockReward.methods.getGovernanceAddress().call();
   }
 
-  public async getClaimingPotAddress() : Promise<string> {
+  public async getClaimingPotAddress(): Promise<string> {
 
     const networkConfig = ConfigManager.getNetworkConfig();
     return networkConfig.claimingPotAddress;
@@ -301,7 +307,7 @@ export class ContractManager {
     return await this.web3.eth.getBalance(governanceAddress, blockNumber);
   }
 
-  public async getEpoch(blockNumber: BlockType): Promise<number> {
+  public async getEpoch(blockNumber: BlockType = 'latest'): Promise<number> {
     return h2n(await (await this.getStakingHbbft()).methods.stakingEpoch().call({}, blockNumber));
   }
 
@@ -356,7 +362,7 @@ export class ContractManager {
 
       return t + `(${seconds} seconds)`;
     }
-    
+
     return formatTime(await this.getEpochDuration());
   }
 
@@ -364,7 +370,7 @@ export class ContractManager {
 
     const staking = await this.getStakingHbbft();
     return this.web3.utils.toBN(await staking.methods.stakingFixedEpochDuration().call()).toNumber();
-  
+
   }
 
   public async getWithdrewStakeEvents(fromBlockNumber: number, toBlockNumber: number): Promise<StakeChangedEvent[]> {
@@ -393,11 +399,11 @@ export class ContractManager {
     return result;
   }
 
-  public async getIPAddress(poolAddress: string) : Promise<NetworkAddress>{
-    
-    
+  public async getIPAddress(poolAddress: string): Promise<NetworkAddress> {
+
+
     const stakingHbbft = await this.getStakingHbbft();
-    
+
     const internet_address_raw = await stakingHbbft.methods.getPoolInternetAddress(poolAddress).call();
 
     const ip_hex = internet_address_raw["0"];
@@ -599,7 +605,7 @@ export class ContractManager {
   }
 
   public async getReward(pool: string, staker: string, posdaoEpoch: number, block: number): Promise<string> {
-    
+
 
     // WARNING: this might not be accurate, since one can add stake in the same block as the reward is calculated.
 
@@ -614,7 +620,7 @@ export class ContractManager {
     const newStake = BigNumber(await contract.methods.stakeAmount(pool, staker).call({}, block));
     const reward = newStake.minus(oldStake);
 
-    if (reward.isGreaterThan(0)) { 
+    if (reward.isGreaterThan(0)) {
       console.log("Reward: ", pool, pool == staker ? "" : " delegator: " + staker, reward.toFormat(18));
       return reward.toString(10);
     }
@@ -641,6 +647,48 @@ export class ContractManager {
   public async getMinStake(blockNumber: BlockType = 'latest') {
     return h2bn(await (await this.getStakingHbbft()).methods.candidateMinStake().call({}, blockNumber));
   }
+
+  public async getStake(pool: string, delegator: string) {
+    return h2bn(await (await this.getStakingHbbft()).methods.stakeAmount(pool, delegator).call())
+  }
+
+  public async getOrderedWithdrawalAmount(pool: string, delegator: string) {
+
+    return this.web3.utils.toBN(await (await this.getStakingHbbft()).methods.orderedWithdrawAmount(pool, delegator).call());
+  }
+
+  public async withdraw(pool: string, delegator: string, withdrawAmount: BigNumber) {
+
+    const staking = await this.getStakingHbbft();
+
+    console.log(`Withdrawing ${withdrawAmount.toString()} from pool ${pool} for delegator ${delegator}`);
+
+    // let validators = await this.getValidators();
+
+
+    // let miningAddress = await this.getAddressStakingByMining(delegator);
+
+    const tx = staking.methods.withdraw(pool, withdrawAmount.toString()).send({ from: delegator, gas: 300000 });
+
+    await tx;
+
+    return tx;
+  }
+
+
+  public async orderWithdraw(pool: string, delegator: string, withdrawAmount: BigNumber) {
+
+    const staking = await this.getStakingHbbft();
+    console.log(`ordering Withdraw ${withdrawAmount.toString()} from pool ${pool} for delegator ${delegator}`);
+
+    // let validators = await this.getValidators();
+    // let miningAddress = await this.getAddressStakingByMining(delegator);
+
+    const tx = staking.methods.orderWithdraw(pool, withdrawAmount.toString()).send({ from: delegator, gas: 300000 });
+    await tx;
+    return tx;
+  }
+
 
   public async getValidators(blockNumber: BlockType = 'latest') {
     return await this.getValidatorSetHbbft().methods.getValidators().call({}, blockNumber);
@@ -713,7 +761,7 @@ export class ContractManager {
     const raw = await this.getPendingValidatorState(validator, blockNumber);
     // todo: make this more readable like "Pending (3)"
     return raw.toString();
-    
+
   }
 
   public async getPendingValidatorState(validator: string, blockNumber: BlockType = 'latest'): Promise<KeyGenMode> {
@@ -799,9 +847,9 @@ export class ContractManager {
     const delegators = await this.getAllPoolDelegators(pool, blockNumber - 1);
 
     for (const delegator of delegators) {
-      
+
       const reward = await this.getReward(pool, delegator, epoch, blockNumber);
-      
+
       result.push({
         poolAddress: pool,
         delegatorAddress: delegator,
@@ -825,8 +873,8 @@ export class ContractManager {
   }
 
 
-  public async getStakeLastEpoch(pool: string, delegator: string, blockNumber: number) : Promise<bigint>{
-    
+  public async getStakeLastEpoch(pool: string, delegator: string, blockNumber: number): Promise<bigint> {
+
     console.log("warn: getStakeLastEpoch() called. not implemented since https://github.com/DMDcoin/diamond-contracts-core/issues/43");
     return BigInt(0);
   }

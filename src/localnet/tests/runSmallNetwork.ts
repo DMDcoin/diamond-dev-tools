@@ -1,7 +1,7 @@
-import Web3 from "web3";
+
+import { Watchdog } from "../../watchdog";
 import {
-  LocalnetScriptRunnerBase,
-  LocalnetScriptRunnerResult,
+  LocalnetScriptRunnerBase
 } from "./localnetBootstrapper";
 
 export class SmallNetworkRunner extends LocalnetScriptRunnerBase {
@@ -9,7 +9,7 @@ export class SmallNetworkRunner extends LocalnetScriptRunnerBase {
     super("nodes-local-test-small-network", "simple test with a network that consists of 4 nodes", 4);
   }
 
-  async runImplementation(): Promise<boolean> {
+  async runImplementation(watchdog: Watchdog): Promise<boolean> {
     return true;
   }
 }

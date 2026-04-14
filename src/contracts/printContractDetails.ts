@@ -70,13 +70,17 @@ export async function printContractDetails(contractManager: ContractManager, nod
 
     const stakingEpochNum = await stakingContract.methods.stakingEpoch().call();
 
+
+
     if (logOptions.logEpochData) {
 
         const epochStartTime = new Date(Number.parseInt(await stakingContract.methods.stakingEpochStartTime().call()) * 1000);
         const phaseTransition = new Date(Number.parseInt(await stakingContract.methods.startTimeOfNextPhaseTransition().call()) * 1000);
         const epochEndTime = new Date(Number.parseInt(await stakingContract.methods.stakingFixedEpochEndTime().call()) * 1000);
         const currentKeyGenExtraTimeWindow = Number.parseInt(await stakingContract.methods.currentKeyGenExtraTimeWindow().call());
+        
         console.log(`epoch start time UTC: ${epochStartTime.toUTCString()}`);
+        console.log(`epoch stakingEpochNum: ${stakingEpochNum }`);
         console.log(`next Phase Transition UTC: ${phaseTransition.toUTCString()}`);
 
         const overdue = latestBlockDate.valueOf() - epochEndTime.valueOf();
@@ -113,7 +117,7 @@ export async function printContractDetails(contractManager: ContractManager, nod
         }
 
         console.log(`Key state:`);
-        for (const validator of currentValidators) {
+        for (const validator of pendingValidators.length > 0 ? pendingValidators : currentValidators) {
             const partByteLength = await contractManager.getKeyPARTBytesLength(validator);
             const acks = await contractManager.getKeyACKSNumber(validator);
             console.log(`${await nodeManager.formatNodeName(validator)} partByteLength: ${partByteLength} acks: ${acks}`);
@@ -122,7 +126,7 @@ export async function printContractDetails(contractManager: ContractManager, nod
 
     if (logOptions.logPools) {
         const likehilihood = await stakingContract.methods.getPoolsLikelihood().call();
-        console.log(`likehilihood total:`, likehilihood.sum);
+       
         const pools = await stakingContract.methods.getPools().call();
 
         for (const pool of pools) {
@@ -132,6 +136,13 @@ export async function printContractDetails(contractManager: ContractManager, nod
             let ipAddress = await contractManager.getIPAddress(pool);
             console.log(`validator candidate ${pool} (node address:${miningAddressText}) IP: ${ipAddress} available since: ${callResult} ${new Date(Number.parseInt(callResult) * 1000).toUTCString()}`);
         }
+
+
+        likehilihood.likelihoods.forEach((like: string, index: number) => {
+            console.log(`likehilihood: `, like);
+         });
+        console.log(`likehilihood total:`, likehilihood.sum);
+
     }
 
     let timeframeLength = await stakingContract.methods.stakingTransitionTimeframeLength().call();
@@ -143,7 +154,12 @@ export async function printContractDetails(contractManager: ContractManager, nod
 
     let earlyEpochEnd = await connectivityTracker.methods.isEarlyEpochEnd(stakingEpochNum).call();
     console.log("connectivity tracker: isEarlyEpochEnd", earlyEpochEnd);
-
+    
+    if (earlyEpochEnd) {
+        const triggerTime = await stakingContract.methods.earlyEpochEndTriggerTime().call();
+         console.log("early epoch end was triggered at :", triggerTime, " -> ",  new Date(Number.parseInt(triggerTime) * 1000).toUTCString());
+         console.log("early epoch end was triggered at:", triggerTime, new Date(Number.parseInt(triggerTime) * 1000).toUTCString());
+    }
 
     let flaggedValidators = await connectivityTracker.methods.getFlaggedValidators().call();
     console.log("flagged validators:", flaggedValidators.length);

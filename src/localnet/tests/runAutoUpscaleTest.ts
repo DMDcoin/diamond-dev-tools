@@ -1,17 +1,17 @@
-import Web3 from "web3";
+
 import {
   LocalnetScriptRunnerBase,
-  LocalnetScriptRunnerResult,
 } from "./localnetBootstrapper";
 import { sleep, spoolWait } from "../../utils/time";
 import { ContractManager } from "../../contractManager";
+import { Watchdog } from "../../watchdog";
 
 export class AutoUpscaleRunner extends LocalnetScriptRunnerBase {
   public constructor() {
     super("nodes-local-test-early-epoch-end", "auto-upscale", 16);
   }
 
-  async runImplementation(): Promise<boolean> {
+  async runImplementation(watchdog: Watchdog): Promise<boolean> {
 
 
     // first we need to downscale

@@ -5,13 +5,14 @@ import {
 } from "./localnetBootstrapper";
 import { FastTxSender } from "../../tools/FastTxSender";
 import { runPerformanceTests } from "../../tests/performanceTest";
+import { Watchdog } from "../../watchdog";
 
 class LargeNetworkTestRunner extends LocalnetScriptRunnerBase {
   constructor() {
     super("nodes-local-test-large-network", "staking test", 25);
   }
 
-  async runImplementation(): Promise<boolean> {
+  async runImplementation(watchdog: Watchdog): Promise<boolean> {
 
     console.log("Running Performance test.");
     let startTime = Date.now();

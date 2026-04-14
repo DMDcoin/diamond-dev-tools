@@ -1,0 +1,42 @@
+{
+    "Routing": {
+      "Type": "client"
+    },
+    "Swarm": {
+      "ConnMgr": {
+        "Type": "basic",
+        "LowWater": 20,
+        "HighWater": 70,
+        "GracePeriod": "1m"
+      },
+      "DisableBandwidthMetrics": true,
+      "Transports": {
+        "Network": {
+          "QUIC": true,
+          "TCP": true
+        }
+      }
+    },
+    "Internal": {
+      "Bitswap": {
+        "TaskWorkerCount": 4,
+        "EngineBlockstoreWorkerCount": 128
+      }
+    },
+    "Reprovider": {
+      "Interval": "12h",
+      "Strategy": "pinned"
+    },
+    "Datastore": {
+      "BloomFilterSize": 0,
+      "GCPeriod": "1h"
+    },
+    "Peering": {
+      "Peers": [
+        {
+        //   "ID": "ID_DER_ERSTEN_CLUSTER_NODE",
+        //   "Addrs": ["/ip4/1.2.3.4/tcp/4001"]
+        }
+      ]
+    }
+  }
