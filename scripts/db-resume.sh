@@ -88,7 +88,7 @@ done
 
 # Apply migrations only on first run or if explicitly requested
 cd ..
-ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$DMD_DB_POSTGRES_PASS', safe=''))")
+ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['DMD_DB_POSTGRES_PASS'], safe=''))")
 if [ "$FIRST_RUN" = true ]; then
     echo "📝 First run detected - applying database migrations..."
     sleep 3

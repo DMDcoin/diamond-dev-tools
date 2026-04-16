@@ -59,7 +59,7 @@ done
 echo "📝 Applying database migrations..."
 cd ..
 sleep 3
-ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$DMD_DB_POSTGRES_PASS', safe=''))")
+ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['DMD_DB_POSTGRES_PASS'], safe=''))")
 npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
 
 echo ""
