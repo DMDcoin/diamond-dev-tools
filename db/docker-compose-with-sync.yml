@@ -21,6 +21,7 @@ services:
     environment:
       - DMD_DB_POSTGRES=${DMD_DB_POSTGRES}
       - POSTGRES_INSTANCE=db:5432
+      - RPC_URL=${RPC_URL}
     networks:
       - monitor-net
 
@@ -32,11 +33,17 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards:/var/lib/grafana/dashboards
-    environment:
-      - GF_RENDERING_SERVER_URL=http://grafana_renderer:8081/render
-      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
-      - GF_LOG_FILTERS=rendering:debug
     networks:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
+
+  pgadmin:
+    build: ./pgadmin 
+    ports:
+      - '3002:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
