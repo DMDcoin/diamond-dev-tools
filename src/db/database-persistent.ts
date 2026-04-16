@@ -235,23 +235,21 @@ export class DbManager {
     blockNumber: number,
     operation: (tx: Transaction) => Promise<T>
   ): Promise<T> {
-    return await this.connectionPool.tx(async (tx) => {      
+    return await this.connectionPool.tx(async (tx) => {
+      // Store the transaction context
+      const previousTransaction = this.currentTransaction;
+      this.currentTransaction = tx;
+
       try {
-        // Store the transaction context
-        const previousTransaction = this.currentTransaction;
-        this.currentTransaction = tx;
-        
         // Execute the operation with the transaction
         const result = await operation(tx);
-        
-        // Restore previous transaction context
-        this.currentTransaction = previousTransaction;
-        
         return result;
-        
       } catch (error) {
         console.error(`❌ ROLLBACK TRANSACTION for block ${blockNumber} due to error:`, error);
         throw error;
+      } finally {
+        // Always restore previous transaction context
+        this.currentTransaction = previousTransaction;
       }
     });
   }
@@ -1235,9 +1233,9 @@ export function getDBConnection(): ConnectionPool {
   let networkConfig = ConfigManager.getNetworkConfig();
 
 
-  const pw = process.env["DMD_DB_POSTGRES"];
+  const pw = process.env["DMD_DB_POSTGRES_PASS"];
   if (!pw || pw.length == 0) {
-    let msg = "Environment variable DMD_DB_POSTGRES is not set.";
+    let msg = "Environment variable DMD_DB_POSTGRES_PASS is not set.";
     console.log(msg);
     throw Error(msg);
   }

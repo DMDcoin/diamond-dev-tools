@@ -10,9 +10,9 @@ services:
     build: .
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
     ports:
-      - '${DMD_DB_POSTGRES_PORT}:5432'
+      - '127.0.0.1:${DMD_DB_POSTGRES_PORT}:5432'
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     networks:
       - monitor-net
@@ -20,17 +20,17 @@ services:
   pgadmin:
     build: ./pgadmin 
     ports:
-      - '3002:80'
+      - '127.0.0.1:3002:80'
     environment:
       - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
-      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES_PASS}
     networks:
       - monitor-net
 
   grafana:
     image: grafana/grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
@@ -46,7 +46,7 @@ services:
   grafana_renderer:
     image: grafana/grafana-image-renderer:latest
     ports:
-      - "3001:8081"
+      - "127.0.0.1:3001:8081"
     networks:
       - monitor-net
     labels:
@@ -55,7 +55,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     command: redis-server --appendonly yes
     networks:
       - monitor-net
@@ -65,10 +65,10 @@ services:
   express:
     build: ./express
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000"
     environment:
       - NODE_ENV=development
-      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
       - REDIS_URL=redis://redis:6379
       - RPC_URL=${RPC_URL_DOCKER}
     extra_hosts:

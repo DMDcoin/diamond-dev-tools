@@ -10,7 +10,7 @@ services:
     build: .
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
     ports:
       - '5432:5432'
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
@@ -19,7 +19,7 @@ services:
   dbsync:
     image: diamond-db-sync 
     environment:
-      - DMD_DB_POSTGRES=${DMD_DB_POSTGRES}
+      - DMD_DB_POSTGRES_PASS=${DMD_DB_POSTGRES_PASS}
       - POSTGRES_INSTANCE=db:5432
     networks:
       - monitor-net

@@ -16,12 +16,14 @@ if [ -f ".env" ]; then
     set +a  # Stop auto-exporting
     echo "✅ Environment variables loaded and exported"
     echo "   DMD_DB_POSTGRES: ${DMD_DB_POSTGRES:-NOT SET}"
+    echo "   DMD_DB_POSTGRES_PASS: ${DMD_DB_POSTGRES_PASS:-NOT SET}"
     echo "   DMD_DB_POSTGRES_PORT: ${DMD_DB_POSTGRES_PORT:-NOT SET}"
 else
     echo "⚠️  WARNING: .env file not found!"
     echo "   Creating .env file with defaults..."
     cat > .env << 'EOF'
 export DMD_DB_POSTGRES=postgres
+export DMD_DB_POSTGRES_PASS=postgres
 export DMD_DB_POSTGRES_PORT=5433
 export POSTGRES_INSTANCE=127.0.0.1:5433
 export RPC_URL=http://localhost:54100/
@@ -36,10 +38,11 @@ EOF
 fi
 
 # Verify environment variables are set
-if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
+if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PASS" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
     echo "❌ ERROR: Required environment variables not set after loading .env"
     echo "   Please check your .env file contains:"
     echo "   export DMD_DB_POSTGRES=postgres"
+    echo "   export DMD_DB_POSTGRES_PASS=<your-password>"
     echo "   export DMD_DB_POSTGRES_PORT=5433"
     exit 1
 fi
@@ -71,7 +74,7 @@ sleep 10
 # Check if database is responding
 echo "🔍 Checking database connectivity..."
 for i in {1..30}; do
-    if PGPASSWORD=$DMD_DB_POSTGRES psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+    if PGPASSWORD=$DMD_DB_POSTGRES_PASS psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
         echo "✅ Database is ready"
         break
     fi
@@ -88,11 +91,11 @@ cd ..
 if [ "$FIRST_RUN" = true ]; then
     echo "📝 First run detected - applying database migrations..."
     sleep 3
-    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
+    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
 else
     echo "🔄 Resuming from existing database - checking if migrations are needed..."
     # Check if migrations are up to date
-    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations || true
+    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations || true
 fi
 
 echo ""

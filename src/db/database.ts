@@ -1048,9 +1048,9 @@ export function getDBConnection(): ConnectionPool {
   let networkConfig = ConfigManager.getNetworkConfig();
 
 
-  const pw = process.env["DMD_DB_POSTGRES"];
+  const pw = process.env["DMD_DB_POSTGRES_PASS"];
   if (!pw || pw.length == 0) {
-    let msg = "Environment variable DMD_DB_POSTGRES is not set.";
+    let msg = "Environment variable DMD_DB_POSTGRES_PASS is not set.";
     console.log(msg);
     throw Error(msg);
   }

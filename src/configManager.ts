@@ -271,14 +271,17 @@ export class ConfigManager {
     }
 
 
+    private static configInitialized = false;
+
     public static getConfig(): TestConfig {
 
 
         const args = parseNetworkArgs();
 
-        if (args.network ) {
+        if (args.network && !ConfigManager.configInitialized) {
 
             console.log('overwriting network from CLI args: ', args.network);
+            ConfigManager.configInitialized = true;
             ConfigManager.setNetwork(args.network);
             config.network = args.network;
         }
