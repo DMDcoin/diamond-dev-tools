@@ -59,7 +59,8 @@ done
 echo "📝 Applying database migrations..."
 cd ..
 sleep 3
-npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
+ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$DMD_DB_POSTGRES_PASS', safe=''))")
+npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
 
 echo ""
 echo "🎉 Database fresh setup completed successfully!"

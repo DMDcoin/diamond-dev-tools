@@ -1054,7 +1054,8 @@ export function getDBConnection(): ConnectionPool {
     console.log(msg);
     throw Error(msg);
   }
-  let connectionString = `postgres://postgres:${pw}@${networkConfig.db}/postgres`;
+  const encodedPw = encodeURIComponent(pw);
+  let connectionString = `postgres://postgres:${encodedPw}@${networkConfig.db}/postgres`;
   // console.log(connectionString);
   return createConnectionPool(connectionString);
 }

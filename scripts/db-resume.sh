@@ -88,14 +88,15 @@ done
 
 # Apply migrations only on first run or if explicitly requested
 cd ..
+ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$DMD_DB_POSTGRES_PASS', safe=''))")
 if [ "$FIRST_RUN" = true ]; then
     echo "📝 First run detected - applying database migrations..."
     sleep 3
-    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
+    npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
 else
     echo "🔄 Resuming from existing database - checking if migrations are needed..."
     # Check if migrations are up to date
-    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations || true
+    npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations || true
 fi
 
 echo ""
