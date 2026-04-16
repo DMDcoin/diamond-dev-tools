@@ -73,18 +73,42 @@ sleep 10
 
 # Check if database is responding
 echo "🔍 Checking database connectivity..."
+DB_READY=false
 for i in {1..30}; do
     if PGPASSWORD=$DMD_DB_POSTGRES_PASS psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
         echo "✅ Database is ready"
+        DB_READY=true
         break
     fi
     if [ $i -eq 30 ]; then
         echo "❌ Database failed to start after 5 minutes"
-        exit 1
+        break
     fi
     echo "   Attempt $i/30: Database not ready yet, waiting..."
     sleep 10
 done
+
+# If DB didn't connect - recreate
+if [ "$DB_READY" = false ]; then
+    echo "   Recreating database with current password..."
+    docker compose -f docker-compose-persistent.yml down -v || true
+    docker compose -f docker-compose-persistent.yml up -d
+    sleep 10
+    for i in {1..30}; do
+        if PGPASSWORD=$DMD_DB_POSTGRES_PASS psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+            echo "✅ Database is ready after volume reset"
+            FIRST_RUN=true
+            DB_READY=true
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "❌ Database still failed after volume reset"
+            exit 1
+        fi
+        echo "   Attempt $i/30: Database not ready yet, waiting..."
+        sleep 10
+    done
+fi
 
 # Apply migrations only on first run or if explicitly requested
 cd ..

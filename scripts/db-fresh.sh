@@ -29,7 +29,7 @@ fi
 # Stop any existing containers
 echo "🛑 Stopping existing containers..."
 cd db
-docker compose -f docker-compose-persistent.yml down || true
+docker compose -f docker-compose-persistent.yml down -v || true
 
 # Start fresh containers
 echo "🚀 Starting fresh database containers..."
