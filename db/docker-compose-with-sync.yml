@@ -47,3 +47,38 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
     networks:
       - monitor-net
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  diamondwebservice:
+    build: ./express
+    env_file:
+      - ../.env
+    ports:
+      - "${PORT:-9990}:${PORT:-9990}"
+    environment:
+      - NODE_ENV=development
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - REDIS_URL=redis://redis:6379
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-9990}
+      - RPC_URL=${RPC_URL_DOCKER}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./express/src:/app/src
+    depends_on:
+      - db
+      - redis
+    networks:
+      - monitor-net
