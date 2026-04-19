@@ -1,7 +1,7 @@
 import { ConfigManager } from '../configManager';
 import { NodeState } from '../net/nodeManager';
-import { cmdR, cmdRemoteAsync } from '../remoteCommand';
-import { getBuildFromSourceCmd } from './buildFromSource';
+import { cmdR } from '../remoteCommand';
+import { gitUpdateBranchAndPull } from './gitPullDiamondNode';
 import { getNodesFromCliArgs } from './remotenetArgs';
 
 async function doRunBuildFromSource(n: NodeState): Promise<string> {
@@ -24,6 +24,7 @@ async function runAllNodes() {
     let nodes = await getNodesFromCliArgs();
     for (const n of nodes) { 
         
+        await gitUpdateBranchAndPull(n);
         await doRunBuildFromSource(n);
         try {
             await n.stopRemoteNode();

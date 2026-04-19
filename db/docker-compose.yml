@@ -35,18 +35,6 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards:/var/lib/grafana/dashboards
-    environment:
-      - GF_RENDERING_SERVER_URL=http://grafana_renderer:8081/render
-      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
-      - GF_LOG_FILTERS=rendering:debug
-    networks:
-      - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
-  grafana_renderer:
-    image: grafana/grafana-image-renderer:latest
-    ports:
-      - "3001:8081"
     networks:
       - monitor-net
     labels:

@@ -55,13 +55,14 @@ async function doSearch() {
 
 
   let knownWatchedSearchterms = [
-    // 'deadlock(s) detected',
-    // "number of connections has been reached",
-    // "HostCacheInconsistency",
-    // "verification failed",
-    //"Phoenix Protocol"
-    //"collected garbage transaction from",
-    "Unable to finalize handshake for token"
+     'deadlock(s) detected',
+     "number of connections has been reached",
+     "HostCacheInconsistency",
+     "verification failed",
+     "Phoenix Protocol",
+     "collected garbage transaction from",
+     "Unable to finalize handshake for token",
+     "Failed to promote handshake" 
   ];
   
 

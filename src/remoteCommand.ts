@@ -18,7 +18,7 @@ export function cmdR(hostSSH: string, command: string, logOutput: boolean = true
 
     return txt;
   } catch (error: any) {
-    console.log(`cmdR Error: ${hostSSH} : ${command}`);
+    
     //console.log(error);
     // if (error.output) {
 
@@ -27,8 +27,9 @@ export function cmdR(hostSSH: string, command: string, logOutput: boolean = true
     //   //let error = buffer.toString("utf8");
     // }
     //return "";
-    if (ignoreErrors) {
-      throw "";
+    if (!ignoreErrors) {
+      console.log(`cmdR Error: ${hostSSH} : ${command}`, error);
+      throw error;
     }
 
     return "";

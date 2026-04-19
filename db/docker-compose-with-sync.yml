@@ -11,8 +11,6 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
-    ports:
-      - '5432:5432'
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     networks:
       - monitor-net
@@ -21,6 +19,7 @@ services:
     environment:
       - DMD_DB_POSTGRES=${DMD_DB_POSTGRES}
       - POSTGRES_INSTANCE=db:5432
+      - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     networks:
       - monitor-net
 
@@ -32,11 +31,50 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards:/var/lib/grafana/dashboards
-    environment:
-      - GF_RENDERING_SERVER_URL=http://grafana_renderer:8081/render
-      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
-      - GF_LOG_FILTERS=rendering:debug
     networks:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
+
+  pgadmin:
+    build: ./pgadmin 
+    ports:
+      - '3002:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
+  
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  diamondwebservice:
+    build: ./express
+    env_file:
+      - ../.env
+    ports:
+      - "${PORT:-9990}:${PORT:-9990}"
+    environment:
+      - NODE_ENV=development
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - REDIS_URL=redis://redis:6379
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-9990}
+      - RPC_URL=${RPC_URL_DOCKER}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./express/src:/app/src
+    depends_on:
+      - db
+      - redis
+    networks:
+      - monitor-net
