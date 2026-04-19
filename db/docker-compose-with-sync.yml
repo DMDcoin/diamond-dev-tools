@@ -11,8 +11,6 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
-    ports:
-      - '5432:5432'
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     networks:
       - monitor-net
@@ -21,7 +19,7 @@ services:
     environment:
       - DMD_DB_POSTGRES=${DMD_DB_POSTGRES}
       - POSTGRES_INSTANCE=db:5432
-      - RPC_URL=${RPC_URL}
+      - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     networks:
       - monitor-net
 
@@ -50,8 +48,6 @@ services:
   
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
