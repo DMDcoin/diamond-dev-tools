@@ -112,7 +112,7 @@
     "db-delete-local-with-sync": "cd db && docker compose -f docker-compose-with-sync.yml down",
     "db-start-local": "cd db && envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml && docker compose up",
     "db-start-local-detached": "cd db && envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml && docker compose up -d",
-    "db-start-local-detached-with-sync": "cd db && envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml && docker compose -f docker-compose-with-sync up -d",
+    "db-start-local-detached-with-sync": "cd db && envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml && docker compose -f docker-compose-with-sync.yml up -d",
     "db-grant-grafana-permissions": "ts-node src/db/runGrantGrafanaPermissions.ts",
     "db-update-ts-schema": "npx @databases/pg-schema-cli --database postgres://postgres:$DMD_DB_POSTGRES@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres --directory src/db/schema",
     "db-fill-from-network": "ts-node src/db/runFillDb.ts",
