@@ -4,6 +4,11 @@ networks:
   monitor-net:
     driver: bridge
 
+volumes:
+  redis-data:
+    name: diamond-api-redis
+    driver: local
+
 services:
   db:
     #image: postgres:15.3
