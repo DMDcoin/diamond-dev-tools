@@ -68,7 +68,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-9990}
-      - RPC_URL=${RPC_URL_DOCKER}
+      - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
