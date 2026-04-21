@@ -13,6 +13,18 @@ import { BonusScoreProcessor } from "./bonusScoreProcessor";
 
 async function run() {
 
+    
+    const logDebug = true;
+
+
+    const log = logDebug ? 
+        (s: any, ...args: any[]) => {
+            console.log(s, ...args);
+        }:
+        (s: any) => {
+        };
+    
+
     // we start from head of the chain to the tail.
     // we process each block.
 
@@ -106,11 +118,13 @@ async function run() {
         try {
 
             let blockHeader = await web3.eth.getBlock(currentBlockNumber);
+            log("header", blockHeader);
             const { timeStamp, duration, transaction_count, txs_per_sec, posdaoEpoch } = await contractManager.getBlockInfos(blockHeader, blockBeforeTimestamp);
             //console.log(`"${blockHeader.number}","${blockHeader.hash}","${blockHeader.extraData}","${blockHeader.timestamp}","${new Date(timeStamp * 1000).toISOString()}","${duration}","${num_of_validators}","${transaction_count}","${txs_per_sec.toFixed(4)}"`);
             // console.log( `${blockHeader.number} ${blockHeader.hash} ${blockHeader.extraData} ${blockHeader.timestamp} ${new Date(thisTimeStamp * 1000).toUTCString()} ${lastTimeStamp - thisTimeStamp}`);
             blockBeforeTimestamp = timeStamp;
 
+            log("blockBeforeTimestamp", blockBeforeTimestamp);
             let delta = parseEther(await contractManager.getRewardDeltaPot(blockHeader.number));
             let reinsert = parseEther(await contractManager.getRewardReinsertPot(blockHeader.number));
             let rewardContractTotal = parseEther(await contractManager.getRewardContractTotal(blockHeader.number));
