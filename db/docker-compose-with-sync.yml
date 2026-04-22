@@ -11,7 +11,6 @@ volumes:
 
 services:
   db:
-    #image: postgres:15.3
     build: .
     environment:
       - POSTGRES_USER=postgres
