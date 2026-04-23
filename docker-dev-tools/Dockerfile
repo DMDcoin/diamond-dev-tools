@@ -9,6 +9,7 @@ COPY ["package.json", "package-lock.json", "/app/"]
 COPY --parents */*.json /app/
 COPY node_modules/ /app/node_modules
 COPY node_modules/.bin/ /app/node_modules/.bin
+COPY db/ /app/db
 COPY ./tsconfig.json /app/tsconfig.json
  
 COPY --parents src/**/*.ts /app/
