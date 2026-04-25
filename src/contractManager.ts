@@ -293,6 +293,14 @@ export class ContractManager {
 
   public async getClaimingPotAddress(): Promise<string> {
 
+    const chainID = await this.web3.eth.getChainId();
+    // we have som problems with configured network and getting the correct chainid
+    if (chainID ===  17771)  {
+      return "0xf3bf614C0EA1D14D998BcDb49Ad1F8f57332Bb42";
+    } else if (chainID === 37373) {
+      return "0xCB9605E908679e7596cd67632CaffC980b5Bf895";
+    }
+
     const networkConfig = ConfigManager.getNetworkConfig();
     return networkConfig.claimingPotAddress;
   }
