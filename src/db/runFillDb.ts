@@ -126,13 +126,19 @@ async function run() {
 
             log("blockBeforeTimestamp", blockBeforeTimestamp);
             let delta = parseEther(await contractManager.getRewardDeltaPot(blockHeader.number));
+            log("delta", delta);
             let reinsert = parseEther(await contractManager.getRewardReinsertPot(blockHeader.number));
+            log("reinsert", reinsert);
             let rewardContractTotal = parseEther(await contractManager.getRewardContractTotal(blockHeader.number));
+            log("rewardContractTotal", rewardContractTotal);
             let governanceBalance = parseEther(await contractManager.getGovernancePot(blockHeader.number));
+            log("governanceBalance", governanceBalance);
             let claimingPotContractAddress = await contractManager.getClaimingPotAddress();
-
+            log("claimingPotContractAddress", claimingPotContractAddress);
             let unclaimed = parseEther(await web3.eth.getBalance(claimingPotContractAddress));
 
+            log("unclaimed", unclaimed);
+            
             //lastTimeStamp = thisTimeStamp;
             //blockHeader = blockBefore;
             await dbManager.insertHeader(
