@@ -22,6 +22,8 @@ services:
     image: diamond-db-sync 
     environment:
       - DMD_DB_POSTGRES=${DMD_DB_POSTGRES}
+      - DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT}
+      - DMD_DB_POSTGRES_HOST=db
       - POSTGRES_INSTANCE=db:5432
       - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     networks:
