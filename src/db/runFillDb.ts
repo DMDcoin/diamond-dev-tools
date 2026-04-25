@@ -14,8 +14,7 @@ import { BonusScoreProcessor } from "./bonusScoreProcessor";
 async function run() {
 
     
-    const logDebug = true;
-
+    const logDebug = (process.env.DEV_TOOLS_LOG_DEBUG)?.toLocaleLowerCase() === `true`;
 
     const log = logDebug ? 
         (s: any, ...args: any[]) => {
