@@ -74,8 +74,6 @@ services:
       - DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT}
       - POSTGRES_INSTANCE=db:${DMD_DB_POSTGRES_PORT}
       - REDIS_URL=redis://redis:6379
-      - HOST=${HOST:-0.0.0.0}
-      - PORT=${PORT:-9990}
       - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
       - RPC_URL_DOCKER=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     extra_hosts:
