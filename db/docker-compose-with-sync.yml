@@ -71,10 +71,13 @@ services:
     environment:
       - NODE_ENV=development
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT}
+      - POSTGRES_INSTANCE=db:${DMD_DB_POSTGRES_PORT}
       - REDIS_URL=redis://redis:6379
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-9990}
       - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
+      - RPC_URL_DOCKER=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
