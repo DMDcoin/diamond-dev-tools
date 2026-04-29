@@ -4,31 +4,33 @@ networks:
   monitor-net:
     driver: bridge
 
+volumes:
+  redis-data:
+    name: diamond-api-redis
+    driver: local
+
 services:
   db:
-    #image: postgres:15.3
     build: .
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
-    ports:
-      - '${DMD_DB_POSTGRES_PORT}:5432'
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     networks:
       - monitor-net
-
-  pgadmin:
-    build: ./pgadmin 
-    ports:
-      - '3002:80'
+  dbsync:
+    image: diamond-db-sync 
     environment:
-      - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
-      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+      - DMD_DB_POSTGRES=${DMD_DB_POSTGRES}
+      - DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT}
+      - DMD_DB_POSTGRES_HOST=db
+      - POSTGRES_INSTANCE=db:5432
+      - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     networks:
       - monitor-net
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
     volumes:
@@ -40,27 +42,45 @@ services:
     labels:
       org.label-schema.group: "monitoring"
 
+  pgadmin:
+    build: ./pgadmin 
+    ports:
+      - '3002:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+    networks:
+      - monitor-net
+  
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    volumes:
+      - redis-data:/data
     command: redis-server --appendonly yes
     networks:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
 
-  express:
+  diamondwebservice:
     build: ./express
+    env_file:
+      - ../.env
     ports:
-      - "4000:4000"
+      - "${PORT:-9990}:${PORT:-9990}"
     environment:
       - NODE_ENV=development
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT}
+      - POSTGRES_INSTANCE=db:${DMD_DB_POSTGRES_PORT}
+      - HOST=0.0.0.0
       - REDIS_URL=redis://redis:6379
-      - RPC_URL=${RPC_URL_DOCKER}
+      - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
+      - RPC_URL_DOCKER=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - ./express/src:/app/src
     depends_on:
       - db
       - redis

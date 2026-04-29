@@ -13,6 +13,17 @@ import { BonusScoreProcessor } from "./bonusScoreProcessor";
 
 async function run() {
 
+    
+    const logDebug = (process.env.DEV_TOOLS_LOG_DEBUG)?.toLocaleLowerCase() === `true`;
+
+    const log = logDebug ? 
+        (s: any, ...args: any[]) => {
+            console.log(s, ...args);
+        }:
+        (s: any) => {
+        };
+    
+
     // we start from head of the chain to the tail.
     // we process each block.
 
@@ -106,19 +117,27 @@ async function run() {
         try {
 
             let blockHeader = await web3.eth.getBlock(currentBlockNumber);
+            log("header", blockHeader);
             const { timeStamp, duration, transaction_count, txs_per_sec, posdaoEpoch } = await contractManager.getBlockInfos(blockHeader, blockBeforeTimestamp);
             //console.log(`"${blockHeader.number}","${blockHeader.hash}","${blockHeader.extraData}","${blockHeader.timestamp}","${new Date(timeStamp * 1000).toISOString()}","${duration}","${num_of_validators}","${transaction_count}","${txs_per_sec.toFixed(4)}"`);
             // console.log( `${blockHeader.number} ${blockHeader.hash} ${blockHeader.extraData} ${blockHeader.timestamp} ${new Date(thisTimeStamp * 1000).toUTCString()} ${lastTimeStamp - thisTimeStamp}`);
             blockBeforeTimestamp = timeStamp;
 
+            log("blockBeforeTimestamp", blockBeforeTimestamp);
             let delta = parseEther(await contractManager.getRewardDeltaPot(blockHeader.number));
+            log("delta", delta);
             let reinsert = parseEther(await contractManager.getRewardReinsertPot(blockHeader.number));
+            log("reinsert", reinsert);
             let rewardContractTotal = parseEther(await contractManager.getRewardContractTotal(blockHeader.number));
+            log("rewardContractTotal", rewardContractTotal);
             let governanceBalance = parseEther(await contractManager.getGovernancePot(blockHeader.number));
+            log("governanceBalance", governanceBalance);
             let claimingPotContractAddress = await contractManager.getClaimingPotAddress();
-
+            log("claimingPotContractAddress", claimingPotContractAddress);
             let unclaimed = parseEther(await web3.eth.getBalance(claimingPotContractAddress));
 
+            log("unclaimed", unclaimed);
+            
             //lastTimeStamp = thisTimeStamp;
             //blockHeader = blockBefore;
             await dbManager.insertHeader(

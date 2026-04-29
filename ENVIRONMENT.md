@@ -12,3 +12,4 @@ RPC_URL: overwriteds RPC url from the config files.
 true or false: defined if tests should cache network. this is adviced to be set during development on code or notsoftware to be true, for CI tests, it is adived to be false. 
 
 
+DEV_TOOLS_LOG_DEBUG
