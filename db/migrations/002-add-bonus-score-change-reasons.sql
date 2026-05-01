@@ -1,9 +1,4 @@
--- Migration: Add bonus_score_change_reasons table
--- Date: September 4, 2025
--- Purpose: Track reasons for bonus score changes while preserving existing data
-
 -- Create the new table for bonus score change reasons
--- This is ADDITIVE ONLY - no existing tables are modified
 CREATE TABLE IF NOT EXISTS bonus_score_change_reasons (
     id SERIAL PRIMARY KEY,
     

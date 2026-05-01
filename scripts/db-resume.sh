@@ -16,12 +16,14 @@ if [ -f ".env" ]; then
     set +a  # Stop auto-exporting
     echo "✅ Environment variables loaded and exported"
     echo "   DMD_DB_POSTGRES: ${DMD_DB_POSTGRES:-NOT SET}"
+    echo "   DMD_DB_POSTGRES_PASS: ${DMD_DB_POSTGRES_PASS:-NOT SET}"
     echo "   DMD_DB_POSTGRES_PORT: ${DMD_DB_POSTGRES_PORT:-NOT SET}"
 else
     echo "⚠️  WARNING: .env file not found!"
     echo "   Creating .env file with defaults..."
     cat > .env << 'EOF'
 export DMD_DB_POSTGRES=postgres
+export DMD_DB_POSTGRES_PASS=postgres
 export DMD_DB_POSTGRES_PORT=5433
 export POSTGRES_INSTANCE=127.0.0.1:5433
 export RPC_URL=http://localhost:54100/
@@ -36,10 +38,11 @@ EOF
 fi
 
 # Verify environment variables are set
-if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
+if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PASS" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
     echo "❌ ERROR: Required environment variables not set after loading .env"
     echo "   Please check your .env file contains:"
     echo "   export DMD_DB_POSTGRES=postgres"
+    echo "   export DMD_DB_POSTGRES_PASS=<your-password>"
     echo "   export DMD_DB_POSTGRES_PORT=5433"
     exit 1
 fi
@@ -70,29 +73,54 @@ sleep 10
 
 # Check if database is responding
 echo "🔍 Checking database connectivity..."
+DB_READY=false
 for i in {1..30}; do
-    if PGPASSWORD=$DMD_DB_POSTGRES psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+    if PGPASSWORD=$DMD_DB_POSTGRES_PASS psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
         echo "✅ Database is ready"
+        DB_READY=true
         break
     fi
     if [ $i -eq 30 ]; then
         echo "❌ Database failed to start after 5 minutes"
-        exit 1
+        break
     fi
     echo "   Attempt $i/30: Database not ready yet, waiting..."
     sleep 10
 done
 
+# If DB didn't connect - recreate
+if [ "$DB_READY" = false ]; then
+    echo "   Recreating database with current password..."
+    docker compose -f docker-compose-persistent.yml down -v || true
+    docker compose -f docker-compose-persistent.yml up -d
+    sleep 10
+    for i in {1..30}; do
+        if PGPASSWORD=$DMD_DB_POSTGRES_PASS psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+            echo "✅ Database is ready after volume reset"
+            FIRST_RUN=true
+            DB_READY=true
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "❌ Database still failed after volume reset"
+            exit 1
+        fi
+        echo "   Attempt $i/30: Database not ready yet, waiting..."
+        sleep 10
+    done
+fi
+
 # Apply migrations only on first run or if explicitly requested
 cd ..
+ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['DMD_DB_POSTGRES_PASS'], safe=''))")
 if [ "$FIRST_RUN" = true ]; then
     echo "📝 First run detected - applying database migrations..."
     sleep 3
-    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
+    npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
 else
     echo "🔄 Resuming from existing database - checking if migrations are needed..."
     # Check if migrations are up to date
-    npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations || true
+    npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations || true
 fi
 
 echo ""

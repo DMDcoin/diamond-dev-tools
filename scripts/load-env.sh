@@ -20,6 +20,7 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "Creating default .env file..."
     cat > "$ENV_FILE" << 'EOF'
 export DMD_DB_POSTGRES=postgres
+export DMD_DB_POSTGRES_PASS=postgres
 export DMD_DB_POSTGRES_PORT=5433
 export POSTGRES_INSTANCE=127.0.0.1:5433
 export RPC_URL=http://localhost:54100/
@@ -36,7 +37,7 @@ source "$ENV_FILE"
 set +a  # Stop auto-exporting
 
 # Verify critical variables are set
-REQUIRED_VARS=("DMD_DB_POSTGRES" "DMD_DB_POSTGRES_PORT" "POSTGRES_INSTANCE" "RPC_URL" "RPC_URL_DOCKER" "HOST" "PORT")
+REQUIRED_VARS=("DMD_DB_POSTGRES" "DMD_DB_POSTGRES_PASS" "DMD_DB_POSTGRES_PORT" "POSTGRES_INSTANCE" "RPC_URL" "RPC_URL_DOCKER" "HOST" "PORT")
 ALL_PRESENT=true
 
 echo "✅ Environment variables loaded:"

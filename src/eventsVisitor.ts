@@ -152,6 +152,18 @@ export class EventVisitor implements BaseVisitor {
     }
 
     public async visitOrderedWithdrawalEvent(event: OrderedWithdrawalEvent): Promise<void> {
+        // Record individual transaction
+        await this.dbManager.insertStakeTransaction({
+            block_number: event.blockNumber,
+            block_timestamp: event.blockTimestamp,
+            action_type: 'OrderedWithdrawal',
+            pool_address: event.poolAddress,
+            staker_address: event.stakerAddress,
+            amount: event.amount,
+            staking_epoch: event.epoch,
+            is_delegator_stake: event.poolAddress !== event.stakerAddress
+        });
+
         const existingOrder = await this.dbManager.getOrderWithdrawalEvent({
             from_pool_stakingAddress: addressToBuffer(event.poolAddress),
             staker: addressToBuffer(event.stakerAddress),
@@ -186,6 +198,18 @@ export class EventVisitor implements BaseVisitor {
     }
 
     public async visitClaimedOrderedWithdrawalEvent(event: ClaimedOrderedWithdrawalEvent): Promise<void> {
+        // Record individual transaction
+        await this.dbManager.insertStakeTransaction({
+            block_number: event.blockNumber,
+            block_timestamp: event.blockTimestamp,
+            action_type: 'ClaimedOrderedWithdrawal',
+            pool_address: event.poolAddress,
+            staker_address: event.stakerAddress,
+            amount: event.amount,
+            staking_epoch: event.epoch,
+            is_delegator_stake: event.poolAddress !== event.stakerAddress
+        });
+
         const existingOrder = await this.dbManager.getOrderWithdrawalEvent({
             from_pool_stakingAddress: addressToBuffer(event.poolAddress),
             staker: addressToBuffer(event.stakerAddress),
@@ -229,6 +253,18 @@ export class EventVisitor implements BaseVisitor {
     }
 
     public async visitStakeChangedEvent(event: StakeChangedEvent): Promise<void> {
+        // Record individual transaction (PlacedStake or WithdrewStake)
+        await this.dbManager.insertStakeTransaction({
+            block_number: event.blockNumber,
+            block_timestamp: event.blockTimestamp,
+            action_type: event.eventName,
+            pool_address: event.poolAddress,
+            staker_address: event.stakerAddress,
+            amount: event.amount,
+            staking_epoch: event.epoch,
+            is_delegator_stake: event.isDelegatorStake()
+        });
+
         let changeAmount = event.getStakeChangeAmount();
 
         if (event.isDelegatorStake()) {
@@ -269,6 +305,19 @@ export class EventVisitor implements BaseVisitor {
     }
 
     public async visitMovedStakeEvent(event: MovedStakeEvent): Promise<void> {
+        // Record individual transaction
+        await this.dbManager.insertStakeTransaction({
+            block_number: event.blockNumber,
+            block_timestamp: event.blockTimestamp,
+            action_type: 'MovedStake',
+            pool_address: event.fromPoolAddress,
+            staker_address: event.stakerAddress,
+            to_pool_address: event.toPoolAddress,
+            amount: event.amount,
+            staking_epoch: event.epoch,
+            is_delegator_stake: event.fromPoolAddress !== event.stakerAddress
+        });
+
         const fromPoolRecord = await this.dbManager.getLastStakeHistoryRecord(event.fromPoolAddress);
 
         if (fromPoolRecord == null) {
@@ -337,6 +386,17 @@ export class EventVisitor implements BaseVisitor {
     }
 
     public async visitGatherAbandonedStakesEvent(event: GatherAbandonedStakesEvent): Promise<void> {
+        // Record individual transaction
+        await this.dbManager.insertStakeTransaction({
+            block_number: event.blockNumber,
+            block_timestamp: event.blockTimestamp,
+            action_type: 'GatherAbandonedStakes',
+            pool_address: event.poolAddress,
+            caller_address: event.caller,
+            amount: event.amount,
+            is_delegator_stake: false
+        });
+
         const record = await this.dbManager.getLastStakeHistoryRecord(event.poolAddress);
 
         if (record == null) {

@@ -32,7 +32,7 @@ export class EventProcessor {
         }
 
         for (const event of this.events) {
-            event.accept(this.eventsVisitor);
+            await event.accept(this.eventsVisitor);
         }
     }
 

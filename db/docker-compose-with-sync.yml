@@ -77,8 +77,6 @@ services:
       - REDIS_URL=redis://redis:6379
       - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
       - RPC_URL_DOCKER=${DMD_RPC_URL:-https://rpc.bit.diamonds}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - ./express/src:/app/src
     depends_on:
