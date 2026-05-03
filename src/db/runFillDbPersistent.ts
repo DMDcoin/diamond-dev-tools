@@ -13,6 +13,17 @@ import { BonusScoreProcessor } from "./bonusScoreProcessor";
 
 async function run() {
 
+
+    const logDebug = (process.env.DEV_TOOLS_LOG_DEBUG)?.toLocaleLowerCase() === `true`;
+
+    const log = logDebug ?
+        (s: any, ...args: any[]) => {
+            console.log(s, ...args);
+        } :
+        (s: any) => {
+        };
+
+
     // we start from head of the chain to the tail.
     // we process each block.
 
@@ -125,7 +136,7 @@ async function run() {
 
                 //lastTimeStamp = thisTimeStamp;
                 //blockHeader = blockBefore;
-                
+
                 // Insert header record (parent table for foreign key relationships)
                 await dbManager.insertHeader(
                     blockHeader.number,
@@ -171,7 +182,7 @@ async function run() {
                 }
 
                 const delegatorsSet = eventProcessor.getDelegatorsSet();
-                
+
                 // Insert delegate stakers
                 await dbManager.insertDelegateStaker(Array.from(delegatorsSet));
 
@@ -234,7 +245,7 @@ async function run() {
 
                 // fill db with events
                 await eventProcessor.processEvents();
-                
+
                 // Update validator states
                 await validatorObserver.updateValidators(currentBlockNumber, posdaoEpoch);
 
@@ -243,7 +254,7 @@ async function run() {
                 const currentAllPools = await contractManager.getAllPools(currentBlockNumber);
                 await bonusScoreProcessor.processBonusScore(currentBlockNumber, currentAllPools);
             });
-            
+
             // if there is still no change, sleep 1s
             while (currentBlockNumber == latest_known_block) {
 
@@ -262,7 +273,7 @@ async function run() {
 
         } catch (err: any) {
             const errorMessage = err?.message || String(err);
-            const isConnectionError = 
+            const isConnectionError =
                 errorMessage.includes('Connection terminated unexpectedly') ||
                 errorMessage.includes('password authentication failed') ||
                 errorMessage.includes('connect ECONNREFUSED') ||

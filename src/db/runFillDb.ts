@@ -13,16 +13,16 @@ import { BonusScoreProcessor } from "./bonusScoreProcessor";
 
 async function run() {
 
-    
+
     const logDebug = (process.env.DEV_TOOLS_LOG_DEBUG)?.toLocaleLowerCase() === `true`;
 
-    const log = logDebug ? 
+    const log = logDebug ?
         (s: any, ...args: any[]) => {
             console.log(s, ...args);
-        }:
+        } :
         (s: any) => {
         };
-    
+
 
     // we start from head of the chain to the tail.
     // we process each block.
@@ -137,7 +137,7 @@ async function run() {
             let unclaimed = parseEther(await web3.eth.getBalance(claimingPotContractAddress));
 
             log("unclaimed", unclaimed);
-            
+
             //lastTimeStamp = thisTimeStamp;
             //blockHeader = blockBefore;
             await dbManager.insertHeader(
