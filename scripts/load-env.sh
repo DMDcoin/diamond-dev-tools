@@ -83,5 +83,5 @@ fi
 echo ""
 echo "🚀 Next steps:"
 echo "   npm run db-resume          # Start fresh with persistent storage"
-echo "   npm run db-fill-from-network-persistent    # Fill database"
+echo "   npm run db-fill-from-network   # Fill database"
 echo ""
