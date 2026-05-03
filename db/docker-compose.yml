@@ -28,6 +28,7 @@ services:
       - RPC_URL=${DMD_RPC_URL:-https://rpc.bit.diamonds}
     networks:
       - monitor-net
+    restart: on-failure
 
   grafana:
     image: grafana/grafana:latest
