@@ -18,9 +18,10 @@ if [ -f ".env" ]; then
 fi
 
 # Verify environment variables are set
-if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
+if [ -z "$DMD_DB_POSTGRES" ] || [ -z "$DMD_DB_POSTGRES_PASS" ] || [ -z "$DMD_DB_POSTGRES_PORT" ]; then
     echo "⚠️  Environment variables not set. Setting defaults..."
     export DMD_DB_POSTGRES=${DMD_DB_POSTGRES:-"postgres"}
+    export DMD_DB_POSTGRES_PASS=${DMD_DB_POSTGRES_PASS:-"postgres"}
     export DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT:-"5435"}
     echo "✅ Using defaults: DMD_DB_POSTGRES=$DMD_DB_POSTGRES, DMD_DB_POSTGRES_PORT=$DMD_DB_POSTGRES_PORT"
 fi
@@ -28,12 +29,12 @@ fi
 # Stop any existing containers
 echo "🛑 Stopping existing containers..."
 cd db
-docker compose down || true
+docker compose -f docker-compose-persistent.yml down || true
 
 # Start fresh containers
 echo "🚀 Starting fresh database containers..."
 envsubst < grafana/templates/postgres.yaml > grafana/provisioning/datasources/postgres.yaml
-docker compose up -d
+docker compose -f docker-compose-persistent.yml up -d
 
 # Wait for database to be ready
 echo "⏳ Waiting for database to be ready..."
@@ -42,7 +43,7 @@ sleep 10
 # Check if database is responding with connection test
 echo "🔍 Checking database connectivity..."
 for i in {1..30}; do
-    if PGPASSWORD=$DMD_DB_POSTGRES psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+    if PGPASSWORD=$DMD_DB_POSTGRES_PASS psql -h 127.0.0.1 -p $DMD_DB_POSTGRES_PORT -U postgres -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
         echo "✅ Database is ready"
         break
     fi
@@ -58,7 +59,8 @@ done
 echo "📝 Applying database migrations..."
 cd ..
 sleep 3
-npx pg-migrations apply -c "postgres://postgres:$DMD_DB_POSTGRES@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
+ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['DMD_DB_POSTGRES_PASS'], safe=''))")
+npx pg-migrations apply -c "postgres://postgres:$ENCODED_PASS@127.0.0.1:$DMD_DB_POSTGRES_PORT/postgres" -D db/migrations
 
 echo ""
 echo "🎉 Database fresh setup completed successfully!"

@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/app.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "gen-models": "sequelize-auto -o \"./src/models\" -d postgres -h 127.0.0.1 -u postgres -p 54321 -x $DMD_DB_POSTGRES -e postgres --lang ts",
+    "gen-models": "sequelize-auto -o \"./src/models\" -d postgres -h 127.0.0.1 -u postgres -p 54321 -x $DMD_DB_POSTGRES_PASS -e postgres --lang ts",
     "keygen": "ts-node src/utils/keygen.ts"
   },
   "keywords": [],

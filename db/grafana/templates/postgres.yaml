@@ -12,7 +12,7 @@ datasources:
     user: postgres
     database: postgres
     secureJsonData:
-      password: "${DMD_DB_POSTGRES}"
+      password: "${DMD_DB_POSTGRES_PASS}"
     jsonData:
       sslmode: "disable" # disable/require/verify-ca/verify-full
       maxOpenConns: 10

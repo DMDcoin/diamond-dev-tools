@@ -2,7 +2,6 @@
  * Bonus score change reasons table schema
  * Generated for: bonus_score_change_reasons table
  * 
- * This is ADDITIVE to existing schemas - does not modify existing types
  */
 
 import Headers from './headers'

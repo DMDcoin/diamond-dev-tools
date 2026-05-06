@@ -50,7 +50,6 @@
     "waitAMinute": "ts-node src/runWait.ts",
     "updateHbbftAbi": "mkdir -p src/hbbftAbi && rm -fr src/hbbftAbi && mkdir src/hbbftAbi && cp ../diamond-contracts-core/build/contracts/*.json src/hbbftAbi/",
     "runAllPerformanceTests": "npm-run-all performance-latency1 waitAMinute performance-latency2 waitAMinute performance-throughput1 waitAMinute waitAMinute performance-throughput2",
-    "setup-testnet": "cd testnet && python3 setup_testnet.py 1",
     "test-hbbft-contract": "NODE_ENV=localhost ts-node src/runHbbftTests.ts",
     "start-testnode": "cd testNode && ./start_node.sh",
     "typechain": "typechain --target web3-v1 --out-dir src/abi/contracts 'src/abi/json/*.json'",

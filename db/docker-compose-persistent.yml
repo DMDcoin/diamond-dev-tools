@@ -23,9 +23,9 @@ services:
       - ../.env
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
     ports:
-      - '${DMD_DB_POSTGRES_PORT}:5432'
+      - '127.0.0.1:${DMD_DB_POSTGRES_PORT}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
@@ -37,10 +37,10 @@ services:
     env_file:
       - ../.env
     ports:
-      - '3002:80'
+      - '127.0.0.1:3002:80'
     environment:
       - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
-      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES}
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES_PASS}
     networks:
       - monitor-net
 
@@ -49,7 +49,7 @@ services:
     env_file:
       - ../.env
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
@@ -66,7 +66,7 @@ services:
   grafana_renderer:
     image: grafana/grafana-image-renderer:latest
     ports:
-      - "3001:8081"
+      - "127.0.0.1:3001:8081"
     networks:
       - monitor-net
     labels:
@@ -75,7 +75,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
@@ -89,10 +89,10 @@ services:
     env_file:
       - ../.env
     ports:
-      - "${PORT:-9990}:${PORT:-9990}"
+      - "127.0.0.1:${PORT:-9990}:${PORT:-9990}"
     environment:
       - NODE_ENV=development
-      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES}
+      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
       - REDIS_URL=redis://redis:6379
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-9990}

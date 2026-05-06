@@ -25,6 +25,8 @@ import { stake_delegators as _stake_delegators } from "./stake_delegators";
 import type { stake_delegatorsAttributes, stake_delegatorsCreationAttributes } from "./stake_delegators";
 import { stake_history as _stake_history } from "./stake_history";
 import type { stake_historyAttributes, stake_historyCreationAttributes } from "./stake_history";
+import { stake_transaction as _stake_transaction } from "./stake_transaction";
+import type { stake_transactionAttributes, stake_transactionCreationAttributes } from "./stake_transaction";
 
 export {
   _api_keys as api_keys,
@@ -40,6 +42,7 @@ export {
   _posdao_epoch_node as posdao_epoch_node,
   _stake_delegators as stake_delegators,
   _stake_history as stake_history,
+  _stake_transaction as stake_transaction,
 };
 
 export type {
@@ -69,6 +72,8 @@ export type {
   stake_delegatorsCreationAttributes,
   stake_historyAttributes,
   stake_historyCreationAttributes,
+  stake_transactionAttributes,
+  stake_transactionCreationAttributes,
 };
 
 export function initModels(sequelize: Sequelize) {
@@ -85,6 +90,7 @@ export function initModels(sequelize: Sequelize) {
   const posdao_epoch_node = _posdao_epoch_node.initModel(sequelize);
   const stake_delegators = _stake_delegators.initModel(sequelize);
   const stake_history = _stake_history.initModel(sequelize);
+  const stake_transaction = _stake_transaction.initModel(sequelize);
 
   delegate_staker.belongsToMany(node, { as: 'pool_address_nodes', through: stake_delegators, foreignKey: "delegator", otherKey: "pool_address" });
   delegate_staker.belongsToMany(posdao_epoch, { as: 'id_posdao_epoch_posdao_epoches', through: delegate_reward, foreignKey: "id_delegator", otherKey: "id_posdao_epoch" });
@@ -155,5 +161,6 @@ export function initModels(sequelize: Sequelize) {
     posdao_epoch_node: posdao_epoch_node,
     stake_delegators: stake_delegators,
     stake_history: stake_history,
+    stake_transaction: stake_transaction,
   };
 }
