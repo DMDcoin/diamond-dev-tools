@@ -1,16 +1,17 @@
 import * as child from 'child_process';
 import { sleep } from './utils/time';
+import { assertValidSshHost } from './utils/shellSafe';
 
 //executes a command on a remote Node.
 export function cmdR(hostSSH: string, command: string, logOutput: boolean = true, ignoreErrors: boolean = false): string {
 
-  //todo: proper escaping for the shell of command here.
-  const remoteCommand = `ssh -t -o LogLevel=QUIET ${hostSSH} "${command}"`;
+  // run ssh via argv (no shell); validate the host so it can't be read as an option
+  assertValidSshHost(hostSSH);
 
-  console.log(`executing on ${hostSSH} : ${remoteCommand}`);
+  console.log(`executing on ${hostSSH} : ${command}`);
   try {
 
-    const result = child.execSync(remoteCommand, {});
+    const result = child.execFileSync('ssh', ['-t', '-o', 'LogLevel=QUIET', hostSSH, command], {});
     const txt = result.toString();
     if (logOutput) {
       console.log(txt);
@@ -40,11 +41,9 @@ export function cmdR(hostSSH: string, command: string, logOutput: boolean = true
 /// be aware, it still doesn't print out stdout on the fly.
 export async function cmdRemoteAsync(hostSSH: string, command: string): Promise<string> {
 
-  //console.log(command);
-  //todo: proper escaping for the shell of command here.
-  const remoteCommand = `ssh -t -o LogLevel=QUIET ${hostSSH} "${command}"`;
-  //console.log(remoteCommand);
-  console.log(`executing on ${hostSSH} : ${remoteCommand}`);
+  // ssh runs via spawn argv below (no shell); validate the host
+  assertValidSshHost(hostSSH);
+  console.log(`executing on ${hostSSH} : ${command}`);
 
   let result = '';
 
