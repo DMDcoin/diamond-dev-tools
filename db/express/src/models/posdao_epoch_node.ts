@@ -9,6 +9,12 @@ export interface posdao_epoch_nodeAttributes {
   owner_reward?: number;
   is_claimed?: boolean;
   epoch_apy: number;
+  total_pool_reward: number;
+  validator_fixed_reward: number;
+  node_operator_reward: number;
+  delegators_total_reward: number;
+  total_staked_snapshot: number;
+  reward_computed: boolean;
 }
 
 export type posdao_epoch_nodePk = "id_node" | "id_posdao_epoch";
@@ -22,6 +28,12 @@ export class posdao_epoch_node extends Model<posdao_epoch_nodeAttributes, posdao
   owner_reward?: number;
   is_claimed?: boolean;
   epoch_apy!: number;
+  total_pool_reward!: number;
+  validator_fixed_reward!: number;
+  node_operator_reward!: number;
+  delegators_total_reward!: number;
+  total_staked_snapshot!: number;
+  reward_computed!: boolean;
 
   // posdao_epoch_node belongsTo node via id_node
   id_node_node!: node;
@@ -66,6 +78,36 @@ export class posdao_epoch_node extends Model<posdao_epoch_nodeAttributes, posdao
     epoch_apy: {
       type: DataTypes.DECIMAL,
       allowNull: false
+    },
+    total_pool_reward: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      defaultValue: 0
+    },
+    validator_fixed_reward: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      defaultValue: 0
+    },
+    node_operator_reward: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      defaultValue: 0
+    },
+    delegators_total_reward: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      defaultValue: 0
+    },
+    total_staked_snapshot: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      defaultValue: 0
+    },
+    reward_computed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   }, {
     sequelize,

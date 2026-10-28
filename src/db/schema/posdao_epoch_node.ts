@@ -20,6 +20,30 @@ interface PosdaoEpochNode {
    */
   is_claimed: (boolean) | null
   owner_reward: (string) | null
+  /**
+   * @default 0
+   */
+  total_pool_reward: string
+  /**
+   * @default 0
+   */
+  validator_fixed_reward: string
+  /**
+   * @default 0
+   */
+  node_operator_reward: string
+  /**
+   * @default 0
+   */
+  delegators_total_reward: string
+  /**
+   * @default 0
+   */
+  total_staked_snapshot: string
+  /**
+   * @default false
+   */
+  reward_computed: boolean
 }
 export default PosdaoEpochNode;
 
@@ -32,5 +56,17 @@ interface PosdaoEpochNode_InsertParameters {
    */
   is_claimed?: (boolean) | null
   owner_reward?: (string) | null
+  /**
+   * @default 0
+   */
+  total_pool_reward?: string
+  validator_fixed_reward?: string
+  node_operator_reward?: string
+  delegators_total_reward?: string
+  total_staked_snapshot?: string
+  /**
+   * @default false
+   */
+  reward_computed?: boolean
 }
 export type {PosdaoEpochNode_InsertParameters}

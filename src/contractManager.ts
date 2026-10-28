@@ -23,6 +23,12 @@ import JsonConnectivityTrackerHbbft from './abi/json/ConnectivityTrackerHbbft.js
 
 import JsonBonusScoreSystem from './abi/json/BonusScoreSystem.json';
 
+import { DMDRegistrarController } from './abi/contracts/DMDRegistrarController';
+import JsonDMDRegistrarController from './abi/json/DMDRegistrarController.json';
+
+import { DMDNames } from './abi/contracts/DMDNames';
+import JsonDMDNames from './abi/json/DMDNames.json';
+
 import { BlockType } from './abi/contracts/types';
 
 
@@ -30,8 +36,14 @@ import { BlockTransactionString } from 'web3-eth';
 import {
   AvailabilityEvent,
   ClaimedOrderedWithdrawalEvent,
+  DmdNameTransferEvent,
   GatherAbandonedStakesEvent,
   MovedStakeEvent,
+  NameActivatedEvent,
+  NameBlockedSetEvent,
+  NameDeactivatedEvent,
+  NameRegisteredEvent,
+  NameRenewedEvent,
   OrderedWithdrawalEvent,
   StakeChangedEvent
 } from './eventsVisitor';
@@ -63,7 +75,13 @@ export type ContractEvent = AvailabilityEvent
   | StakeChangedEvent
   | OrderedWithdrawalEvent
   | ClaimedOrderedWithdrawalEvent
-  | GatherAbandonedStakesEvent;
+  | GatherAbandonedStakesEvent
+  | NameRegisteredEvent
+  | NameActivatedEvent
+  | NameDeactivatedEvent
+  | NameRenewedEvent
+  | NameBlockedSetEvent
+  | DmdNameTransferEvent;
 
 
 export class DelegateRewardData {
@@ -76,8 +94,12 @@ export class DelegateRewardData {
   ) { }
 }
 
-
-
+export interface RestakeRewardEvent {
+  poolStakingAddress: string;
+  stakingEpoch: number;
+  validatorReward: BigNumber;
+  delegatorsReward: BigNumber;
+}
 
 /// a IP Address with Port, but without the public key.
 export class NetworkAddress {
@@ -116,10 +138,11 @@ export class ContractManager {
   private cachedPermission?: TxPermissionHbbft;
   private cachedBonusScoreSystem?: BonusScoreSystem;
   private cachedConnectivityTrackerHbbft?: ConnectivityTrackerHbbft;
-
+  private cachedDmdRegistrarController?: DMDRegistrarController;
+  private cachedDmdNames?: DMDNames;
+  private cachedValidatorMinRewardPercent: Map<number, number> = new Map();
+  
   private apyStakeFraction: BigNumber;
-
-
 
   public constructor(public web3: Web3) {
     this.apyStakeFraction = parseEther(this.web3.utils.toWei('10000', 'ether'));
@@ -303,6 +326,263 @@ export class ContractManager {
 
     const networkConfig = ConfigManager.getNetworkConfig();
     return networkConfig.claimingPotAddress;
+  }
+
+  public async getDmdRegistrarControllerAddress(): Promise<string | undefined> {
+    if (process.env.DMD_REGISTRAR_CONTROLLER_ADDRESS) {
+      return process.env.DMD_REGISTRAR_CONTROLLER_ADDRESS;
+    }
+
+    const chainID = await this.web3.eth.getChainId();
+    if (chainID === 17771) {
+      return '0x26EeECc60964C219bFBeA25aBb86aB8b4590467B';
+    }
+
+    return undefined;
+  }
+
+  public async getDmdNamesAddress(): Promise<string | undefined> {
+    if (process.env.DMD_NAMES_ADDRESS) {
+      return process.env.DMD_NAMES_ADDRESS;
+    }
+
+    const chainID = await this.web3.eth.getChainId();
+    if (chainID === 17771) {
+      return '0x857C95B69b5dD7EFE4e5591B2e0C0a79aeBE9899';
+    }
+
+    return undefined;
+  }
+
+  public async getDmdRegistrarController(): Promise<DMDRegistrarController | undefined> {
+    if (this.cachedDmdRegistrarController) {
+      return this.cachedDmdRegistrarController;
+    }
+
+    const contractAddress = await this.getDmdRegistrarControllerAddress();
+    if (!contractAddress) {
+      return undefined;
+    }
+
+    const abi: any = JsonDMDRegistrarController;
+    const contract: any = new this.web3.eth.Contract(abi, contractAddress);
+    this.cachedDmdRegistrarController = contract;
+
+    return contract;
+  }
+
+  public async getDmdNames(): Promise<DMDNames | undefined> {
+    if (this.cachedDmdNames) {
+      return this.cachedDmdNames;
+    }
+
+    const contractAddress = await this.getDmdNamesAddress();
+    if (!contractAddress) {
+      return undefined;
+    }
+
+    const abi: any = JsonDMDNames;
+    const contract: any = new this.web3.eth.Contract(abi, contractAddress);
+    this.cachedDmdNames = contract;
+
+    return contract;
+  }
+
+  public async getNameRegisteredEvents(fromBlockNumber: number, toBlockNumber: number): Promise<NameRegisteredEvent[]> {
+    const registrar = await this.getDmdRegistrarController();
+    if (!registrar) {
+      return [];
+    }
+
+    const events = await registrar.getPastEvents('NameRegistered', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+    const result = new Array<NameRegisteredEvent>();
+
+    for (const event of events) {
+      const values = event.returnValues;
+      const blockTimestamp = (await this.web3.eth.getBlock(event.blockNumber)).timestamp;
+
+      result.push(new NameRegisteredEvent(
+        'NameRegistered',
+        event.blockNumber,
+        Number(blockTimestamp),
+        Number(event.logIndex),
+        values.node,
+        values.labelHash,
+        values.name,
+        values.expiration,
+        event.transactionHash
+      ));
+    }
+
+    return result;
+  }
+
+  public async getNameActivatedEvents(fromBlockNumber: number, toBlockNumber: number): Promise<NameActivatedEvent[]> {
+    const registrar = await this.getDmdRegistrarController();
+    if (!registrar) {
+      return [];
+    }
+
+    const events = await registrar.getPastEvents('NameActivated', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+    const result = new Array<NameActivatedEvent>();
+
+    for (const event of events) {
+      const values = event.returnValues;
+      const blockTimestamp = (await this.web3.eth.getBlock(event.blockNumber)).timestamp;
+
+      result.push(new NameActivatedEvent(
+        'NameActivated',
+        event.blockNumber,
+        Number(blockTimestamp),
+        Number(event.logIndex),
+        values.owner,
+        values.labelHash,
+        values.name,
+        event.transactionHash
+      ));
+    }
+
+    return result;
+  }
+
+  public async getNameDeactivatedEvents(fromBlockNumber: number, toBlockNumber: number): Promise<NameDeactivatedEvent[]> {
+    const registrar = await this.getDmdRegistrarController();
+    if (!registrar) {
+      return [];
+    }
+
+    const events = await registrar.getPastEvents('NameDeactivated', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+    const result = new Array<NameDeactivatedEvent>();
+
+    for (const event of events) {
+      const values = event.returnValues;
+      const blockTimestamp = (await this.web3.eth.getBlock(event.blockNumber)).timestamp;
+
+      result.push(new NameDeactivatedEvent(
+        'NameDeactivated',
+        event.blockNumber,
+        Number(blockTimestamp),
+        Number(event.logIndex),
+        values.owner,
+        values.labelHash,
+        values.name,
+        event.transactionHash
+      ));
+    }
+
+    return result;
+  }
+
+  public async getNameRenewedEvents(fromBlockNumber: number, toBlockNumber: number): Promise<NameRenewedEvent[]> {
+    const registrar = await this.getDmdRegistrarController();
+    if (!registrar) {
+      return [];
+    }
+
+    const events = await registrar.getPastEvents('NameRenewed', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+    const result = new Array<NameRenewedEvent>();
+
+    for (const event of events) {
+      const values = event.returnValues;
+      const blockTimestamp = (await this.web3.eth.getBlock(event.blockNumber)).timestamp;
+
+      result.push(new NameRenewedEvent(
+        'NameRenewed',
+        event.blockNumber,
+        Number(blockTimestamp),
+        Number(event.logIndex),
+        values.owner,
+        values.labelHash,
+        values.name,
+        values.expiration,
+        event.transactionHash
+      ));
+    }
+
+    return result;
+  }
+
+  public async getNameBlockedSetEvents(fromBlockNumber: number, toBlockNumber: number): Promise<NameBlockedSetEvent[]> {
+    const registrar = await this.getDmdRegistrarController();
+    if (!registrar) {
+      return [];
+    }
+
+    const events = await registrar.getPastEvents('NameBlockedSet', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+    const result = new Array<NameBlockedSetEvent>();
+
+    for (const event of events) {
+      const values = event.returnValues;
+      const blockTimestamp = (await this.web3.eth.getBlock(event.blockNumber)).timestamp;
+
+      result.push(new NameBlockedSetEvent(
+        'NameBlockedSet',
+        event.blockNumber,
+        Number(blockTimestamp),
+        Number(event.logIndex),
+        values.labelHash,
+        values.name,
+        Boolean(values.blocked),
+        event.transactionHash
+      ));
+    }
+
+    return result;
+  }
+
+  public async getDmdNameTransferEvents(fromBlockNumber: number, toBlockNumber: number): Promise<DmdNameTransferEvent[]> {
+    const dmdNames = await this.getDmdNames();
+    if (!dmdNames) {
+      return [];
+    }
+
+    const events = await dmdNames.getPastEvents('Transfer', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+    const result = new Array<DmdNameTransferEvent>();
+
+    for (const event of events) {
+      const values = event.returnValues;
+      const blockTimestamp = (await this.web3.eth.getBlock(event.blockNumber)).timestamp;
+
+      result.push(new DmdNameTransferEvent(
+        'Transfer',
+        event.blockNumber,
+        Number(blockTimestamp),
+        Number(event.logIndex),
+        values.from,
+        values.to,
+        values.tokenId,
+        event.transactionHash
+      ));
+    }
+
+    return result;
+  }
+
+  public async getDmdNamingEvents(fromBlockNumber: number, toBlockNumber: number): Promise<ContractEvent[]> {
+    const nameRegisteredEvents = await this.getNameRegisteredEvents(fromBlockNumber, toBlockNumber);
+    const nameActivatedEvents = await this.getNameActivatedEvents(fromBlockNumber, toBlockNumber);
+    const nameDeactivatedEvents = await this.getNameDeactivatedEvents(fromBlockNumber, toBlockNumber);
+    const nameRenewedEvents = await this.getNameRenewedEvents(fromBlockNumber, toBlockNumber);
+    const nameBlockedSetEvents = await this.getNameBlockedSetEvents(fromBlockNumber, toBlockNumber);
+    const transferEvents = await this.getDmdNameTransferEvents(fromBlockNumber, toBlockNumber);
+
+    const result: Array<ContractEvent> = [
+      ...nameRegisteredEvents,
+      ...nameActivatedEvents,
+      ...nameDeactivatedEvents,
+      ...nameRenewedEvents,
+      ...nameBlockedSetEvents,
+      ...transferEvents
+    ];
+
+    result.sort((a, b) => {
+      if (a.blockNumber !== b.blockNumber) {
+        return a.blockNumber - b.blockNumber;
+      }
+      return ((a as any).logIndex ?? 0) - ((b as any).logIndex ?? 0);
+    });
+
+    return result;
   }
 
   async getActualEpochEndTime() {
@@ -595,10 +875,12 @@ export class ContractManager {
 
     const availabilityEvents = await this.getAvailabilityEvents(fromBlockNumber, toBlockNumber);
     const stakeUpdateEvents = await this.getStakeUpdateEvents(fromBlockNumber, toBlockNumber);
+    const dmdNamingEvents = await this.getDmdNamingEvents(fromBlockNumber, toBlockNumber);
 
     let result: Array<ContractEvent> = [
       ...availabilityEvents,
-      ...stakeUpdateEvents
+      ...stakeUpdateEvents,
+      ...dmdNamingEvents
     ];
 
     result.sort((a, b) => a.blockNumber - b.blockNumber);
@@ -841,43 +1123,120 @@ export class ContractManager {
     return { timeStamp, duration, transaction_count, txs_per_sec, posdaoEpoch };
   }
 
-  public async getDelegateRewards(
-    pool: string,
+  public async getEpochPoolNativeReward(
+    epoch: number,
+    miningAddress: string,
+    blockNumber: number
+  ): Promise<BigNumber> {
+    const rewardContract = await this.getRewardHbbft();
+    const result = await rewardContract.methods.epochPoolNativeReward(epoch, miningAddress).call({}, blockNumber);
+    return parseEther(result);
+  }
+
+  public async getValidatorMinRewardPercent(
     epoch: number,
     blockNumber: number
-  ): Promise<{ apy: BigNumber; rewards: DelegateRewardData[] }> {
+  ): Promise<number> {
+    if (this.cachedValidatorMinRewardPercent.has(epoch)) {
+      return this.cachedValidatorMinRewardPercent.get(epoch)!;
+    }
+    const rewardContract = await this.getRewardHbbft();
+    const result = h2n(await rewardContract.methods.validatorMinRewardPercent(epoch).call({}, blockNumber));
+    this.cachedValidatorMinRewardPercent.set(epoch, result);
+    return result;
+  }
 
-    // console.log("");
+  public async getSnapshotPoolTotalStakeAmount(
+    epoch: number,
+    poolStakingAddress: string
+  ): Promise<BigNumber> {
+    const staking = await this.getStakingHbbft();
+    const result = await staking.methods.snapshotPoolTotalStakeAmount(epoch, poolStakingAddress).call();
+    return parseEther(result);
+  }
+
+  public async getSnapshotPoolValidatorStakeAmount(
+    epoch: number,
+    poolStakingAddress: string
+  ): Promise<BigNumber> {
+    const staking = await this.getStakingHbbft();
+    const result = await staking.methods.snapshotPoolValidatorStakeAmount(epoch, poolStakingAddress).call();
+    return parseEther(result);
+  }
+
+  public async getPoolNodeOperatorShare(
+    poolStakingAddress: string,
+    blockNumber: number
+  ): Promise<number> {
+    const staking = await this.getStakingHbbft();
+    return h2n(await staking.methods.poolNodeOperatorShare(poolStakingAddress).call({}, blockNumber));
+  }
+
+  public async getRestakeRewardEvents(
+    fromBlock: number,
+    toBlock: number
+  ): Promise<RestakeRewardEvent[]> {
+    const staking = await this.getStakingHbbft();
+    const events = await staking.getPastEvents('RestakeReward', { fromBlock, toBlock });
+    return events.map(event => ({
+      poolStakingAddress: event.returnValues.poolStakingAddress,
+      stakingEpoch: Number(event.returnValues.stakingEpoch),
+      validatorReward: parseEther(event.returnValues.validatorReward),
+      delegatorsReward: parseEther(event.returnValues.delegatorsReward),
+    }));
+  }
+
+  public async getDelegateRewards(
+    pool: string,
+    miningAddress: string,
+    epoch: number,
+    epochSnapshotBlock: number,
+    eventValidatorReward: BigNumber,
+    eventDelegatorsReward: BigNumber
+  ): Promise<{
+    apy: BigNumber;
+    rewards: DelegateRewardData[];
+    totalPoolReward: BigNumber;
+    validatorFixed: BigNumber;
+    nodeOperatorReward: BigNumber;
+    delegatorsTotal: BigNumber;
+    totalStake: BigNumber;
+  }> {
     const staking = await this.getStakingHbbft();
 
-    let result = new Array<DelegateRewardData>();
+    const poolReward = eventValidatorReward.plus(eventDelegatorsReward);
+    const validatorFixed = eventValidatorReward;
+    const delegatorsTotal = eventDelegatorsReward;
+    const operatorSharePct = await this.getPoolNodeOperatorShare(pool, epochSnapshotBlock);
+    const nodeOperatorReward = poolReward.times(operatorSharePct).div(10000);
+    const totalStake = await this.getSnapshotPoolTotalStakeAmount(epoch, pool);
 
-    const delegators = await this.getAllPoolDelegators(pool, blockNumber - 1);
+    const delegators = await this.getAllPoolDelegators(pool, epochSnapshotBlock);
+    const result = new Array<DelegateRewardData>();
 
     for (const delegator of delegators) {
-
-      const reward = await this.getReward(pool, delegator, epoch, blockNumber);
+      const delegatorStake = parseEther(
+        await staking.methods.stakeAmount(pool, delegator).call({}, epochSnapshotBlock)
+      );
+      const delegatorReward = totalStake.isZero()
+        ? BigNumber(0)
+        : delegatorsTotal.times(delegatorStake).div(totalStake);
 
       result.push({
         poolAddress: pool,
         delegatorAddress: delegator,
         epoch: epoch,
         isClaimed: true, // since auto restake, rewards are considered always as claimed: https://github.com/DMDcoin/diamond-contracts-core/issues/43
-        amount: parseEther(reward)
+        amount: delegatorReward
       });
     }
 
-    const totalRewards = result.reduce(
-      (accumulator, currentValue) => accumulator.plus(currentValue.amount!),
-      BigNumber(0)
-    );
-
-    const totalStake = await staking.methods.stakeAmountTotal(pool).call({}, blockNumber - 1);
-
     // reward amount per 10_000 staked DMD
-    const apy = (totalRewards.times(this.apyStakeFraction)).div(parseEther(totalStake));
+    const apy = totalStake.isZero()
+      ? BigNumber(0)
+      : delegatorsTotal.times(this.apyStakeFraction).div(totalStake);
 
-    return { apy: apy, rewards: result };
+    return { apy, rewards: result, totalPoolReward: poolReward, validatorFixed, nodeOperatorReward, delegatorsTotal, totalStake };
   }
 
 

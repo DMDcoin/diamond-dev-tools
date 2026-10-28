@@ -15,6 +15,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
+      - DMD_DB_API_PASS=${DMD_DB_API_PASS:?set DMD_DB_API_PASS in db/.env}
     # command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     networks:
       - monitor-net
@@ -34,7 +35,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
@@ -47,10 +48,10 @@ services:
   pgadmin:
     build: ./pgadmin 
     ports:
-      - '3002:80'
+      - '127.0.0.1:3002:80'
     environment:
       - PGADMIN_DEFAULT_EMAIL=nobody@bit.diamonds
-      - PGADMIN_DEFAULT_PASSWORD=${DMD_DB_POSTGRES_PASS}
+      - PGADMIN_DEFAULT_PASSWORD=${DMD_PGADMIN_PASS:?set DMD_PGADMIN_PASS in db/.env}
     networks:
       - monitor-net
   
@@ -69,10 +70,10 @@ services:
     env_file:
       - ../.env
     ports:
-      - "${PORT:-9990}:${PORT:-9990}"
+      - "127.0.0.1:${PORT:-9990}:${PORT:-9990}"
     environment:
-      - NODE_ENV=development
-      - POSTGRES_PASSWORD=${DMD_DB_POSTGRES_PASS}
+      - NODE_ENV=${NODE_ENV:-production}
+      - DMD_DB_API_PASS=${DMD_DB_API_PASS:?set DMD_DB_API_PASS in db/.env}
       - DMD_DB_POSTGRES_PORT=${DMD_DB_POSTGRES_PORT}
       - POSTGRES_INSTANCE=db:${DMD_DB_POSTGRES_PORT}
       - HOST=0.0.0.0
