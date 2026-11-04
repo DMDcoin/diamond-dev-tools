@@ -187,17 +187,25 @@
   },
   {
     "type": "function",
-    "name": "blockName",
+    "name": "clearDNSRecord",
     "inputs": [
       {
-        "name": "_name",
+        "name": "_label",
         "type": "string",
         "internalType": "string"
-      },
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "clearEmailForwarding",
+    "inputs": [
       {
-        "name": "_owner",
-        "type": "address",
-        "internalType": "address"
+        "name": "_label",
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "outputs": [],
@@ -407,6 +415,34 @@
   },
   {
     "type": "function",
+    "name": "moderateName",
+    "inputs": [
+      {
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_name",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "names",
     "inputs": [
       {
@@ -561,6 +597,42 @@
   },
   {
     "type": "function",
+    "name": "setAAAARecord",
+    "inputs": [
+      {
+        "name": "_label",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_ipv6",
+        "type": "bytes16",
+        "internalType": "bytes16"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setARecord",
+    "inputs": [
+      {
+        "name": "_label",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_ipv4",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setAllowedChangeableParameter",
     "inputs": [
       {
@@ -577,6 +649,42 @@
         "name": "params",
         "type": "uint256[]",
         "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setCnameRecord",
+    "inputs": [
+      {
+        "name": "_label",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_cname",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setEmailForwarding",
+    "inputs": [
+      {
+        "name": "_label",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_target",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -753,6 +861,37 @@
   },
   {
     "type": "event",
+    "name": "NameModerated",
+    "inputs": [
+      {
+        "name": "owmer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "labelHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "NameRegistered",
     "inputs": [
       {
@@ -911,6 +1050,26 @@
   },
   {
     "type": "error",
+    "name": "InvalidCname",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidEmailForwardingTarget",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidIPv4",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidIPv6",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidInitialization",
     "inputs": []
   },
@@ -997,6 +1156,11 @@
         "internalType": "uint256"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "NotActiveName",
+    "inputs": []
   },
   {
     "type": "error",
