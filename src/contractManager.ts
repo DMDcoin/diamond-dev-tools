@@ -29,6 +29,9 @@ import JsonDMDRegistrarController from './abi/json/DMDRegistrarController.json';
 import { DMDNames } from './abi/contracts/DMDNames';
 import JsonDMDNames from './abi/json/DMDNames.json';
 
+import { DMDResolver } from './abi/contracts/DMDResolver';
+import JsonDMDResolver from './abi/json/DMDResolver.json';
+
 import { BlockType } from './abi/contracts/types';
 
 
@@ -54,6 +57,15 @@ import { parseEther } from './utils/ether';
 import { h2bn, h2n, toNumber } from './utils/numberUtils';
 import { blockTimeAsUTC } from './utils/dateUtils';
 import { deepEqual } from 'assert';
+import {
+  DnsChainNameState,
+  DnsSyncEvent,
+  NAMES_EVENTS,
+  REGISTRAR_EVENTS,
+  RESOLVER_EVENTS,
+  decodeEmailTarget,
+  decodeWebsiteRecord
+} from './dns/dnsSyncEvents';
 
 export enum KeyGenMode {
   NotAPendingValidator = 0,
@@ -140,6 +152,7 @@ export class ContractManager {
   private cachedConnectivityTrackerHbbft?: ConnectivityTrackerHbbft;
   private cachedDmdRegistrarController?: DMDRegistrarController;
   private cachedDmdNames?: DMDNames;
+  private cachedDmdResolver?: DMDResolver;
   private cachedValidatorMinRewardPercent: Map<number, number> = new Map();
   
   private apyStakeFraction: BigNumber;
@@ -583,6 +596,112 @@ export class ContractManager {
     });
 
     return result;
+  }
+
+  public async getDmdResolverAddress(): Promise<string | undefined> {
+    if (process.env.DMD_RESOLVER_ADDRESS) {
+      return process.env.DMD_RESOLVER_ADDRESS;
+    }
+
+    const registrar = await this.getDmdRegistrarController();
+    if (!registrar) {
+      return undefined;
+    }
+
+    return await registrar.methods.resolver().call();
+  }
+
+  public async getDmdResolver(): Promise<DMDResolver | undefined> {
+    if (this.cachedDmdResolver) {
+      return this.cachedDmdResolver;
+    }
+
+    const contractAddress = await this.getDmdResolverAddress();
+    if (!contractAddress) {
+      return undefined;
+    }
+
+    const abi: any = JsonDMDResolver;
+    const contract: any = new this.web3.eth.Contract(abi, contractAddress);
+    this.cachedDmdResolver = contract;
+
+    return contract;
+  }
+
+  /**
+   * Naming system events relevant for the DNS sync, sorted by block number and log index.
+   */
+  public async getDnsSyncEvents(fromBlockNumber: number, toBlockNumber: number): Promise<DnsSyncEvent[]> {
+    const registrar = await this.getDmdRegistrarController();
+    const resolver = await this.getDmdResolver();
+    const dmdNames = await this.getDmdNames();
+
+    if (!registrar || !resolver || !dmdNames) {
+      throw new Error('DMD naming system contracts are not configured.');
+    }
+
+    const sources: Array<[any, string[]]> = [
+      [registrar, REGISTRAR_EVENTS],
+      [resolver, RESOLVER_EVENTS],
+      [dmdNames, NAMES_EVENTS]
+    ];
+
+    const result = new Array<DnsSyncEvent>();
+
+    for (const [contract, eventNames] of sources) {
+      const events = await contract.getPastEvents('allEvents', { fromBlock: fromBlockNumber, toBlock: toBlockNumber });
+
+      for (const event of events) {
+        if (!eventNames.includes(event.event)) {
+          continue;
+        }
+
+        const dnsEvent = DnsSyncEvent.fromEventData(event);
+        if (dnsEvent) {
+          result.push(dnsEvent);
+        }
+      }
+    }
+
+    result.sort((a, b) => {
+      if (a.blockNumber !== b.blockNumber) {
+        return a.blockNumber - b.blockNumber;
+      }
+      return a.logIndex - b.logIndex;
+    });
+
+    return result;
+  }
+
+  /**
+   * Reads everything that decides what gets published for a name, all at the same block.
+   */
+  public async getDnsNameState(labelHash: string, label: string, node: string, blockNumber: BlockType): Promise<DnsChainNameState> {
+    const registrar = await this.getDmdRegistrarController();
+    const resolver = await this.getDmdResolver();
+    const dmdNames = await this.getDmdNames();
+
+    if (!registrar || !resolver || !dmdNames) {
+      throw new Error('DMD naming system contracts are not configured.');
+    }
+
+    const tokenId = BigInt(labelHash).toString();
+
+    const [activeOwner, expired, blocked, record, email] = await Promise.all([
+      registrar.methods.namesReverse(labelHash).call({}, blockNumber),
+      dmdNames.methods.expired(tokenId).call({}, blockNumber),
+      registrar.methods.isNameBlocked(label).call({}, blockNumber),
+      resolver.methods.dnsRecord(node).call({}, blockNumber),
+      resolver.methods.emailForwardingTarget(node).call({}, blockNumber)
+    ]);
+
+    return {
+      active: BigInt(activeOwner) !== BigInt(0),
+      expired: Boolean(expired),
+      blocked: Boolean(blocked),
+      website: decodeWebsiteRecord(Number(record[0]), record[1]),
+      email: decodeEmailTarget(email)
+    };
   }
 
   async getActualEpochEndTime() {
